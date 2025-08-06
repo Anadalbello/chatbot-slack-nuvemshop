@@ -342,9 +342,10 @@ def slack_events():
                     if resultado_formatado:
                         logger.info("📤 Enviando resposta para o Slack...")
                         try:
-                            slack_client.chat_update(
+                            # MUDANÇA: Usar chat_postMessage em vez de chat_update
+                            slack_client.chat_postMessage(
                                 channel=channel,
-                                ts=progresso_ts,
+                                thread_ts=thread_ts,  # ← usar thread_ts original
                                 text=resultado_formatado,
                                 blocks=criar_botoes_interacao(pergunta_limpa, resultados_encontrados)
                             )
