@@ -342,10 +342,10 @@ def slack_events():
                     if resultado_formatado:
                         logger.info("📤 Enviando resposta para o Slack...")
                         try:
-                            # MUDANÇA: Usar chat_postMessage em vez de chat_update
+                            # CORREÇÃO: Enviar nova mensagem em vez de atualizar
                             slack_client.chat_postMessage(
                                 channel=channel,
-                                thread_ts=thread_ts,  # ← usar thread_ts original
+                                thread_ts=thread_ts,
                                 text=resultado_formatado,
                                 blocks=criar_botoes_interacao(pergunta_limpa, resultados_encontrados)
                             )
@@ -353,13 +353,15 @@ def slack_events():
                             return jsonify({"ok": True})
                         except Exception as slack_error:
                             logger.error(f"❌ Erro ao enviar para Slack: {slack_error}")
-                            # Tentar enviar resposta simples
-                            slack_client.chat_update(
-                                channel=channel,
-                                ts=progresso_ts,
-                                text=f"✅ **Encontrei informações sobre:** _{pergunta_limpa}_\n\nVeja os detalhes acima! 📋"
-                            )
-                            return jsonify({"ok": True})
+                            # Tentar enviar resposta simples sem botões
+                            try:
+                                slack_client.chat_postMessage(
+                                    channel=channel,
+                                    thread_ts=thread_ts,
+                                    text=resultado_formatado
+                                )
+                            except Exception as fallback_error:
+                                logger.error(f"❌ Erro no fallback: {fallback_error}")
                     else:
                         logger.error("❌ Formatação retornou None - enviando resposta simples")
                         slack_client.chat_update(
