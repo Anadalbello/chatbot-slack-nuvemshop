@@ -16,7 +16,9 @@ from handlers.google_sites import buscar_google_sites
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+# IMPORTANTE: Carregar .env apenas em desenvolvimento
+if os.path.exists('.env'):
+    load_dotenv()
 
 app = Flask(__name__)
 
@@ -314,8 +316,8 @@ def slack_events():
                     text=f"🔍 **Buscando informações sobre:** _{pergunta_limpa}_\n\n📋 Consultando Confluence..."
                 )
                 logger.info(f"📋 Iniciando busca no Confluence para: {pergunta_limpa}")
-                
-                resultado_confluence = buscar_confluence(text)
+
+                resultado_confluence = buscar_confluence(pergunta_limpa)  # ← MUDANÇA: usar pergunta_limpa
                 logger.info(f"Resultado Confluence: {resultado_confluence[:100] if resultado_confluence else 'None'}...")
                 
                 if resultado_confluence and eh_resultado_util(resultado_confluence):
