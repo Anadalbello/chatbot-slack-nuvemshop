@@ -285,29 +285,11 @@ def slack_events():
             pergunta_limpa = limpar_termo_busca(text)
             
             try:
-                # 👋 SAUDAÇÃO INICIAL - MENSAGEM SEPARADA
-                slack_client.chat_postMessage(
-                    channel=channel,
-                    thread_ts=thread_ts,
-                    text=f"👋 **Olá!** Recebi sua pergunta sobre: _{pergunta_limpa}_\n\n"
-                         f"⏳ **Aguarde um momento...** Vou buscar em todas as nossas bases de conhecimento!"
-                )
-                
-                # 🔍 MENSAGEM DE PROGRESSO - OUTRA MENSAGEM SEPARADA
-                mensagem_progresso = slack_client.chat_postMessage(
-                    channel=channel,
-                    thread_ts=thread_ts,
-                    text=f"🔍 **Buscando informações sobre:** _{pergunta_limpa}_\n\n🎫 Consultando Zendesk..."
-                )
-                
-                progresso_ts = mensagem_progresso.get("ts")
-
-                # 🔍 BUSCAR EM TODAS AS BASES - SEMPRE
+                # 🔍 BUSCAR SILENCIOSAMENTE (sem mensagens intermediárias)
                 resultados_encontrados = {}
 
                 # 1. Buscar no Zendesk
                 logger.info(f"🎫 Iniciando busca no Zendesk para: {pergunta_limpa}")
-                
                 resultado_zendesk = buscar_artigo_zendesk(text)
                 logger.info(f"Resultado Zendesk: {resultado_zendesk[:100] if resultado_zendesk else 'None'}...")
                 
@@ -317,15 +299,9 @@ def slack_events():
                 else:
                     logger.info("❌ Nenhum resultado útil no Zendesk")
 
-                # 2. Buscar no Confluence - SEMPRE, independente do Zendesk
-                slack_client.chat_update(
-                    channel=channel,
-                    ts=progresso_ts,
-                    text=f"🔍 **Buscando informações sobre:** _{pergunta_limpa}_\n\n📋 Consultando Confluence..."
-                )
+                # 2. Buscar no Confluence
                 logger.info(f"📋 Iniciando busca no Confluence para: {pergunta_limpa}")
-
-                resultado_confluence = buscar_confluence(pergunta_limpa)  # ← MUDANÇA: usar pergunta_limpa
+                resultado_confluence = buscar_confluence(pergunta_limpa)
                 logger.info(f"Resultado Confluence: {resultado_confluence[:100] if resultado_confluence else 'None'}...")
                 
                 if resultado_confluence and eh_resultado_util(resultado_confluence):
@@ -334,112 +310,45 @@ def slack_events():
                 else:
                     logger.info("❌ Nenhum resultado útil no Confluence")
 
-                # 3. MOSTRAR TODOS OS RESULTADOS ENCONTRADOS
+                # 3. ENVIAR APENAS RESULTADO FINAL
                 if resultados_encontrados:
                     logger.info(f"🎉 Total de resultados encontrados: {len(resultados_encontrados)}")
                     
-                    # Formatar todos os resultados juntos
                     resultado_formatado = formatar_resultados_encontrados(
                         resultados_encontrados.get('zendesk'),
                         resultados_encontrados.get('confluence'),
                         pergunta_limpa
                     )
                     
-                    logger.info(f"🎨 Resultado formatado: {bool(resultado_formatado)}")
-                    
                     if resultado_formatado:
-                        logger.info("📤 Enviando resposta para o Slack...")
-                        try:
-                            # Tentar primeiro SEM botões para testar
-                            response = slack_client.chat_postMessage(
-                                channel=channel,
-                                thread_ts=thread_ts,
-                                text=resultado_formatado
-                            )
-                            logger.info(f"✅ Resposta enviada com sucesso! TS: {response.get('ts')}")
-                            
-                            # Se funcionou, tentar adicionar botões em mensagem separada
-                            try:
-                                slack_client.chat_postMessage(
-                                    channel=channel,
-                                    thread_ts=thread_ts,
-                                    text="❓ **Estas informações respondem sua dúvida?**",
-                                    blocks=criar_botoes_interacao(pergunta_limpa, resultados_encontrados)
-                                )
-                                logger.info("✅ Botões enviados com sucesso!")
-                            except Exception as button_error:
-                                logger.error(f"❌ Erro nos botões: {button_error}")
-                            
-                            return jsonify({"ok": True})
-                        except Exception as slack_error:
-                            logger.error(f"❌ Erro ao enviar para Slack: {slack_error}")
-                            # Fallback sem formatação
-                            try:
-                                slack_client.chat_postMessage(
-                                    channel=channel,
-                                    thread_ts=thread_ts,
-                                    text=f"Encontrei resultados para '{pergunta_limpa}' mas houve erro na formatação."
-                                )
-                            except Exception as fallback_error:
-                                logger.error(f"❌ Erro no fallback: {fallback_error}")
-                    else:
-                        logger.error("❌ Formatação retornou None - enviando resposta simples")
-                        slack_client.chat_update(
+                        logger.info("📤 Enviando resposta única para o Slack...")
+                        response = slack_client.chat_postMessage(
                             channel=channel,
-                            ts=progresso_ts,
-                            text=f"✅ **Encontrei informações sobre:** _{pergunta_limpa}_\n\nVeja os detalhes nos logs! 📋"
+                            thread_ts=thread_ts,
+                            text=resultado_formatado
+                        )
+                        logger.info(f"✅ Resposta enviada! TS: {response.get('ts')}")
+                        
+                        # Botões em mensagem separada
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text="",  # Mensagem vazia, só botões
+                            blocks=criar_botoes_interacao(pergunta_limpa, resultados_encontrados)
                         )
                         return jsonify({"ok": True})
+                
+                # Se não encontrou nada
+                else:
+                    logger.info("❌ Nenhum resultado encontrado - oferecendo alternativas")
+                    slack_client.chat_postMessage(
+                        channel=channel,
+                        thread_ts=thread_ts,
+                        text=f"🔍 Não encontrei informações específicas sobre: _{pergunta_limpa}_",
+                        blocks=criar_botoes_interacao(pergunta_limpa, {})
+                    )
+                    return jsonify({"ok": True})
 
-                # 4. Nenhum resultado útil encontrado
-                logger.info("🔍 Busca finalizada - nenhum resultado útil encontrado em nenhuma base")
-                portal_url = "https://sites.google.com/nuvemshop.com.br/integracoesnuvemenvio/início"
-                jira_url = os.getenv("ATLASSIAN_BASE_URL", "https://tiendanube.atlassian.net")
-                jira_create_url = f"{jira_url}/secure/CreateIssue.jspa?pid=13242&issuetype=13600"
-                
-                # ❌ NÃO ENCONTRADO - OFERECER OPÇÕES
-                botoes_nao_encontrado = [
-                    {
-                        "type": "actions",
-                        "elements": [
-                            {
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text", 
-                                    "text": "📋 Consultar portal"
-                                },
-                                "value": json.dumps({
-                                    "action": "portal",
-                                    "pergunta": pergunta_limpa
-                                }),
-                                "action_id": "portal",
-                                "style": "primary"
-                            },
-                            {
-                                "type": "button",
-                                "text": {
-                                    "type": "plain_text",
-                                    "text": "🎫 Abrir chamado"
-                                },
-                                "value": json.dumps({
-                                    "action": "chamado", 
-                                    "pergunta": pergunta_limpa
-                                }),
-                                "action_id": "chamado"
-                            }
-                        ]
-                    }
-                ]
-                
-                slack_client.chat_update(
-                    channel=channel,
-                    ts=progresso_ts,
-                    text=f"❌ **Não encontrei informações sobre:** _{pergunta_limpa}_\n\n"
-                         f"🔍 **Busquei em:** Zendesk ✓ | Confluence ✓\n\n"
-                         f"📋 **Próximas opções recomendadas:**",
-                    blocks=botoes_nao_encontrado
-                )
-                
             except Exception as e:
                 logger.error(f"Erro ao processar mensagem: {e}")
                 try:
