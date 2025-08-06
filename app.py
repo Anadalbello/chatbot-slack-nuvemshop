@@ -45,7 +45,7 @@ def event_ja_processado(event_id, user, text):
     
     if chave in eventos_processados:
         tempo_desde_ultimo = agora - eventos_processados[chave]['timestamp']
-        if tempo_desde_ultimo < 10:  # 10 segundos
+        if tempo_desde_ultimo < 3:  # 3 segundos (era 10)
             logger.warning(f"Evento duplicado detectado: {chave}")
             return True
     
