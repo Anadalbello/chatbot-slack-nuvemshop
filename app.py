@@ -342,23 +342,35 @@ def slack_events():
                     if resultado_formatado:
                         logger.info("📤 Enviando resposta para o Slack...")
                         try:
-                            # CORREÇÃO: Enviar nova mensagem em vez de atualizar
-                            slack_client.chat_postMessage(
+                            # Tentar primeiro SEM botões para testar
+                            response = slack_client.chat_postMessage(
                                 channel=channel,
                                 thread_ts=thread_ts,
-                                text=resultado_formatado,
-                                blocks=criar_botoes_interacao(pergunta_limpa, resultados_encontrados)
+                                text=resultado_formatado
                             )
-                            logger.info("✅ Resposta enviada com sucesso!")
-                            return jsonify({"ok": True})
-                        except Exception as slack_error:
-                            logger.error(f"❌ Erro ao enviar para Slack: {slack_error}")
-                            # Tentar enviar resposta simples sem botões
+                            logger.info(f"✅ Resposta enviada com sucesso! TS: {response.get('ts')}")
+                            
+                            # Se funcionou, tentar adicionar botões em mensagem separada
                             try:
                                 slack_client.chat_postMessage(
                                     channel=channel,
                                     thread_ts=thread_ts,
-                                    text=resultado_formatado
+                                    text="❓ **Estas informações respondem sua dúvida?**",
+                                    blocks=criar_botoes_interacao(pergunta_limpa, resultados_encontrados)
+                                )
+                                logger.info("✅ Botões enviados com sucesso!")
+                            except Exception as button_error:
+                                logger.error(f"❌ Erro nos botões: {button_error}")
+                            
+                            return jsonify({"ok": True})
+                        except Exception as slack_error:
+                            logger.error(f"❌ Erro ao enviar para Slack: {slack_error}")
+                            # Fallback sem formatação
+                            try:
+                                slack_client.chat_postMessage(
+                                    channel=channel,
+                                    thread_ts=thread_ts,
+                                    text=f"Encontrei resultados para '{pergunta_limpa}' mas houve erro na formatação."
                                 )
                             except Exception as fallback_error:
                                 logger.error(f"❌ Erro no fallback: {fallback_error}")
