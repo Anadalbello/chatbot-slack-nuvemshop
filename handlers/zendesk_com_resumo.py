@@ -260,6 +260,21 @@ def criar_fallback_zendesk(termo, base_url):
     
     # Sugestões diretas para termos comuns com resumo
     sugestoes_com_resumo = {
+        "cte": {
+            "title": "Como emitir Conhecimento de Transporte Eletrônico (CTE)",
+            "resumo": "Passo a passo para emissão de CTE, documentos necessários e validações obrigatórias",
+            "url": f"{base_url}/articles/como-emitir-cte"
+        },
+        "conhecimento transporte": {
+            "title": "Documentação CTE - Conhecimento de Transporte",
+            "resumo": "Guia completo sobre CTE: emissão, cancelamento, correção e consulta de status",
+            "url": f"{base_url}/articles/cte-conhecimento-transporte"
+        },
+        "emitir": {
+            "title": "Como emitir documentos fiscais",
+            "resumo": "Tutorial para emissão de notas fiscais, CTE e outros documentos eletrônicos",
+            "url": f"{base_url}/articles/emitir-documentos"
+        },
         "login": {
             "title": "Como fazer login na sua conta",
             "resumo": "Passo a passo para acessar sua conta, recuperar senha e resolver problemas de login",
