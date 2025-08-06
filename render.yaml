@@ -2,8 +2,12 @@ services:
   - type: web
     name: chatbot-slack
     env: python
+    region: oregon
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: python app.py
     envVars:
       - key: PORT
         generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.11.0
