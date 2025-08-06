@@ -226,7 +226,8 @@ def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, p
             
             resultado_final += f"🎫 **{zendesk_info['titulo']}**\n"
             resultado_final += f"💡 {zendesk_info['resumo']}\n"
-            resultado_final += f"👉 [Ver no Zendesk]({zendesk_info['link']})\n\n"
+            resultado_final += f"👉 Ver no Zendesk\n"
+            resultado_final += f"({zendesk_info['link']})\n\n"
             
             total_resultados += 1
             logger.info(f"✅ Zendesk adicionado")
@@ -238,14 +239,15 @@ def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, p
             
             resultado_final += f"📋 **{confluence_info['titulo']}**\n"
             resultado_final += f"💡 {confluence_info['resumo']}\n"
-            resultado_final += f"👉 [Ver no Confluence]({confluence_info['link']})\n\n"
+            resultado_final += f"👉 Ver no Confluence\n"
+            resultado_final += f"({confluence_info['link']})\n\n"
             
             total_resultados += 1
             logger.info(f"✅ Confluence adicionado")
         
-        # Rodapé mais limpo
+        # Rodapé mais limpo (sem duplicar pergunta)
         if total_resultados > 0:
-            resultado_final += "---\n❓ **Estas informações ajudaram?**"
+            resultado_final += "---"
             logger.info(f"🎉 Resultado final otimizado - {total_resultados} item(s)")
             return resultado_final
         
@@ -333,7 +335,7 @@ def slack_events():
                         slack_client.chat_postMessage(
                             channel=channel,
                             thread_ts=thread_ts,
-                            text="",  # Mensagem vazia, só botões
+                            text="❓ **Estas informações ajudaram?**",
                             blocks=criar_botoes_interacao(pergunta_limpa, resultados_encontrados)
                         )
                         return jsonify({"ok": True})
