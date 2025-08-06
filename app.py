@@ -208,34 +208,45 @@ def criar_botoes_interacao(pergunta_limpa, resultados_encontrados):
     ]
 
 def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, pergunta_limpa):
-    """Formata todos os resultados encontrados em uma única resposta"""
+    """Formata todos os resultados encontrados em uma única resposta otimizada"""
     
     logger.info(f"🎨 Formatando resultados - Zendesk: {bool(resultados_zendesk)}, Confluence: {bool(resultados_confluence)}")
     
     try:
-        resultados_formatados = []
+        # Cabeçalho mais limpo
+        resultado_final = f"🔍 **Resultados para:** _{pergunta_limpa}_\n\n"
+        
+        # Contador de resultados
+        total_resultados = 0
         
         # Adicionar resultados do Zendesk
         if resultados_zendesk:
             logger.info("📝 Formatando resultado do Zendesk...")
             zendesk_info = extrair_resumo_e_link(resultados_zendesk)
-            resultado_zendesk_formatado = f"🎫 **Zendesk:** {zendesk_info['titulo']}\n📝 _{zendesk_info['resumo']}_\n🔗 {zendesk_info['link']}"
-            resultados_formatados.append(resultado_zendesk_formatado)
-            logger.info(f"✅ Zendesk formatado: {resultado_zendesk_formatado[:100]}...")
+            
+            resultado_final += f"🎫 **{zendesk_info['titulo']}**\n"
+            resultado_final += f"💡 {zendesk_info['resumo']}\n"
+            resultado_final += f"👉 [Ver no Zendesk]({zendesk_info['link']})\n\n"
+            
+            total_resultados += 1
+            logger.info(f"✅ Zendesk adicionado")
         
         # Adicionar resultados do Confluence
         if resultados_confluence:
             logger.info("📝 Formatando resultado do Confluence...")
             confluence_info = extrair_resumo_e_link(resultados_confluence)
-            resultado_confluence_formatado = f"📋 **Confluence:** {confluence_info['titulo']}\n📝 _{confluence_info['resumo']}_\n🔗 {confluence_info['link']}"
-            resultados_formatados.append(resultado_confluence_formatado)
-            logger.info(f"✅ Confluence formatado: {resultado_confluence_formatado[:100]}...")
+            
+            resultado_final += f"📋 **{confluence_info['titulo']}**\n"
+            resultado_final += f"💡 {confluence_info['resumo']}\n"
+            resultado_final += f"👉 [Ver no Confluence]({confluence_info['link']})\n\n"
+            
+            total_resultados += 1
+            logger.info(f"✅ Confluence adicionado")
         
-        if resultados_formatados:
-            resultado_final = f"✅ **Encontrei informações sobre:** _{pergunta_limpa}_\n\n"
-            resultado_final += "\n\n".join(resultados_formatados)
-            resultado_final += "\n\n❓ **Estas informações respondem sua dúvida?**"
-            logger.info(f"🎉 Resultado final formatado com sucesso - {len(resultados_formatados)} itens")
+        # Rodapé mais limpo
+        if total_resultados > 0:
+            resultado_final += "---\n❓ **Estas informações ajudaram?**"
+            logger.info(f"🎉 Resultado final otimizado - {total_resultados} item(s)")
             return resultado_final
         
         logger.warning("⚠️ Nenhum resultado para formatar")
@@ -243,10 +254,7 @@ def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, p
         
     except Exception as e:
         logger.error(f"❌ Erro ao formatar resultados: {e}")
-        # Fallback em caso de erro
-        if resultados_zendesk or resultados_confluence:
-            return f"✅ **Encontrei informações sobre:** _{pergunta_limpa}_\n\n📋 Veja os detalhes nos logs.\n\n❓ **Estas informações respondem sua dúvida?**"
-        return None
+        return f"🔍 **Encontrei informações sobre:** _{pergunta_limpa}_\n\n📋 Veja os resultados acima.\n\n❓ **Isto ajuda?**"
 
 @app.route("/slack/events", methods=["POST"])
 def slack_events():
