@@ -32,7 +32,7 @@ eventos_processados = {}
 TEMPO_CACHE = 300  # 5 minutos
 
 def event_ja_processado(event_id, user, text):
-    """Verifica se o evento já foi processado recentemente"""
+    """Verifica se o evento já foi processado recentemente - SISTEMA ANTI-DUPLICAÇÃO ROBUSTO"""
     agora = time.time()
     
     # Limpar cache antigo
@@ -40,17 +40,33 @@ def event_ja_processado(event_id, user, text):
     for k in eventos_expirados:
         del eventos_processados[k]
     
-    # Criar chave única para o evento
-    chave = f"{user}:{text.strip()[:50]}"
+    # Múltiplas chaves para detectar duplicatas de forma robusta
+    chaves = []
     
-    if chave in eventos_processados:
-        tempo_desde_ultimo = agora - eventos_processados[chave]['timestamp']
-        if tempo_desde_ultimo < 3:  # 3 segundos (era 10)
-            logger.warning(f"Evento duplicado detectado: {chave}")
-            return True
+    # 1. Chave por event_ts (mais precisa)
+    if event_id and event_id.strip():
+        chaves.append(f"event_{event_id}")
     
-    # Marcar como processado
-    eventos_processados[chave] = {'timestamp': agora}
+    # 2. Chave por usuário + texto
+    chaves.append(f"{user}:{text.strip()[:50]}")
+    
+    # 3. Chave por usuário + hash do texto completo
+    import hashlib
+    text_hash = hashlib.md5(text.strip().encode()).hexdigest()[:8]
+    chaves.append(f"{user}:hash_{text_hash}")
+    
+    # Verificar se alguma chave já foi processada
+    for chave in chaves:
+        if chave in eventos_processados:
+            tempo_desde_ultimo = agora - eventos_processados[chave]['timestamp']
+            if tempo_desde_ultimo < 8:  # 8 segundos - compromisso entre velocidade e segurança
+                logger.warning(f"Evento duplicado detectado: {chave}")
+                return True
+    
+    # Marcar todas as chaves como processadas
+    for chave in chaves:
+        eventos_processados[chave] = {'timestamp': agora}
+    
     return False
 
 def extrair_resumo_e_link(resultado_texto):

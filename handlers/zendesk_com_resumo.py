@@ -258,7 +258,7 @@ def formatar_resposta_zendesk(artigo):
 def criar_fallback_zendesk(termo, base_url):
     """Cria resposta de fallback quando scraping falha"""
     
-    # Sugestões diretas para termos comuns com resumo
+    # Adicionar mais sugestões específicas para CTE
     sugestoes_com_resumo = {
         "cte": {
             "title": "Como emitir Conhecimento de Transporte Eletrônico (CTE)",
