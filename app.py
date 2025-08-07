@@ -408,6 +408,12 @@ def slack_actions():
         
         user = payload["user"]["id"]
         channel = payload["channel"]["id"]
+        
+        # IMPORTANTE: Extrair thread_ts da mensagem original para manter na thread
+        message = payload.get("message", {})
+        thread_ts = message.get("thread_ts") or message.get("ts")
+        logger.info(f"🧵 Thread TS: {thread_ts}")
+        
         action = payload["actions"][0]
         action_id = action["action_id"]
         
@@ -425,23 +431,32 @@ def slack_actions():
         if acao == "resolvido":
             slack_client.chat_postMessage(
                 channel=channel,
-                text=f"🎉 **Perfeito!** Fico feliz que consegui ajudar com: _{pergunta}_\n\n"
-                     f"Se precisar de mais alguma coisa, é só me mencionar! 😊"
+                thread_ts=thread_ts,
+                blocks=[
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"🎉 *Perfeito!* Fico feliz que consegui ajudar com: _{pergunta}_\n\nSe precisar de mais alguma coisa, é só me mencionar! 😊"
+                        }
+                    }
+                ]
             )
             
         elif acao == "portal":
             portal_url = "https://sites.google.com/nuvemshop.com.br/integracoesnuvemenvio/início"
             slack_client.chat_postMessage(
                 channel=channel,
-                text=f"📋 **Portal de Integrações** para: _{pergunta}_\n\n"
-                     f"🔗 **Acesse:** {portal_url}\n\n"
-                     f"💡 **No portal você encontra:**\n"
-                     f"• Documentação completa da API\n"
-                     f"• Guias de integração passo a passo\n"
-                     f"• Exemplos de código\n"
-                     f"• Webhooks e notificações\n"
-                     f"• FAQs e troubleshooting\n\n"
-                     f"Se ainda não encontrar o que precisa, me mencione novamente! 🤖"
+                thread_ts=thread_ts,
+                blocks=[
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"📋 *Portal de Integrações* para: _{pergunta}_\n\n🔗 *Acesse:* <{portal_url}|Portal de Integrações>\n\n💡 *No portal você encontra:*\n• Documentação completa da API\n• Guias de integração passo a passo\n• Exemplos de código\n• Webhooks e notificações\n• FAQs e troubleshooting\n\nSe ainda não encontrar o que precisa, me mencione novamente! 🤖"
+                        }
+                    }
+                ]
             )
             
         elif acao == "chamado":
@@ -450,14 +465,16 @@ def slack_actions():
             
             slack_client.chat_postMessage(
                 channel=channel,
-                text=f"🎫 **Abrir Chamado** para: _{pergunta}_\n\n"
-                     f"🔗 **Criar chamado:** {jira_create_url}\n\n"
-                     f"📝 **Preencha com estas informações:**\n"
-                     f"• **Assunto:** {pergunta}\n"
-                     f"• **Descrição detalhada:** Explique sua dúvida ou problema\n"
-                     f"• **Contexto:** Plataforma, integração ou API específica\n"
-                     f"• **Urgência:** Nível de prioridade do seu caso\n\n"
-                     f"👥 **A equipe de integrações analisará e responderá em breve!**"
+                thread_ts=thread_ts,
+                blocks=[
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": f"🎫 *Abrir Chamado* para: _{pergunta}_\n\n🔗 *Criar chamado:* <{jira_create_url}|Abrir no Jira>\n\n📝 *Preencha com estas informações:*\n• *Assunto:* {pergunta}\n• *Descrição detalhada:* Explique sua dúvida ou problema\n• *Contexto:* Plataforma, integração ou API específica\n• *Urgência:* Nível de prioridade do seu caso\n\n👥 *A equipe de integrações analisará e responderá em breve!*"
+                        }
+                    }
+                ]
             )
             
         return jsonify({"status": "ok"})
