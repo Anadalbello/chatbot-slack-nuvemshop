@@ -383,7 +383,12 @@ def slack_events():
 @app.route("/slack/actions", methods=["POST"])
 def slack_actions():
     """Handler para botões interativos"""
+    logger.info("🔘 Requisição recebida em /slack/actions")
+    logger.info(f"Headers: {dict(request.headers)}")
+    logger.info(f"Form data: {request.form}")
+    
     if not verifier.is_valid_request(request.get_data(), request.headers):
+        logger.error("❌ Assinatura inválida em /slack/actions")
         return "Invalid signature", 403
 
     try:
@@ -470,6 +475,25 @@ def health_check():
         "ready_for_slack": all(v == "✅" for k, v in configs.items() if k.startswith("slack")),
         "eventos_cache": len(eventos_processados)
     })
+
+@app.errorhandler(404)
+def not_found(error):
+    """Captura todos os 404s para debug"""
+    logger.warning(f"🚫 404 - Rota não encontrada: {request.method} {request.path}")
+    logger.info(f"Headers: {dict(request.headers)}")
+    if request.form:
+        logger.info(f"Form data: {dict(request.form)}")
+    return jsonify({
+        "error": "Endpoint não encontrado",
+        "method": request.method,
+        "path": request.path,
+        "available_endpoints": [
+            "POST /slack/events",
+            "POST /slack/actions", 
+            "GET /test",
+            "GET /health"
+        ]
+    }), 404
 
 if __name__ == "__main__":
     import os
