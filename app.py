@@ -340,10 +340,22 @@ def slack_events():
                     
                     if resultado_formatado:
                         logger.info("📤 Enviando resposta única para o Slack...")
+                        
+                        # Converter ** para * para formatação mrkdwn
+                        resultado_mrkdwn = resultado_formatado.replace("**", "*")
+                        
                         response = slack_client.chat_postMessage(
                             channel=channel,
                             thread_ts=thread_ts,
-                            text=resultado_formatado
+                            blocks=[
+                                {
+                                    "type": "section",
+                                    "text": {
+                                        "type": "mrkdwn",
+                                        "text": resultado_mrkdwn
+                                    }
+                                }
+                            ]
                         )
                         logger.info(f"✅ Resposta enviada! TS: {response.get('ts')}")
                         
@@ -351,8 +363,15 @@ def slack_events():
                         slack_client.chat_postMessage(
                             channel=channel,
                             thread_ts=thread_ts,
-                            text="❓ **Estas informações ajudaram?**",
-                            blocks=criar_botoes_interacao(pergunta_limpa, resultados_encontrados)
+                            blocks=[
+                                {
+                                    "type": "section",
+                                    "text": {
+                                        "type": "mrkdwn",
+                                        "text": "❓ *Estas informações ajudaram?*"
+                                    }
+                                }
+                            ] + criar_botoes_interacao(pergunta_limpa, resultados_encontrados)
                         )
                         return jsonify({"ok": True})
                 
@@ -362,8 +381,15 @@ def slack_events():
                     slack_client.chat_postMessage(
                         channel=channel,
                         thread_ts=thread_ts,
-                        text=f"🔍 Não encontrei informações específicas sobre: _{pergunta_limpa}_",
-                        blocks=criar_botoes_interacao(pergunta_limpa, {})
+                        blocks=[
+                            {
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": f"🔍 Não encontrei informações específicas sobre: _{pergunta_limpa}_"
+                                }
+                            }
+                        ] + criar_botoes_interacao(pergunta_limpa, {})
                     )
                     return jsonify({"ok": True})
 
@@ -373,7 +399,15 @@ def slack_events():
                     slack_client.chat_postMessage(
                         channel=channel,
                         thread_ts=thread_ts,
-                        text=f"❌ **Erro interno.** Tente novamente em alguns segundos."
+                        blocks=[
+                            {
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": f"❌ *Erro interno.* Tente novamente em alguns segundos."
+                                }
+                            }
+                        ]
                     )
                 except:
                     pass
