@@ -236,19 +236,6 @@ def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, p
         # Contador de resultados
         total_resultados = 0
         
-        # Adicionar resultados do Zendesk
-        if resultados_zendesk:
-            logger.info("📝 Formatando resultado do Zendesk...")
-            zendesk_info = extrair_resumo_e_link(resultados_zendesk)
-            
-            resultado_final += f"🎫 **{zendesk_info['titulo']}**\n"
-            resultado_final += f"💡 {zendesk_info['resumo']}\n"
-            resultado_final += f"👉 Ver no Zendesk\n"
-            resultado_final += f"({zendesk_info['link']})\n\n"
-            
-            total_resultados += 1
-            logger.info(f"✅ Zendesk adicionado")
-        
         # Adicionar resultados do Confluence
         if resultados_confluence:
             logger.info("📝 Formatando resultado do Confluence...")
@@ -261,6 +248,19 @@ def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, p
             
             total_resultados += 1
             logger.info(f"✅ Confluence adicionado")
+        
+        # Adicionar resultados do Zendesk
+        if resultados_zendesk:
+            logger.info("📝 Formatando resultado do Zendesk...")
+            zendesk_info = extrair_resumo_e_link(resultados_zendesk)
+            
+            resultado_final += f"🎫 **{zendesk_info['titulo']}**\n"
+            resultado_final += f"💡 {zendesk_info['resumo']}\n"
+            resultado_final += f"👉 Ver no Zendesk\n"
+            resultado_final += f"({zendesk_info['link']})\n\n"
+            
+            total_resultados += 1
+            logger.info(f"✅ Zendesk adicionado")
         
         # Rodapé mais limpo (sem duplicar pergunta)
         if total_resultados > 0:
@@ -307,18 +307,7 @@ def slack_events():
                 # 🔍 BUSCAR SILENCIOSAMENTE (sem mensagens intermediárias)
                 resultados_encontrados = {}
 
-                # 1. Buscar no Zendesk (API oficial)
-                logger.info(f"🎫 Iniciando busca no Zendesk API para: {pergunta_limpa}")
-                resultado_zendesk = buscar_artigo_zendesk_api(text)
-                logger.info(f"Resultado Zendesk: {resultado_zendesk[:100] if resultado_zendesk else 'None'}...")
-                
-                if resultado_zendesk and eh_resultado_util(resultado_zendesk):
-                    logger.info("✅ Resultado útil encontrado no Zendesk")
-                    resultados_encontrados['zendesk'] = resultado_zendesk
-                else:
-                    logger.info("❌ Nenhum resultado útil no Zendesk")
-
-                # 2. Buscar no Confluence
+                # 1. PRIORIDADE: Buscar no Confluence primeiro
                 logger.info(f"📋 Iniciando busca no Confluence para: {pergunta_limpa}")
                 resultado_confluence = buscar_confluence(pergunta_limpa)
                 logger.info(f"Resultado Confluence: {resultado_confluence[:100] if resultado_confluence else 'None'}...")
@@ -328,6 +317,17 @@ def slack_events():
                     resultados_encontrados['confluence'] = resultado_confluence
                 else:
                     logger.info("❌ Nenhum resultado útil no Confluence")
+                    
+                    # 2. FALLBACK: Só buscar no Zendesk se não encontrou no Confluence
+                    logger.info(f"🎫 Iniciando busca no Zendesk API para: {pergunta_limpa}")
+                    resultado_zendesk = buscar_artigo_zendesk_api(text)
+                    logger.info(f"Resultado Zendesk: {resultado_zendesk[:100] if resultado_zendesk else 'None'}...")
+                    
+                    if resultado_zendesk and eh_resultado_util(resultado_zendesk):
+                        logger.info("✅ Resultado útil encontrado no Zendesk")
+                        resultados_encontrados['zendesk'] = resultado_zendesk
+                    else:
+                        logger.info("❌ Nenhum resultado útil no Zendesk")
 
                 # 3. ENVIAR APENAS RESULTADO FINAL
                 if resultados_encontrados:
