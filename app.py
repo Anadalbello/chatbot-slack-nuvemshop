@@ -6,7 +6,8 @@ import os
 import logging
 import time
 import json
-from handlers.zendesk_com_resumo import buscar_artigo_zendesk, limpar_termo_busca
+from handlers.zendesk_api import buscar_artigo_zendesk_api
+from handlers.zendesk_com_resumo import limpar_termo_busca
 from handlers.confluence_com_resumo import buscar_confluence
 from handlers.gemini_handler import get_gemini_response
 from handlers.jira import criar_chamado_jira
@@ -306,9 +307,9 @@ def slack_events():
                 # 🔍 BUSCAR SILENCIOSAMENTE (sem mensagens intermediárias)
                 resultados_encontrados = {}
 
-                # 1. Buscar no Zendesk
-                logger.info(f"🎫 Iniciando busca no Zendesk para: {pergunta_limpa}")
-                resultado_zendesk = buscar_artigo_zendesk(text)
+                # 1. Buscar no Zendesk (API oficial)
+                logger.info(f"🎫 Iniciando busca no Zendesk API para: {pergunta_limpa}")
+                resultado_zendesk = buscar_artigo_zendesk_api(text)
                 logger.info(f"Resultado Zendesk: {resultado_zendesk[:100] if resultado_zendesk else 'None'}...")
                 
                 if resultado_zendesk and eh_resultado_util(resultado_zendesk):
@@ -551,7 +552,10 @@ def health_check():
         "slack_secret": "✅" if os.getenv("SLACK_SIGNING_SECRET") else "❌", 
         "atlassian_email": "✅" if os.getenv("ATLASSIAN_EMAIL") else "❌",
         "atlassian_token": "✅" if os.getenv("ATLASSIAN_TOKEN") else "❌",
-        "atlassian_url": "✅" if os.getenv("ATLASSIAN_BASE_URL") else "❌"
+        "atlassian_url": "✅" if os.getenv("ATLASSIAN_BASE_URL") else "❌",
+        "zendesk_email": "✅" if os.getenv("ZENDESK_EMAIL") else "❌",
+        "zendesk_token": "✅" if os.getenv("ZENDESK_API_TOKEN") else "❌",
+        "zendesk_subdomain": "✅" if os.getenv("ZENDESK_SUBDOMAIN") else "❌ (usando padrão)"
     }
     
     return jsonify({

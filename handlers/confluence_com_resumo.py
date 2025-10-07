@@ -11,7 +11,10 @@ def buscar_confluence(termo):
     email = os.getenv("ATLASSIAN_EMAIL")
     token = os.getenv("ATLASSIAN_TOKEN")
     base_url = os.getenv("ATLASSIAN_BASE_URL")
-
+    
+    # NOVO: Espaço específico do Confluence
+    confluence_space = os.getenv("CONFLUENCE_SPACE", "")  # Se vazio, busca global
+    
     if not all([email, token, base_url]):
         logger.error("Configurações do Confluence não encontradas")
         return None
@@ -19,8 +22,15 @@ def buscar_confluence(termo):
     headers = {"Accept": "application/json"}
     auth = (email, token)
 
-    # Busca GLOBAL com expand para obter snippet do conteúdo
-    query = f"{base_url}/wiki/rest/api/content/search?cql=(title~\"{termo}\" OR text~\"{termo}\") AND type=page&limit=3&expand=space,body.view,excerpt"
+    # Construir query CQL baseada no espaço configurado
+    if confluence_space:
+        # Busca apenas no espaço específico
+        query = f"{base_url}/wiki/rest/api/content/search?cql=(title~\"{termo}\" OR text~\"{termo}\") AND type=page AND space=\"{confluence_space}\"&limit=3&expand=space,body.view,excerpt"
+        logger.info(f"Buscando no espaço específico: {confluence_space}")
+    else:
+        # Busca global (comportamento atual)
+        query = f"{base_url}/wiki/rest/api/content/search?cql=(title~\"{termo}\" OR text~\"{termo}\") AND type=page&limit=3&expand=space,body.view,excerpt"
+        logger.info("Buscando globalmente no Confluence")
     
     try:
         logger.info(f"Buscando no Confluence com resumo: {termo}")
