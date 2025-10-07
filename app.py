@@ -584,6 +584,10 @@ def not_found(error):
         ]
     }), 404
 
+@app.route("/", methods=["GET", "HEAD"])
+def index():
+    return "Chatbot Gemini está rodando! 🚀", 200
+
 if __name__ == "__main__":
     import os
     port = int(os.environ.get('PORT', 3000))
