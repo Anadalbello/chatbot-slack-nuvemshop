@@ -60,6 +60,38 @@ def buscar_confluence(termo):
         else:
             logger.info("Nenhum resultado encontrado no Confluence")
             
+            # FALLBACK: Se não encontrou nada, tentar buscar palavra por palavra
+            palavras = termo.split()
+            if len(palavras) > 1:
+                logger.info(f"Tentando fallback: buscar palavra por palavra")
+                for palavra in palavras:
+                    if len(palavra) > 3:  # Ignorar palavras muito curtas
+                        if confluence_space:
+                            query_fallback = f"{base_url}/wiki/rest/api/content/search?cql=(title~\"{palavra}\" OR text~\"{palavra}\") AND type=page AND space=\"{confluence_space}\"&limit=3&expand=space,body.view,excerpt"
+                        else:
+                            query_fallback = f"{base_url}/wiki/rest/api/content/search?cql=(title~\"{palavra}\" OR text~\"{palavra}\") AND type=page&limit=3&expand=space,body.view,excerpt"
+                        
+                        res_fallback = requests.get(query_fallback, headers=headers, auth=auth, timeout=15)
+                        if res_fallback.status_code == 200:
+                            data_fallback = res_fallback.json()
+                            if data_fallback["results"]:
+                                logger.info(f"✅ Encontrado com palavra '{palavra}'")
+                                results = []
+                                for page in data_fallback["results"][:2]:
+                                    title = page["title"]
+                                    space_name = page["space"]["name"]
+                                    link = f"{base_url}/wiki{page['_links']['webui']}"
+                                    resumo = extrair_resumo_confluence(page)
+                                    
+                                    if resumo:
+                                        resultado_formatado = f"• **{title}** (Espaço: {space_name})\n  📝 _{resumo}_\n  🔗 {link}"
+                                    else:
+                                        resultado_formatado = f"• **{title}** (Espaço: {space_name}) → {link}"
+                                    
+                                    results.append(resultado_formatado)
+                                
+                                return "\n\n".join(results)
+            
     except Exception as e:
         logger.error(f"Erro ao buscar no Confluence: {e}")
         

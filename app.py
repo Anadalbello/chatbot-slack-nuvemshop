@@ -12,6 +12,7 @@ from handlers.confluence_com_resumo import buscar_confluence
 from handlers.gemini_handler import get_gemini_response
 from handlers.jira import criar_chamado_jira
 from handlers.google_sites import buscar_google_sites
+from handlers.extrair_palavras_chave import melhorar_busca_confluence
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -309,7 +310,12 @@ def slack_events():
 
                 # 1. PRIORIDADE: Buscar no Confluence primeiro
                 logger.info(f"📋 Iniciando busca no Confluence para: {pergunta_limpa}")
-                resultado_confluence = buscar_confluence(pergunta_limpa)
+                
+                # Melhorar o termo de busca extraindo palavras-chave
+                termo_busca_confluence = melhorar_busca_confluence(pergunta_limpa)
+                logger.info(f"🔍 Palavras-chave extraídas: {termo_busca_confluence}")
+                
+                resultado_confluence = buscar_confluence(termo_busca_confluence)
                 logger.info(f"Resultado Confluence: {resultado_confluence[:100] if resultado_confluence else 'None'}...")
                 
                 if resultado_confluence and eh_resultado_util(resultado_confluence):
