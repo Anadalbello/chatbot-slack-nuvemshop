@@ -354,6 +354,7 @@ def slack_events():
                         response = slack_client.chat_postMessage(
                             channel=channel,
                             thread_ts=thread_ts,
+                            text=f"Resultados para: {pergunta_limpa}",  # Fallback para acessibilidade
                             blocks=[
                                 {
                                     "type": "section",
@@ -370,6 +371,7 @@ def slack_events():
                         slack_client.chat_postMessage(
                             channel=channel,
                             thread_ts=thread_ts,
+                            text="Estas informações ajudaram?",  # Fallback para acessibilidade
                             blocks=[
                                 {
                                     "type": "section",
@@ -388,6 +390,7 @@ def slack_events():
                     slack_client.chat_postMessage(
                         channel=channel,
                         thread_ts=thread_ts,
+                        text=f"Não encontrei informações sobre: {pergunta_limpa}",  # Fallback
                         blocks=[
                             {
                                 "type": "section",
@@ -406,6 +409,7 @@ def slack_events():
                     slack_client.chat_postMessage(
                         channel=channel,
                         thread_ts=thread_ts,
+                        text="Erro interno. Tente novamente.",  # Fallback
                         blocks=[
                             {
                                 "type": "section",
@@ -489,6 +493,7 @@ def slack_actions():
             slack_client.chat_postMessage(
                 channel=channel,
                 thread_ts=thread_ts,
+                text=f"Perfeito! Ajudei com: {pergunta}",  # Fallback
                 blocks=[
                     {
                         "type": "section",
@@ -505,6 +510,7 @@ def slack_actions():
             slack_client.chat_postMessage(
                 channel=channel,
                 thread_ts=thread_ts,
+                text=f"Portal de Integrações: {portal_url}",  # Fallback
                 blocks=[
                     {
                         "type": "section",
@@ -523,6 +529,7 @@ def slack_actions():
             slack_client.chat_postMessage(
                 channel=channel,
                 thread_ts=thread_ts,
+                text=f"Abrir chamado: {jira_create_url}",  # Fallback
                 blocks=[
                     {
                         "type": "section",
