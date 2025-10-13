@@ -13,6 +13,7 @@ from handlers.gemini_handler import get_gemini_response
 from handlers.jira import criar_chamado_jira
 from handlers.google_sites import buscar_google_sites
 from handlers.extrair_palavras_chave import melhorar_busca_confluence
+from handlers.resumir_com_gemini import criar_resumo_simples
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -226,55 +227,49 @@ def criar_botoes_interacao(pergunta_limpa, resultados_encontrados):
     ]
 
 def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, pergunta_limpa):
-    """Formata todos os resultados encontrados em uma única resposta otimizada"""
+    """Formata resultados no estilo Ask Nina - profissional e estruturado"""
     
     logger.info(f"🎨 Formatando resultados - Zendesk: {bool(resultados_zendesk)}, Confluence: {bool(resultados_confluence)}")
     
     try:
-        # Cabeçalho mais limpo
-        resultado_final = f"🔍 **Resultados para:** _{pergunta_limpa}_\n\n"
-        
-        # Contador de resultados
-        total_resultados = 0
-        
-        # Adicionar resultados do Confluence
+        # Priorizar Confluence
         if resultados_confluence:
-            logger.info("📝 Formatando resultado do Confluence...")
+            logger.info("📝 Formatando resultado do Confluence estilo Ask Nina...")
             confluence_info = extrair_resumo_e_link(resultados_confluence)
             
-            resultado_final += f"📋 **{confluence_info['titulo']}**\n"
-            resultado_final += f"💡 {confluence_info['resumo']}\n"
-            resultado_final += f"👉 Ver no Confluence\n"
-            resultado_final += f"({confluence_info['link']})\n\n"
+            # Criar resumo personalizado
+            resumo = criar_resumo_simples(pergunta_limpa, resultados_confluence, "Confluence")
             
-            total_resultados += 1
-            logger.info(f"✅ Confluence adicionado")
+            # Adicionar link
+            resposta_completa = resumo + "\n\n"
+            resposta_completa += f"📎 *Acesse a documentação completa:*\n{confluence_info['link']}\n\n"
+            resposta_completa += "_Se precisar de mais informações ou tiver dúvidas específicas, estou à disposição para ajudar._"
+            
+            logger.info(f"✅ Resposta formatada no estilo Ask Nina")
+            return resposta_completa
         
-        # Adicionar resultados do Zendesk
+        # Fallback: Zendesk
         if resultados_zendesk:
-            logger.info("📝 Formatando resultado do Zendesk...")
+            logger.info("📝 Formatando resultado do Zendesk estilo Ask Nina...")
             zendesk_info = extrair_resumo_e_link(resultados_zendesk)
             
-            resultado_final += f"🎫 **{zendesk_info['titulo']}**\n"
-            resultado_final += f"💡 {zendesk_info['resumo']}\n"
-            resultado_final += f"👉 Ver no Zendesk\n"
-            resultado_final += f"({zendesk_info['link']})\n\n"
+            # Criar resumo personalizado
+            resumo = criar_resumo_simples(pergunta_limpa, resultados_zendesk, "Centro de Ajuda")
             
-            total_resultados += 1
-            logger.info(f"✅ Zendesk adicionado")
-        
-        # Rodapé mais limpo (sem duplicar pergunta)
-        if total_resultados > 0:
-            resultado_final += "---"
-            logger.info(f"🎉 Resultado final otimizado - {total_resultados} item(s)")
-            return resultado_final
+            # Adicionar link
+            resposta_completa = resumo + "\n\n"
+            resposta_completa += f"📎 *Acesse o artigo completo:*\n{zendesk_info['link']}\n\n"
+            resposta_completa += "_Para mais assistência, entre em contato com a equipe de suporte._"
+            
+            logger.info(f"✅ Resposta formatada no estilo Ask Nina")
+            return resposta_completa
         
         logger.warning("⚠️ Nenhum resultado para formatar")
         return None
         
     except Exception as e:
         logger.error(f"❌ Erro ao formatar resultados: {e}")
-        return f"🔍 **Encontrei informações sobre:** _{pergunta_limpa}_\n\n📋 Veja os resultados acima.\n\n❓ **Isto ajuda?**"
+        return None
 
 @app.route("/slack/events", methods=["POST"])
 def slack_events():
@@ -387,6 +382,18 @@ def slack_events():
                 # Se não encontrou nada
                 else:
                     logger.info("❌ Nenhum resultado encontrado - oferecendo alternativas")
+                    
+                    # Mensagem no estilo Ask Nina
+                    mensagem_sem_resultado = (
+                        "Olá!\n\n"
+                        f"Com base nas informações disponíveis em meu contexto, não localizei documentação específica sobre *{pergunta_limpa}* em nossa base de conhecimento.\n\n"
+                        "Para verificar a disponibilidade dessa informação ou explorar alternativas, você pode:\n\n"
+                        "• Acessar nosso portal de integrações para documentação completa\n"
+                        "• Entrar em contato com o time de suporte para orientações específicas\n"
+                        "• Abrir um chamado no Jira para que possamos ajudar diretamente\n\n"
+                        "_Estou à disposição para ajudar com outras questões._"
+                    )
+                    
                     slack_client.chat_postMessage(
                         channel=channel,
                         thread_ts=thread_ts,
@@ -396,7 +403,7 @@ def slack_events():
                                 "type": "section",
                                 "text": {
                                     "type": "mrkdwn",
-                                    "text": f"🔍 Não encontrei informações específicas sobre: _{pergunta_limpa}_"
+                                    "text": mensagem_sem_resultado
                                 }
                             }
                         ] + criar_botoes_interacao(pergunta_limpa, {})
