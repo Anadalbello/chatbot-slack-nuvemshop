@@ -14,6 +14,8 @@ from handlers.jira import criar_chamado_jira
 from handlers.google_sites import buscar_google_sites
 from handlers.extrair_palavras_chave import melhorar_busca_confluence
 from handlers.resumir_com_gemini import criar_resumo_simples
+from handlers.resumir_conteudo_gemini import gerar_resposta_inteligente
+import re
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -227,42 +229,88 @@ def criar_botoes_interacao(pergunta_limpa, resultados_encontrados):
     ]
 
 def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, pergunta_limpa):
-    """Formata resultados no estilo Ask Nina - profissional e estruturado"""
+    """
+    Formata resultados usando Gemini para gerar resposta inteligente
+    Similar a como IAs respondem perguntas de forma natural
+    """
     
     logger.info(f"🎨 Formatando resultados - Zendesk: {bool(resultados_zendesk)}, Confluence: {bool(resultados_confluence)}")
     
     try:
         # Priorizar Confluence
         if resultados_confluence:
-            logger.info("📝 Formatando resultado do Confluence estilo Ask Nina...")
-            confluence_info = extrair_resumo_e_link(resultados_confluence)
+            logger.info("🤖 Gerando resposta inteligente com Gemini para Confluence...")
             
-            # Criar resumo personalizado
-            resumo = criar_resumo_simples(pergunta_limpa, resultados_confluence, "Confluence")
+            # Tentar gerar resposta com Gemini
+            resposta_gemini = gerar_resposta_inteligente(
+                pergunta_limpa, 
+                resultados_confluence, 
+                "base de conhecimento no Confluence"
+            )
             
-            # Adicionar link
-            resposta_completa = resumo + "\n\n"
-            resposta_completa += f"📎 *Acesse a documentação completa:*\n{confluence_info['link']}\n\n"
-            resposta_completa += "_Se precisar de mais informações ou tiver dúvidas específicas, estou à disposição para ajudar._"
-            
-            logger.info(f"✅ Resposta formatada no estilo Ask Nina")
-            return resposta_completa
+            if resposta_gemini:
+                # Extrair links do conteúdo
+                links = re.findall(r'🔗 (https?://[^\s\)]+)', resultados_confluence)
+                
+                # Formatar resposta final
+                resposta_completa = f"**{pergunta_limpa}**\n\n{resposta_gemini}\n\n"
+                resposta_completa += "---\n\n📚 **Documentação completa:**\n"
+                
+                for i, link in enumerate(links[:3], 1):
+                    resposta_completa += f"{i}. {link}\n"
+                
+                resposta_completa += "\n_Para mais informações ou dúvidas específicas, estou à disposição para ajudar._"
+                
+                logger.info("✅ Resposta inteligente gerada com sucesso")
+                return resposta_completa
+            else:
+                # Fallback: usar método simples
+                logger.info("⚠️ Gemini falhou, usando método simples")
+                confluence_info = extrair_resumo_e_link(resultados_confluence)
+                resumo = criar_resumo_simples(pergunta_limpa, resultados_confluence, "Confluence")
+                
+                resposta_completa = resumo + "\n\n"
+                resposta_completa += f"📎 *Acesse a documentação completa:*\n{confluence_info['link']}\n\n"
+                resposta_completa += "_Se precisar de mais informações ou tiver dúvidas específicas, estou à disposição para ajudar._"
+                
+                return resposta_completa
         
         # Fallback: Zendesk
         if resultados_zendesk:
-            logger.info("📝 Formatando resultado do Zendesk estilo Ask Nina...")
-            zendesk_info = extrair_resumo_e_link(resultados_zendesk)
+            logger.info("🤖 Gerando resposta inteligente com Gemini para Zendesk...")
             
-            # Criar resumo personalizado
-            resumo = criar_resumo_simples(pergunta_limpa, resultados_zendesk, "Centro de Ajuda")
+            # Tentar gerar resposta com Gemini
+            resposta_gemini = gerar_resposta_inteligente(
+                pergunta_limpa, 
+                resultados_zendesk, 
+                "Central de Ajuda"
+            )
             
-            # Adicionar link
-            resposta_completa = resumo + "\n\n"
-            resposta_completa += f"📎 *Acesse o artigo completo:*\n{zendesk_info['link']}\n\n"
-            resposta_completa += "_Para mais assistência, entre em contato com a equipe de suporte._"
-            
-            logger.info(f"✅ Resposta formatada no estilo Ask Nina")
-            return resposta_completa
+            if resposta_gemini:
+                # Extrair links
+                links = re.findall(r'🔗 (https?://[^\s\)]+)', resultados_zendesk)
+                
+                resposta_completa = f"**{pergunta_limpa}**\n\n{resposta_gemini}\n\n"
+                resposta_completa += "---\n\n📚 **Artigos relacionados:**\n"
+                
+                for i, link in enumerate(links[:3], 1):
+                    resposta_completa += f"{i}. {link}\n"
+                
+                resposta_completa += "\n_Para mais assistência, entre em contato com a equipe de suporte._"
+                
+                logger.info("✅ Resposta inteligente gerada com sucesso")
+                return resposta_completa
+            else:
+                # Fallback: método simples
+                logger.info("⚠️ Gemini falhou, usando método simples")
+                zendesk_info = extrair_resumo_e_link(resultados_zendesk)
+                resumo = criar_resumo_simples(pergunta_limpa, resultados_zendesk, "Centro de Ajuda")
+                
+                resposta_completa = resumo + "\n\n"
+                resposta_completa += f"📎 *Acesse o artigo completo:*\n{zendesk_info['link']}\n\n"
+                resposta_completa += "_Para mais assistência, entre em contato com a equipe de suporte._"
+                
+                return resposta_completa
         
         logger.warning("⚠️ Nenhum resultado para formatar")
         return None

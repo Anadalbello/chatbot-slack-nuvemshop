@@ -1,0 +1,189 @@
+#!/usr/bin/env python3
+"""
+Módulo para gerar resumos inteligentes do conteúdo encontrado usando Gemini
+Similar a como IAs respondem perguntas de forma natural
+"""
+
+import os
+import logging
+import re
+from dotenv import load_dotenv
+import google.generativeai as genai
+
+load_dotenv()
+logger = logging.getLogger(__name__)
+
+# Configurar Gemini
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel(
+    model_name="models/gemini-2.5-flash",  # Modelo rápido e eficiente
+    generation_config={
+        "temperature": 0.7,
+        "top_p": 0.95,
+        "top_k": 40,
+        "max_output_tokens": 500,  # Resumo conciso
+    }
+)
+
+
+def extrair_conteudo_bruto(resultado_formatado):
+    """
+    Extrai o conteúdo bruto (título, resumo, texto) dos resultados formatados
+    para enviar ao Gemini
+    """
+    conteudo = []
+    
+    # Extrair títulos
+    titulos = re.findall(r'\*\*([^*]+)\*\*', resultado_formatado)
+    
+    # Extrair resumos (texto entre _..._)
+    resumos = re.findall(r'_([^_]+)_', resultado_formatado)
+    
+    # Combinar tudo
+    for i, titulo in enumerate(titulos):
+        texto = f"Documento: {titulo}"
+        if i < len(resumos):
+            texto += f"\nConteúdo: {resumos[i]}"
+        conteudo.append(texto)
+    
+    return "\n\n".join(conteudo)
+
+
+def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de conhecimento"):
+    """
+    Usa Gemini para gerar uma resposta natural e resumida baseada no conteúdo encontrado
+    
+    Similar a como IAs respondem perguntas:
+    - Lê o conteúdo disponível
+    - Sintetiza uma resposta direta e clara
+    - Responde de forma natural
+    
+    Args:
+        pergunta (str): Pergunta original do usuário
+        conteudo_encontrado (str): Conteúdo formatado encontrado nas buscas
+        fonte (str): Nome da fonte (Confluence, Zendesk, etc)
+        
+    Returns:
+        str: Resposta natural gerada pelo Gemini
+    """
+    
+    try:
+        logger.info(f"🤖 Gerando resposta inteligente com Gemini para: {pergunta}")
+        
+        # Extrair conteúdo bruto
+        conteudo_bruto = extrair_conteudo_bruto(conteudo_encontrado)
+        
+        if not conteudo_bruto or len(conteudo_bruto.strip()) < 20:
+            logger.warning("⚠️ Conteúdo muito curto, usando fallback")
+            return None
+        
+        # Construir prompt para o Gemini
+        prompt = f"""Você é um assistente técnico especializado em integrações e documentação.
+
+Sua tarefa é responder à pergunta do usuário de forma clara, direta e profissional, usando APENAS as informações fornecidas abaixo.
+
+**REGRAS IMPORTANTES:**
+1. Responda de forma natural, como se estivesse explicando para um colega
+2. Use APENAS as informações fornecidas - não invente nada
+3. Seja conciso - máximo 4-5 linhas
+4. Se a informação não for suficiente para responder, seja honesto sobre isso
+5. Use linguagem técnica mas acessível
+6. NÃO mencione "de acordo com a documentação" ou similar - responda diretamente
+
+**Pergunta do usuário:**
+{pergunta}
+
+**Informações disponíveis em nossa {fonte}:**
+{conteudo_bruto}
+
+**Resposta (seja direto, claro e conciso):**"""
+
+        # Gerar resposta
+        response = model.generate_content(prompt)
+        
+        if response and response.text:
+            resposta_gerada = response.text.strip()
+            
+            # Validar que a resposta não é muito genérica
+            if len(resposta_gerada) > 30:
+                logger.info(f"✅ Resposta gerada com sucesso ({len(resposta_gerada)} caracteres)")
+                return resposta_gerada
+            else:
+                logger.warning("⚠️ Resposta muito curta, usando fallback")
+                return None
+        else:
+            logger.warning("⚠️ Gemini não retornou resposta")
+            return None
+            
+    except Exception as e:
+        logger.error(f"❌ Erro ao gerar resposta com Gemini: {e}")
+        return None
+
+
+def formatar_resposta_final(pergunta, resposta_gemini, conteudo_original, links):
+    """
+    Formata a resposta final combinando:
+    - Resposta inteligente do Gemini
+    - Links para documentação completa
+    
+    Args:
+        pergunta (str): Pergunta original
+        resposta_gemini (str): Resposta gerada pelo Gemini
+        conteudo_original (str): Conteúdo formatado original (com links)
+        links (list): Lista de links extraídos
+        
+    Returns:
+        str: Resposta final formatada
+    """
+    
+    resposta_final = f"**{pergunta}**\n\n"
+    resposta_final += f"{resposta_gemini}\n\n"
+    resposta_final += "---\n\n"
+    resposta_final += "📚 **Documentação completa:**\n"
+    
+    # Extrair links
+    links_encontrados = re.findall(r'🔗 (https?://[^\s\)]+)', conteudo_original)
+    
+    if links_encontrados:
+        for i, link in enumerate(links_encontrados[:3], 1):  # Máximo 3 links
+            resposta_final += f"{i}. {link}\n"
+    
+    resposta_final += "\n_Para mais informações ou dúvidas específicas, estou à disposição._"
+    
+    return resposta_final
+
+
+if __name__ == "__main__":
+    # Teste
+    print("🧪 === TESTE DE RESPOSTA INTELIGENTE COM GEMINI ===\n")
+    
+    pergunta = "como integrar magento?"
+    
+    conteudo = """• **Manual de configuração do Regra Frete no WebApp** (Espaço: Base de dados)
+  📝 _Descrição do Problema e Área de Negócio Impactada. Configure o frete por região_
+  🔗 https://tiendanube.atlassian.net/wiki/spaces/BDGCI/pages/551654678
+
+• **Integração Wake OMS + Mandaê** (Espaço: Integrações)
+  📝 _Wake OMS é uma plataforma de gestão de pedidos que ajuda empresas a gerenciar seus pedidos_
+  🔗 https://tiendanube.atlassian.net/wiki/spaces/BDGCI/pages/551654902"""
+    
+    print("Pergunta:", pergunta)
+    print("\nConteúdo encontrado:")
+    print(conteudo)
+    print("\n" + "="*80 + "\n")
+    
+    resposta = gerar_resposta_inteligente(pergunta, conteudo, "Confluence")
+    
+    if resposta:
+        print("🤖 Resposta do Gemini:")
+        print(resposta)
+        print("\n" + "="*80 + "\n")
+        
+        links = re.findall(r'🔗 (https?://[^\s\)]+)', conteudo)
+        resposta_final = formatar_resposta_final(pergunta, resposta, conteudo, links)
+        
+        print("📤 Resposta final formatada:")
+        print(resposta_final)
+    else:
+        print("❌ Não foi possível gerar resposta")
+
