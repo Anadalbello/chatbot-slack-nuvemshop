@@ -101,11 +101,31 @@ Sua tarefa é responder à pergunta do usuário de forma clara, direta e profiss
         # Gerar resposta
         response = model.generate_content(prompt)
         
-        if response and response.text:
-            resposta_gerada = response.text.strip()
+        if response:
+            # Tentar acessar o texto de forma segura
+            try:
+                # Método 1: Tentar .text diretamente
+                resposta_gerada = response.text.strip()
+            except ValueError:
+                # Método 2: Acessar através das parts
+                logger.info("⚡ Usando acesso alternativo às parts")
+                if response.candidates and len(response.candidates) > 0:
+                    candidate = response.candidates[0]
+                    if candidate.content and candidate.content.parts:
+                        parts_text = []
+                        for part in candidate.content.parts:
+                            if hasattr(part, 'text') and part.text:
+                                parts_text.append(part.text)
+                        resposta_gerada = ' '.join(parts_text).strip()
+                    else:
+                        logger.warning("⚠️ Nenhuma part com texto encontrada")
+                        return None
+                else:
+                    logger.warning("⚠️ Nenhum candidate encontrado")
+                    return None
             
             # Validar que a resposta não é muito genérica
-            if len(resposta_gerada) > 30:
+            if resposta_gerada and len(resposta_gerada) > 30:
                 logger.info(f"✅ Resposta gerada com sucesso ({len(resposta_gerada)} caracteres)")
                 return resposta_gerada
             else:
