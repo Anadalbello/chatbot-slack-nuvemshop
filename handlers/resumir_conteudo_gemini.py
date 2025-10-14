@@ -104,13 +104,20 @@ def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de con
             logger.warning("⚠️ Conteúdo muito curto, usando fallback")
             return None
         
-        # ABORDAGEM RADICAL: Não mencionar o conteúdo encontrado
-        # Pedir para o Gemini criar uma resposta genérica sobre o tópico
-        # E depois adicionar "baseado na nossa documentação" manualmente
-        
-        prompt = f"""Como especialista, explique de forma clara e objetiva: {pergunta}
+        # Prompt com CONTEXTO específico sobre integrações
+        prompt = f"""Voce e um assistente especializado em integracoes da Nuvemshop/Nuvem Envio.
 
-Responda em 2-3 frases curtas e diretas:"""
+CONTEXTO IMPORTANTE:
+- Nuvemshop, Nuvem Envio e Mandae sao empresas do mesmo grupo
+- Todas as outras empresas mencionadas (Magento, Wake OMS, SAP, etc) sao PARCEIROS/INTEGRAÇÕES
+- Sua funcao e explicar como INTEGRAR essas plataformas parceiras com a Nuvemshop
+- Toda documentacao se refere a integracoes e parcerias de sistemas
+
+PERGUNTA DO USUARIO: {pergunta}
+
+DADOS DA DOCUMENTACAO: {conteudo_bruto}
+
+Responda de forma clara explicando a integracao (2-3 frases):"""
 
         # Gerar resposta
         logger.info(f"📝 Tamanho do prompt: {len(prompt)} caracteres")
