@@ -105,19 +105,30 @@ def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de con
             return None
         
         # Prompt com CONTEXTO específico sobre integrações
+        # Extrair nomes de parceiros/sistemas mencionados
+        parceiros_mencionados = re.findall(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*|[A-Z]{2,})\b', conteudo_bruto)
+        parceiros_unicos = list(set([p for p in parceiros_mencionados if p not in ['Espaco', 'Base', 'Manual', 'Documento']]))[:10]
+        
         prompt = f"""Voce e um assistente especializado em integracoes da Nuvemshop/Nuvem Envio.
 
 CONTEXTO IMPORTANTE:
-- Nuvemshop, Nuvem Envio e Mandae sao empresas do mesmo grupo
-- Todas as outras empresas mencionadas (Magento, Wake OMS, SAP, etc) sao PARCEIROS/INTEGRAÇÕES
-- Sua funcao e explicar como INTEGRAR essas plataformas parceiras com a Nuvemshop
-- Toda documentacao se refere a integracoes e parcerias de sistemas
+- Nuvemshop, Nuvem Envio e Mandae sao empresas do mesmo grupo (NAO sao parceiros)
+- Todas as outras empresas sao PARCEIROS que se integram com a Nuvemshop
+- Exemplos de parceiros: Magento, Wake OMS, SAP, Ativa, D2D On Platform, etc.
 
-PERGUNTA DO USUARIO: {pergunta}
+PERGUNTA: {pergunta}
 
-DADOS DA DOCUMENTACAO: {conteudo_bruto}
+DOCUMENTACAO ENCONTRADA: {conteudo_bruto}
 
-Responda de forma clara explicando a integracao (2-3 frases):"""
+PARCEIROS/SISTEMAS MENCIONADOS: {', '.join(parceiros_unicos) if parceiros_unicos else 'varios'}
+
+INSTRUCOES:
+- Se perguntarem para LISTAR parceiros, liste TODOS os sistemas/parceiros mencionados na documentacao
+- Se perguntarem COMO integrar, explique o processo
+- Seja direto e especifico
+- Use bullet points se for lista
+
+Sua resposta (2-4 frases ou lista):"""
 
         # Gerar resposta
         logger.info(f"📝 Tamanho do prompt: {len(prompt)} caracteres")
