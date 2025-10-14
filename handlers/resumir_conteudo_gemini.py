@@ -116,20 +116,41 @@ Sua tarefa é responder à pergunta do usuário de forma clara, direta e profiss
                 try:
                     if response.candidates and len(response.candidates) > 0:
                         candidate = response.candidates[0]
-                        logger.info(f"   Candidate encontrado, content: {hasattr(candidate, 'content')}")
+                        logger.info(f"   Candidate encontrado, tipo: {type(candidate)}")
                         
                         if hasattr(candidate, 'content') and candidate.content:
-                            logger.info(f"   Content tem parts: {hasattr(candidate.content, 'parts')}")
+                            content = candidate.content
+                            logger.info(f"   Content encontrado, tipo: {type(content)}")
                             
-                            if hasattr(candidate.content, 'parts') and candidate.content.parts:
+                            # Tentar diferentes formas de acessar parts
+                            parts = None
+                            if hasattr(content, 'parts'):
+                                parts = content.parts
+                                logger.info(f"   Parts via atributo: {type(parts)}, len: {len(parts) if parts else 0}")
+                            
+                            if not parts and hasattr(content, '_parts'):
+                                parts = content._parts
+                                logger.info(f"   Parts via _parts: {type(parts)}, len: {len(parts) if parts else 0}")
+                            
+                            if parts and len(parts) > 0:
                                 parts_text = []
-                                for i, part in enumerate(candidate.content.parts):
-                                    logger.info(f"   Part {i}: {type(part)}, tem text: {hasattr(part, 'text')}")
+                                for i, part in enumerate(parts):
+                                    logger.info(f"   Part {i}: {type(part)}")
+                                    
+                                    # Tentar diferentes formas de acessar o texto
+                                    text = None
                                     if hasattr(part, 'text'):
-                                        text = getattr(part, 'text', None)
-                                        if text:
-                                            parts_text.append(text)
-                                            logger.info(f"   Part {i} adicionada: {len(text)} chars")
+                                        text = part.text
+                                    elif hasattr(part, '_text'):
+                                        text = part._text
+                                    elif isinstance(part, str):
+                                        text = part
+                                    
+                                    if text:
+                                        parts_text.append(str(text))
+                                        logger.info(f"   Part {i} adicionada: {len(text)} chars")
+                                    else:
+                                        logger.warning(f"   Part {i} sem texto detectável")
                                 
                                 if parts_text:
                                     resposta_gerada = ' '.join(parts_text).strip()
@@ -137,13 +158,13 @@ Sua tarefa é responder à pergunta do usuário de forma clara, direta e profiss
                                 else:
                                     logger.warning("⚠️ Parts encontradas mas sem texto")
                             else:
-                                logger.warning("⚠️ Content sem parts ou parts vazio")
+                                logger.warning(f"⚠️ Parts não encontradas ou vazias. Content dict: {dir(content)[:5]}...")
                         else:
                             logger.warning("⚠️ Candidate sem content")
                     else:
                         logger.warning("⚠️ Nenhum candidate encontrado na resposta")
                 except Exception as inner_e:
-                    logger.error(f"❌ Erro ao acessar parts: {inner_e}")
+                    logger.error(f"❌ Erro ao acessar parts: {inner_e}", exc_info=True)
                     return None
             
             # Validar que a resposta não é muito genérica
