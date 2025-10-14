@@ -39,10 +39,11 @@ safety_settings = [
 model = genai.GenerativeModel(
     model_name="models/gemini-2.5-flash",  # Modelo rápido e eficiente
     generation_config={
-        "temperature": 0.7,
+        "temperature": 0.9,  # Maior criatividade para evitar RECITATION
         "top_p": 0.95,
-        "top_k": 40,
-        "max_output_tokens": 500,  # Resumo conciso
+        "top_k": 64,
+        "max_output_tokens": 500,
+        "response_mime_type": "text/plain",  # Forçar texto simples
     },
     safety_settings=safety_settings
 )
@@ -51,29 +52,39 @@ model = genai.GenerativeModel(
 def extrair_conteudo_bruto(resultado_formatado):
     """
     Extrai o conteúdo bruto (título, resumo, texto) dos resultados formatados
-    para enviar ao Gemini
+    para enviar ao Gemini - SEM formatação markdown para evitar RECITATION
     """
     conteudo = []
     
-    # Extrair títulos
+    # Extrair títulos (sem os **)
     titulos = re.findall(r'\*\*([^*]+)\*\*', resultado_formatado)
     
-    # Extrair resumos (texto entre _..._)
+    # Extrair resumos (sem os __)
     resumos = re.findall(r'_([^_]+)_', resultado_formatado)
     
-    # Combinar tudo
+    # Combinar de forma mais natural
     for i, titulo in enumerate(titulos):
-        texto = f"Documento: {titulo}"
+        # Simplificar o título removendo termos técnicos
+        titulo_simples = titulo.replace('Manual de configuração do', '').replace('copy', '').strip()
+        
         if i < len(resumos):
-            texto += f"\nConteúdo: {resumos[i]}"
+            resumo_limpo = resumos[i].strip()
+            texto = f"{titulo_simples}: {resumo_limpo}"
+        else:
+            texto = titulo_simples
+        
         conteudo.append(texto)
     
-    return "\n\n".join(conteudo)
+    # Retornar texto limpo sem formatação
+    return " | ".join(conteudo)
 
 
 def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de conhecimento"):
     """
     Usa Gemini para gerar uma resposta natural e resumida baseada no conteúdo encontrado
+    
+    NOTA: Atualmente desabilitado devido a problemas com RECITATION (finish_reason=2)
+    O Gemini bloqueia respostas quando detecta que o conteúdo pode ser cópia.
     
     Similar a como IAs respondem perguntas:
     - Lê o conteúdo disponível
@@ -86,9 +97,16 @@ def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de con
         fonte (str): Nome da fonte (Confluence, Zendesk, etc)
         
     Returns:
-        str: Resposta natural gerada pelo Gemini
+        str: Resposta natural gerada pelo Gemini (ou None se falhar)
     """
     
+    # TEMPORARIAMENTE DESABILITADO: Gemini está bloqueando com RECITATION
+    # Retornar None para usar o fallback (que funciona bem)
+    logger.info(f"ℹ️ Gemini temporariamente desabilitado (RECITATION issue), usando fallback")
+    return None
+    
+    # Código original comentado para referência futura
+    """
     try:
         logger.info(f"🤖 Gerando resposta inteligente com Gemini para: {pergunta}")
         
@@ -99,29 +117,24 @@ def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de con
             logger.warning("⚠️ Conteúdo muito curto, usando fallback")
             return None
         
-        # Construir prompt para o Gemini
-        prompt = f"""Você é um assistente técnico especializado em integrações e documentação.
+        # Construir prompt totalmente diferente para evitar RECITATION
+        # Pedir para REFORMULAR completamente, não copiar
+        prompt = f"""Reformule a seguinte informacao de forma completamente diferente e mais simples:
 
-Sua tarefa é responder à pergunta do usuário de forma clara, direta e profissional, usando APENAS as informações fornecidas abaixo.
+Topico: {pergunta}
+Dados: {conteudo_bruto}
 
-**REGRAS IMPORTANTES:**
-1. Responda de forma natural, como se estivesse explicando para um colega
-2. Use APENAS as informações fornecidas - não invente nada
-3. Seja conciso - máximo 4-5 linhas
-4. Se a informação não for suficiente para responder, seja honesto sobre isso
-5. Use linguagem técnica mas acessível
-6. NÃO mencione "de acordo com a documentação" ou similar - responda diretamente
-
-**Pergunta do usuário:**
-{pergunta}
-
-**Informações disponíveis em nossa {fonte}:**
-{conteudo_bruto}
-
-**Resposta (seja direto, claro e conciso):**"""
+Escreva uma explicacao breve com outras palavras (maximo 3 frases):"""
 
         # Gerar resposta
+        logger.info(f"📝 Tamanho do prompt: {len(prompt)} caracteres")
         response = model.generate_content(prompt)
+        
+        # Verificar prompt_feedback
+        if hasattr(response, 'prompt_feedback'):
+            logger.info(f"🔍 Prompt feedback: {response.prompt_feedback}")
+        
+        logger.info(f"📊 Resposta recebida, candidates: {len(response.candidates) if response.candidates else 0}")
         
         if response:
             resposta_gerada = None
@@ -142,7 +155,16 @@ Sua tarefa é responder à pergunta do usuário de forma clara, direta e profiss
                         
                         # Verificar finish_reason e safety_ratings
                         if hasattr(candidate, 'finish_reason'):
-                            logger.info(f"   Finish reason: {candidate.finish_reason}")
+                            finish_reason_map = {
+                                0: "FINISH_REASON_UNSPECIFIED",
+                                1: "STOP (normal)",
+                                2: "RECITATION (conteúdo bloqueado)",
+                                3: "SAFETY (filtro de segurança)",
+                                4: "MAX_TOKENS"
+                            }
+                            reason_code = candidate.finish_reason
+                            reason_name = finish_reason_map.get(reason_code, f"UNKNOWN({reason_code})")
+                            logger.info(f"   Finish reason: {reason_code} = {reason_name}")
                         if hasattr(candidate, 'safety_ratings'):
                             logger.info(f"   Safety ratings: {candidate.safety_ratings}")
                         
@@ -186,7 +208,11 @@ Sua tarefa é responder à pergunta do usuário de forma clara, direta e profiss
                                 else:
                                     logger.warning("⚠️ Parts encontradas mas sem texto")
                             else:
-                                logger.warning(f"⚠️ Parts não encontradas ou vazias. Content dict: {dir(content)[:5]}...")
+                                parts_len = len(parts) if parts is not None else 'None'
+                                logger.warning(f"⚠️ Parts vazias! len={parts_len}, type={type(parts)}")
+                                logger.warning(f"   Candidate finish_reason: {getattr(candidate, 'finish_reason', 'N/A')}")
+                                logger.warning(f"   Content role: {getattr(content, 'role', 'N/A')}")
+                                logger.warning(f"   Tentando converter content direto: {str(content)[:100] if content else 'vazio'}")
                         else:
                             logger.warning("⚠️ Candidate sem content")
                     else:
@@ -209,6 +235,7 @@ Sua tarefa é responder à pergunta do usuário de forma clara, direta e profiss
     except Exception as e:
         logger.error(f"❌ Erro ao gerar resposta com Gemini: {e}")
         return None
+    """
 
 
 def formatar_resposta_final(pergunta, resposta_gemini, conteudo_original, links):
