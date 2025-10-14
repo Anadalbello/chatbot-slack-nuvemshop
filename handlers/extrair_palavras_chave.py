@@ -64,38 +64,36 @@ def melhorar_busca_confluence(texto):
     Melhora o termo de busca para o Confluence, extraindo palavras-chave
     e criando uma query mais eficiente
     
+    NOVA ESTRATÉGIA: Manter TODAS as palavras relevantes para busca mais abrangente
+    
     Args:
         texto (str): Pergunta original
         
     Returns:
-        str: Termo otimizado para busca
+        str: Termo otimizado para busca (mantém todas palavras-chave)
     """
     
     # Extrair palavras-chave
     palavras_chave = extrair_palavras_chave(texto)
     
-    # Se tiver poucas palavras, usar todas
+    # Separar em palavras
     palavras = palavras_chave.split()
     
-    # Remover palavras muito genéricas que podem estar na lista
-    palavras_filtradas = [p for p in palavras if p not in ['doc', 'alguma', 'alguns', 'temos']]
+    # Remover apenas palavras MUITO genéricas que não agregam
+    palavras_genericas = ['doc', 'docs', 'alguma', 'alguns', 'temos', 'existe', 'fazer', 'faço']
+    palavras_filtradas = [p for p in palavras if p not in palavras_genericas]
     
-    # Se sobrou alguma palavra, usar elas
+    # Se sobrou alguma palavra relevante, usar elas
     if palavras_filtradas:
         palavras = palavras_filtradas
     
     if len(palavras) == 0:
         # Se não sobrou nada, retornar texto original limpo
         return re.sub(r'\s+', ' ', texto.lower()).strip()
-    elif len(palavras) == 1:
-        # Uma palavra, usar ela
-        return palavras[0]
-    elif len(palavras) <= 3:
-        # Poucas palavras, usar todas
-        return ' '.join(palavras)
     else:
-        # Muitas palavras, priorizar as 2 primeiras (geralmente mais importantes)
-        return ' '.join(palavras[:2])
+        # MUDANÇA IMPORTANTE: Retornar TODAS as palavras relevantes
+        # Isso permite que a busca seja mais abrangente
+        return ' '.join(palavras)
 
 if __name__ == "__main__":
     # Testes

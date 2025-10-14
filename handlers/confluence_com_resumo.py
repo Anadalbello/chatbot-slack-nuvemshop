@@ -8,12 +8,16 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 def buscar_confluence(termo):
+    """
+    Busca no Confluence com estratégias múltiplas:
+    1. Busca exata com todas as palavras
+    2. Busca com palavras individuais (OR)
+    3. Busca palavra por palavra (fallback)
+    """
     email = os.getenv("ATLASSIAN_EMAIL")
     token = os.getenv("ATLASSIAN_TOKEN")
     base_url = os.getenv("ATLASSIAN_BASE_URL")
-    
-    # NOVO: Espaço específico do Confluence
-    confluence_space = os.getenv("CONFLUENCE_SPACE", "")  # Se vazio, busca global
+    confluence_space = os.getenv("CONFLUENCE_SPACE", "")
     
     if not all([email, token, base_url]):
         logger.error("Configurações do Confluence não encontradas")
@@ -21,81 +25,115 @@ def buscar_confluence(termo):
 
     headers = {"Accept": "application/json"}
     auth = (email, token)
+    
+    # Extrair palavras-chave relevantes
+    palavras = [p for p in termo.split() if len(p) > 2]
+    
+    logger.info(f"🔍 Buscando no Confluence: '{termo}' | Palavras-chave: {palavras}")
+    
+    # ESTRATÉGIA 1: Busca com frase exata (melhor match)
+    resultados = _buscar_com_estrategia(
+        base_url, headers, auth, confluence_space,
+        f'title~"{termo}" OR text~"{termo}"',
+        "busca exata",
+        limit=5
+    )
+    
+    if resultados:
+        return resultados
+    
+    # ESTRATÉGIA 2: Busca com palavras combinadas (OR)
+    if len(palavras) >= 2:
+        logger.info("⚡ Tentando busca com palavras combinadas (OR)")
+        
+        # Criar query com todas as palavras (OR)
+        conditions = []
+        for palavra in palavras:
+            conditions.append(f'title~"{palavra}"')
+            conditions.append(f'text~"{palavra}"')
+        
+        cql_or = " OR ".join(conditions)
+        
+        resultados = _buscar_com_estrategia(
+            base_url, headers, auth, confluence_space,
+            cql_or,
+            "busca OR combinada",
+            limit=8
+        )
+        
+        if resultados:
+            return resultados
+    
+    # ESTRATÉGIA 3: Busca palavra por palavra (fallback mais agressivo)
+    logger.info("🔄 Tentando busca palavra por palavra")
+    
+    for palavra in palavras:
+        if len(palavra) > 3:
+            logger.info(f"   Tentando palavra: '{palavra}'")
+            
+            resultados = _buscar_com_estrategia(
+                base_url, headers, auth, confluence_space,
+                f'title~"{palavra}" OR text~"{palavra}"',
+                f"palavra '{palavra}'",
+                limit=5
+            )
+            
+            if resultados:
+                return resultados
+    
+    logger.info("❌ Nenhum resultado encontrado em todas as estratégias")
+    return None
 
-    # Construir query CQL baseada no espaço configurado
-    if confluence_space:
-        # Busca apenas no espaço específico
-        query = f"{base_url}/wiki/rest/api/content/search?cql=(title~\"{termo}\" OR text~\"{termo}\") AND type=page AND space=\"{confluence_space}\"&limit=3&expand=space,body.view,excerpt"
-        logger.info(f"Buscando no espaço específico: {confluence_space}")
-    else:
-        # Busca global (comportamento atual)
-        query = f"{base_url}/wiki/rest/api/content/search?cql=(title~\"{termo}\" OR text~\"{termo}\") AND type=page&limit=3&expand=space,body.view,excerpt"
-        logger.info("Buscando globalmente no Confluence")
+
+def _buscar_com_estrategia(base_url, headers, auth, confluence_space, cql_condition, estrategia_nome, limit=5):
+    """Executa uma busca no Confluence com uma condição CQL específica"""
     
     try:
-        logger.info(f"Buscando no Confluence com resumo: {termo}")
+        # Construir query base
+        space_filter = f' AND space="{confluence_space}"' if confluence_space else ''
+        query = f"{base_url}/wiki/rest/api/content/search?cql=({cql_condition}) AND type=page{space_filter}&limit={limit}&expand=space,body.view,excerpt"
+        
+        logger.info(f"   📡 Executando {estrategia_nome}...")
+        
         res = requests.get(query, headers=headers, auth=auth, timeout=15)
         res.raise_for_status()
         
         data = res.json()
+        
         if data["results"]:
+            logger.info(f"   ✅ {len(data['results'])} resultado(s) encontrado(s) com {estrategia_nome}")
+            
             results = []
-            for page in data["results"][:2]:  # Limitar a 2 resultados
+            seen_links = set()  # Evitar duplicatas
+            
+            for page in data["results"][:3]:  # Top 3 resultados
                 title = page["title"]
                 space_name = page["space"]["name"]
                 link = f"{base_url}/wiki{page['_links']['webui']}"
                 
-                # Extrair resumo do conteúdo
+                # Evitar duplicatas
+                if link in seen_links:
+                    continue
+                seen_links.add(link)
+                
+                # Extrair resumo
                 resumo = extrair_resumo_confluence(page)
                 
                 if resumo:
                     resultado_formatado = f"• **{title}** (Espaço: {space_name})\n  📝 _{resumo}_\n  🔗 {link}"
                 else:
-                    resultado_formatado = f"• **{title}** (Espaço: {space_name}) → {link}"
+                    resultado_formatado = f"• **{title}** (Espaço: {space_name})\n  🔗 {link}"
                 
                 results.append(resultado_formatado)
             
-            logger.info(f"Encontrados {len(results)} resultados no Confluence")
-            return "\n\n".join(results)
+            return "\n\n".join(results) if results else None
         else:
-            logger.info("Nenhum resultado encontrado no Confluence")
-            
-            # FALLBACK: Se não encontrou nada, tentar buscar palavra por palavra
-            palavras = termo.split()
-            if len(palavras) > 1:
-                logger.info(f"Tentando fallback: buscar palavra por palavra")
-                for palavra in palavras:
-                    if len(palavra) > 3:  # Ignorar palavras muito curtas
-                        if confluence_space:
-                            query_fallback = f"{base_url}/wiki/rest/api/content/search?cql=(title~\"{palavra}\" OR text~\"{palavra}\") AND type=page AND space=\"{confluence_space}\"&limit=3&expand=space,body.view,excerpt"
-                        else:
-                            query_fallback = f"{base_url}/wiki/rest/api/content/search?cql=(title~\"{palavra}\" OR text~\"{palavra}\") AND type=page&limit=3&expand=space,body.view,excerpt"
-                        
-                        res_fallback = requests.get(query_fallback, headers=headers, auth=auth, timeout=15)
-                        if res_fallback.status_code == 200:
-                            data_fallback = res_fallback.json()
-                            if data_fallback["results"]:
-                                logger.info(f"✅ Encontrado com palavra '{palavra}'")
-                                results = []
-                                for page in data_fallback["results"][:2]:
-                                    title = page["title"]
-                                    space_name = page["space"]["name"]
-                                    link = f"{base_url}/wiki{page['_links']['webui']}"
-                                    resumo = extrair_resumo_confluence(page)
-                                    
-                                    if resumo:
-                                        resultado_formatado = f"• **{title}** (Espaço: {space_name})\n  📝 _{resumo}_\n  🔗 {link}"
-                                    else:
-                                        resultado_formatado = f"• **{title}** (Espaço: {space_name}) → {link}"
-                                    
-                                    results.append(resultado_formatado)
-                                
-                                return "\n\n".join(results)
+            logger.info(f"   ⚠️ Nenhum resultado com {estrategia_nome}")
+            return None
             
     except Exception as e:
-        logger.error(f"Erro ao buscar no Confluence: {e}")
-        
-    return None
+        logger.error(f"   ❌ Erro na {estrategia_nome}: {e}")
+        return None
 
 def extrair_resumo_confluence(page_data):
     """Extrai resumo do conteúdo da página do Confluence"""
