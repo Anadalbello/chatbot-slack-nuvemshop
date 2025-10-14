@@ -102,26 +102,48 @@ Sua tarefa é responder à pergunta do usuário de forma clara, direta e profiss
         response = model.generate_content(prompt)
         
         if response:
+            resposta_gerada = None
+            
             # Tentar acessar o texto de forma segura
             try:
                 # Método 1: Tentar .text diretamente
                 resposta_gerada = response.text.strip()
-            except ValueError:
+                logger.info("✅ Acesso direto ao .text funcionou")
+            except (ValueError, AttributeError) as e:
                 # Método 2: Acessar através das parts
-                logger.info("⚡ Usando acesso alternativo às parts")
-                if response.candidates and len(response.candidates) > 0:
-                    candidate = response.candidates[0]
-                    if candidate.content and candidate.content.parts:
-                        parts_text = []
-                        for part in candidate.content.parts:
-                            if hasattr(part, 'text') and part.text:
-                                parts_text.append(part.text)
-                        resposta_gerada = ' '.join(parts_text).strip()
+                logger.info(f"⚡ Tentando acesso alternativo às parts (erro: {type(e).__name__})")
+                
+                try:
+                    if response.candidates and len(response.candidates) > 0:
+                        candidate = response.candidates[0]
+                        logger.info(f"   Candidate encontrado, content: {hasattr(candidate, 'content')}")
+                        
+                        if hasattr(candidate, 'content') and candidate.content:
+                            logger.info(f"   Content tem parts: {hasattr(candidate.content, 'parts')}")
+                            
+                            if hasattr(candidate.content, 'parts') and candidate.content.parts:
+                                parts_text = []
+                                for i, part in enumerate(candidate.content.parts):
+                                    logger.info(f"   Part {i}: {type(part)}, tem text: {hasattr(part, 'text')}")
+                                    if hasattr(part, 'text'):
+                                        text = getattr(part, 'text', None)
+                                        if text:
+                                            parts_text.append(text)
+                                            logger.info(f"   Part {i} adicionada: {len(text)} chars")
+                                
+                                if parts_text:
+                                    resposta_gerada = ' '.join(parts_text).strip()
+                                    logger.info(f"✅ {len(parts_text)} parts combinadas com sucesso")
+                                else:
+                                    logger.warning("⚠️ Parts encontradas mas sem texto")
+                            else:
+                                logger.warning("⚠️ Content sem parts ou parts vazio")
+                        else:
+                            logger.warning("⚠️ Candidate sem content")
                     else:
-                        logger.warning("⚠️ Nenhuma part com texto encontrada")
-                        return None
-                else:
-                    logger.warning("⚠️ Nenhum candidate encontrado")
+                        logger.warning("⚠️ Nenhum candidate encontrado na resposta")
+                except Exception as inner_e:
+                    logger.error(f"❌ Erro ao acessar parts: {inner_e}")
                     return None
             
             # Validar que a resposta não é muito genérica
@@ -129,7 +151,7 @@ Sua tarefa é responder à pergunta do usuário de forma clara, direta e profiss
                 logger.info(f"✅ Resposta gerada com sucesso ({len(resposta_gerada)} caracteres)")
                 return resposta_gerada
             else:
-                logger.warning("⚠️ Resposta muito curta, usando fallback")
+                logger.warning(f"⚠️ Resposta inválida (len: {len(resposta_gerada) if resposta_gerada else 0}), usando fallback")
                 return None
         else:
             logger.warning("⚠️ Gemini não retornou resposta")
