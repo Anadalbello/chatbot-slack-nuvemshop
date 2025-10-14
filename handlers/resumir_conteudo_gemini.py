@@ -15,6 +15,27 @@ logger = logging.getLogger(__name__)
 
 # Configurar Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+# Configurações de segurança mais permissivas
+safety_settings = [
+    {
+        "category": "HARM_CATEGORY_HARASSMENT",
+        "threshold": "BLOCK_NONE"
+    },
+    {
+        "category": "HARM_CATEGORY_HATE_SPEECH",
+        "threshold": "BLOCK_NONE"
+    },
+    {
+        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        "threshold": "BLOCK_NONE"
+    },
+    {
+        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+        "threshold": "BLOCK_NONE"
+    },
+]
+
 model = genai.GenerativeModel(
     model_name="models/gemini-2.5-flash",  # Modelo rápido e eficiente
     generation_config={
@@ -22,7 +43,8 @@ model = genai.GenerativeModel(
         "top_p": 0.95,
         "top_k": 40,
         "max_output_tokens": 500,  # Resumo conciso
-    }
+    },
+    safety_settings=safety_settings
 )
 
 
@@ -117,6 +139,12 @@ Sua tarefa é responder à pergunta do usuário de forma clara, direta e profiss
                     if response.candidates and len(response.candidates) > 0:
                         candidate = response.candidates[0]
                         logger.info(f"   Candidate encontrado, tipo: {type(candidate)}")
+                        
+                        # Verificar finish_reason e safety_ratings
+                        if hasattr(candidate, 'finish_reason'):
+                            logger.info(f"   Finish reason: {candidate.finish_reason}")
+                        if hasattr(candidate, 'safety_ratings'):
+                            logger.info(f"   Safety ratings: {candidate.safety_ratings}")
                         
                         if hasattr(candidate, 'content') and candidate.content:
                             content = candidate.content
