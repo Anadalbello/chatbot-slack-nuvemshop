@@ -335,7 +335,11 @@ def slack_events():
             user = event["user"]
             text = event["text"]
             channel = event["channel"]
-            thread_ts = event.get("ts")
+            
+            # 🧵 SUPORTE A THREADS: Se a mensagem já está em uma thread, usar o thread_ts
+            # Se não, criar nova thread com o ts da mensagem atual
+            thread_ts = event.get("thread_ts") or event.get("ts")
+            logger.info(f"🧵 Thread TS: {thread_ts} | Original TS: {event.get('ts')}")
             
             # 🛡️ VERIFICAR SE É EVENTO DUPLICADO
             if event_ja_processado(event.get("event_ts", ""), user, text):
