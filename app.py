@@ -534,12 +534,7 @@ def slack_actions():
     """Handler para botões interativos"""
     logger.info("🔘 Requisição recebida em /slack/actions")
     logger.info(f"Headers: {dict(request.headers)}")
-    
-    # ⚠️ IMPORTANTE: Ler o body ANTES de acessar request.form
-    # Se acessar request.form primeiro, o body é consumido e fica vazio
-    request_body = request.get_data()
-    
-    logger.info(f"📦 Body size: {len(request_body)} bytes")
+    logger.info(f"Form data: {request.form}")
     
     # Validação de assinatura específica para botões/actions
     try:
@@ -547,60 +542,25 @@ def slack_actions():
         if not signing_secret:
             logger.error("❌ SLACK_SIGNING_SECRET não configurado!")
             return "Configuration error", 500
+            
+        # Para requisições de botões, o Slack envia dados como form-encoded
+        request_body = request.get_data()
+        logger.info(f"🔍 Validando assinatura para body de {len(request_body)} bytes")
         
         # Debug headers importantes
         timestamp = request.headers.get('X-Slack-Request-Timestamp')
         signature = request.headers.get('X-Slack-Signature')
         logger.info(f"📋 Timestamp: {timestamp}, Signature: {signature[:20]}..." if signature else "No signature")
         
-        # IMPORTANTE: Validar assinatura
-        try:
-            if not verifier.is_valid_request(request_body, request.headers):
-                logger.error("❌ Falha na validação de assinatura para ação de botão")
-                logger.error(f"🔍 Body size: {len(request_body)}")
-                logger.error(f"🔍 Content-Type: {request.headers.get('Content-Type')}")
-                logger.error(f"🔍 Body (decoded): {request_body.decode('utf-8')[:500]}")
-                
-                # WORKAROUND TEMPORÁRIO: Tentar validar de forma alternativa
-                import time
-                import hmac
-                import hashlib
-                
-                # Verificar se timestamp não é muito antigo (< 5 minutos)
-                current_time = int(time.time())
-                request_timestamp = int(timestamp) if timestamp else 0
-                
-                if abs(current_time - request_timestamp) > 60 * 5:
-                    logger.error(f"❌ Timestamp muito antigo: {current_time - request_timestamp} segundos")
-                    return "Request timestamp too old", 403
-                
-                # Calcular assinatura manualmente
-                sig_basestring = f"v0:{timestamp}:{request_body.decode('utf-8')}"
-                expected_signature = 'v0=' + hmac.new(
-                    signing_secret.encode(),
-                    sig_basestring.encode(),
-                    hashlib.sha256
-                ).hexdigest()
-                
-                if not hmac.compare_digest(expected_signature, signature):
-                    logger.error(f"❌ Assinatura não coincide")
-                    logger.error(f"Expected: {expected_signature[:30]}...")
-                    logger.error(f"Received: {signature[:30]}...")
-                    return "Invalid signature", 403
-                else:
-                    logger.info("✅ Assinatura validada manualmente com sucesso!")
-        except Exception as validation_error:
-            logger.error(f"❌ Erro na validação: {validation_error}")
-            import traceback
-            traceback.print_exc()
-            return "Signature validation failed", 403
+        if not verifier.is_valid_request(request_body, request.headers):
+            logger.error("❌ Falha na validação de assinatura para ação de botão")
+            logger.error(f"🔍 Body size: {len(request_body)}, Headers: {dict(request.headers)}")
+            return "Invalid signature", 403
             
         logger.info("✅ Assinatura validada com sucesso para /slack/actions")
     except Exception as e:
         logger.error(f"❌ Erro crítico na validação de assinatura: {e}")
         logger.error(f"🔍 Signing secret present: {bool(signing_secret)}")
-        import traceback
-        traceback.print_exc()
         return "Signature validation error", 403
 
     try:
