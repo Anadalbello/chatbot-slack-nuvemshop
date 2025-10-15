@@ -148,6 +148,9 @@ venv.bak/
 google_sheets_credentials.json
 *service_account*.json
 
+# Bot learning data (logs de perguntas)
+perguntas_log.json
+
 # Spyder project settings
 .spyderproject
 .spyproject

@@ -18,6 +18,7 @@ from handlers.resumir_conteudo_gemini import gerar_resposta_inteligente
 from handlers.buscar_integracoes_dinamico import buscar_todas_integracoes_confluence, buscar_integracao_especifica
 from handlers.buscar_integracoes_sheets_publico import buscar_integracoes_google_sheets_publico, buscar_integracao_especifica_sheets_publico
 from handlers.buscar_faq import buscar_faq, formatar_resposta_faq
+from handlers.aprendizado_automatico import registrar_pergunta
 import re
 
 # Configurar logging
@@ -500,6 +501,14 @@ def slack_events():
                 # 3. ENVIAR APENAS RESULTADO FINAL
                 if resultados_encontrados:
                     logger.info(f"🎉 Total de resultados encontrados: {len(resultados_encontrados)}")
+                    
+                    # 🤖 REGISTRAR PERGUNTA PARA APRENDIZADO AUTOMÁTICO
+                    fonte = 'confluence' if 'confluence' in resultados_encontrados else 'zendesk'
+                    resposta_bruta = resultados_encontrados.get(fonte, '')
+                    
+                    resultado_registro = registrar_pergunta(pergunta_limpa, resposta_bruta, fonte)
+                    if resultado_registro.get('faq_criada'):
+                        logger.info(f"🎉 FAQ AUTO-GERADA! Pergunta '{pergunta_limpa}' apareceu {resultado_registro['contador']} vezes")
                     
                     resultado_formatado = formatar_resultados_encontrados(
                         resultados_encontrados.get('zendesk'),
