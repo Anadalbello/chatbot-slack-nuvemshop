@@ -144,6 +144,10 @@ ENV/
 env.bak/
 venv.bak/
 
+# Google Cloud credentials (IMPORTANT: Never commit these!)
+google_sheets_credentials.json
+*service_account*.json
+
 # Spyder project settings
 .spyderproject
 .spyproject

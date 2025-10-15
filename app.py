@@ -16,6 +16,7 @@ from handlers.extrair_palavras_chave import melhorar_busca_confluence
 from handlers.resumir_com_gemini import criar_resumo_simples
 from handlers.resumir_conteudo_gemini import gerar_resposta_inteligente
 from handlers.buscar_integracoes_dinamico import buscar_todas_integracoes_confluence, buscar_integracao_especifica
+from handlers.buscar_integracoes_sheets_publico import buscar_integracoes_google_sheets_publico, buscar_integracao_especifica_sheets_publico
 import re
 
 # Configurar logging
@@ -362,9 +363,16 @@ def slack_events():
                 eh_sobre_integracoes = any(palavra in pergunta_lower for palavra in palavras_integracao)
                 
                 if eh_pedido_lista and eh_sobre_integracoes:
-                    logger.info("📋 Detectado pedido para listar integrações - buscando dinamicamente")
+                    logger.info("📋 Detectado pedido para listar integrações")
                     
-                    lista_integracoes = buscar_todas_integracoes_confluence()
+                    # PRIORIDADE 1: Tentar buscar do Google Sheets (público)
+                    logger.info("📊 Tentando buscar do Google Sheets primeiro...")
+                    lista_integracoes = buscar_integracoes_google_sheets_publico()
+                    
+                    # FALLBACK: Se Google Sheets falhar, buscar do Confluence
+                    if not lista_integracoes:
+                        logger.info("⚠️ Google Sheets falhou, buscando do Confluence...")
+                        lista_integracoes = buscar_todas_integracoes_confluence()
                     
                     if lista_integracoes:
                         # Converter para formato mrkdwn
@@ -387,7 +395,7 @@ def slack_events():
                         logger.info("✅ Lista de integrações enviada")
                         return jsonify({"ok": True})
                     else:
-                        logger.warning("⚠️ Não foi possível buscar lista de integrações, continuando com busca normal")
+                        logger.warning("⚠️ Não foi possível buscar lista de integrações (nem Sheets nem Confluence), continuando com busca normal")
                 
                 # 🔍 BUSCAR SILENCIOSAMENTE (sem mensagens intermediárias)
                 resultados_encontrados = {}
