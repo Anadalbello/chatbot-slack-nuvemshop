@@ -15,6 +15,7 @@ from handlers.google_sites import buscar_google_sites
 from handlers.extrair_palavras_chave import melhorar_busca_confluence
 from handlers.resumir_com_gemini import criar_resumo_simples
 from handlers.resumir_conteudo_gemini import gerar_resposta_inteligente
+from handlers.buscar_integracoes_dinamico import buscar_todas_integracoes_confluence, buscar_integracao_especifica
 import re
 
 # Configurar logging
@@ -352,6 +353,42 @@ def slack_events():
             pergunta_limpa = limpar_termo_busca(text)
             
             try:
+                # 🎯 DETECTAR SE É PEDIDO PARA LISTAR INTEGRAÇÕES/PARCEIROS
+                palavras_listar = ["listar", "lista", "quais são", "quais sao", "tem quais", "quantos", "todos os", "todas as"]
+                palavras_integracao = ["integra", "parceiro", "sistema", "plataforma"]
+                
+                pergunta_lower = pergunta_limpa.lower()
+                eh_pedido_lista = any(palavra in pergunta_lower for palavra in palavras_listar)
+                eh_sobre_integracoes = any(palavra in pergunta_lower for palavra in palavras_integracao)
+                
+                if eh_pedido_lista and eh_sobre_integracoes:
+                    logger.info("📋 Detectado pedido para listar integrações - buscando dinamicamente")
+                    
+                    lista_integracoes = buscar_todas_integracoes_confluence()
+                    
+                    if lista_integracoes:
+                        # Converter para formato mrkdwn
+                        lista_mrkdwn = lista_integracoes.replace("**", "*")
+                        
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text="Lista de integrações disponíveis",
+                            blocks=[
+                                {
+                                    "type": "section",
+                                    "text": {
+                                        "type": "mrkdwn",
+                                        "text": lista_mrkdwn
+                                    }
+                                }
+                            ]
+                        )
+                        logger.info("✅ Lista de integrações enviada")
+                        return jsonify({"ok": True})
+                    else:
+                        logger.warning("⚠️ Não foi possível buscar lista de integrações, continuando com busca normal")
+                
                 # 🔍 BUSCAR SILENCIOSAMENTE (sem mensagens intermediárias)
                 resultados_encontrados = {}
 
