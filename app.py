@@ -17,6 +17,7 @@ from handlers.resumir_com_gemini import criar_resumo_simples
 from handlers.resumir_conteudo_gemini import gerar_resposta_inteligente
 from handlers.buscar_integracoes_dinamico import buscar_todas_integracoes_confluence, buscar_integracao_especifica
 from handlers.buscar_integracoes_sheets_publico import buscar_integracoes_google_sheets_publico, buscar_integracao_especifica_sheets_publico
+from handlers.buscar_faq import buscar_faq, formatar_resposta_faq
 import re
 
 # Configurar logging
@@ -399,6 +400,75 @@ def slack_events():
                 
                 # 🔍 BUSCAR SILENCIOSAMENTE (sem mensagens intermediárias)
                 resultados_encontrados = {}
+
+                # 0. PRIORIDADE MÁXIMA: Buscar nas FAQs primeiro (mais rápido)
+                logger.info(f"💡 Verificando FAQs para: {pergunta_limpa}")
+                resultado_faq = buscar_faq(pergunta_limpa, threshold=0.70)
+                
+                if resultado_faq and resultado_faq['confianca'] >= 0.70:
+                    logger.info(f"✅ FAQ encontrada com {resultado_faq['confianca']:.0%} de confiança")
+                    
+                    resposta_faq = formatar_resposta_faq(resultado_faq)
+                    
+                    if resposta_faq:
+                        # Enviar resposta da FAQ
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text=resposta_faq,  # Fallback text
+                            blocks=[
+                                {
+                                    "type": "section",
+                                    "text": {
+                                        "type": "mrkdwn",
+                                        "text": resposta_faq
+                                    }
+                                },
+                                {
+                                    "type": "context",
+                                    "elements": [
+                                        {
+                                            "type": "mrkdwn",
+                                            "text": f"🤖 _Resposta rápida do FAQ | Confiança: {resultado_faq['confianca']:.0%}_"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "type": "actions",
+                                    "elements": [
+                                        {
+                                            "type": "button",
+                                            "text": {
+                                                "type": "plain_text",
+                                                "text": "✅ Resolveu minha dúvida"
+                                            },
+                                            "value": json.dumps({
+                                                "action": "resolvido",
+                                                "pergunta": pergunta_limpa
+                                            }),
+                                            "action_id": "resolvido",
+                                            "style": "primary"
+                                        },
+                                        {
+                                            "type": "button",
+                                            "text": {
+                                                "type": "plain_text",
+                                                "text": "🔍 Buscar mais informações"
+                                            },
+                                            "value": json.dumps({
+                                                "action": "buscar_mais",
+                                                "pergunta": pergunta_limpa
+                                            }),
+                                            "action_id": "buscar_mais"
+                                        }
+                                    ]
+                                }
+                            ]
+                        )
+                        logger.info("✅ Resposta FAQ enviada com sucesso")
+                        return jsonify({"ok": True})
+                else:
+                    logger.info("❌ Nenhuma FAQ relevante encontrada, continuando busca normal")
 
                 # 1. PRIORIDADE: Buscar no Confluence primeiro
                 logger.info(f"📋 Iniciando busca no Confluence para: {pergunta_limpa}")

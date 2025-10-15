@@ -1,0 +1,71 @@
+{
+  "faqs": [
+    {
+      "id": "faq_001",
+      "pergunta": "Como integrar com Magento?",
+      "palavras_chave": ["magento", "integrar", "integracao", "configurar", "setup"],
+      "resposta": "**Integração Magento + Nuvemshop**\n\nA integração com Magento é classificada como **COMPLEXA** e pode levar até 15 dias úteis.\n\n**Passos principais:**\n1. Acesse o painel de integrações da Nuvemshop\n2. Configure as credenciais da API do Magento\n3. Mapeie os produtos e categorias\n4. Configure o sincronização de estoque\n\n📚 **Documentação completa:** https://tiendanube.atlassian.net/wiki/spaces/BDGCI/pages/...",
+      "link": "https://tiendanube.atlassian.net/wiki/spaces/BDGCI/",
+      "prioridade": "alta",
+      "categoria": "integracao",
+      "ativo": true,
+      "criado_em": "2025-10-15",
+      "atualizado_em": "2025-10-15"
+    },
+    {
+      "id": "faq_002",
+      "pergunta": "Temos integração com Tray?",
+      "palavras_chave": ["tray", "integração", "integracao", "compatível", "compativel", "disponivel"],
+      "resposta": "**Sim! Temos integração com Tray.**\n\nA Tray é uma plataforma de e-commerce que se integra com o Nuvem Envio para cálculo de frete.\n\n**Complexidade:** Média (até 8 dias úteis)\n**Tipo:** Plataforma de E-commerce\n\n📚 **Veja mais detalhes na documentação.**",
+      "link": "https://tiendanube.atlassian.net/wiki/spaces/BDGCI/",
+      "prioridade": "alta",
+      "categoria": "integracao",
+      "ativo": true,
+      "criado_em": "2025-10-15",
+      "atualizado_em": "2025-10-15"
+    },
+    {
+      "id": "faq_003",
+      "pergunta": "Como calcular frete na API?",
+      "palavras_chave": ["frete", "calcular", "api", "shipping", "calculo", "cotacao", "cotação"],
+      "resposta": "**Cálculo de Frete via API**\n\nPara calcular frete usando nossa API:\n\n1. **Endpoint:** `POST /api/v1/shipping/calculate`\n2. **Autenticação:** Bearer token\n3. **Parâmetros obrigatórios:**\n   - CEP origem\n   - CEP destino\n   - Peso (kg)\n   - Dimensões (cm)\n\n**Exemplo de requisição:**\n```json\n{\n  \"origin_zipcode\": \"01310-100\",\n  \"destination_zipcode\": \"04547-130\",\n  \"weight\": 2.5,\n  \"height\": 20,\n  \"width\": 30,\n  \"length\": 40\n}\n```\n\n📚 **Documentação da API:** https://api-docs.nuvemenvio.com.br",
+      "link": "https://api-docs.nuvemenvio.com.br/shipping",
+      "prioridade": "alta",
+      "categoria": "api",
+      "ativo": true,
+      "criado_em": "2025-10-15",
+      "atualizado_em": "2025-10-15"
+    },
+    {
+      "id": "faq_004",
+      "pergunta": "Quais integrações estão disponíveis?",
+      "palavras_chave": ["listar", "lista", "quais", "integracoes", "integrações", "disponiveis", "disponíveis", "parceiros", "plataformas"],
+      "resposta": "**Integrações Disponíveis**\n\nTemos mais de 50 integrações disponíveis! 🎉\n\nPara ver a lista completa atualizada, me pergunte: `@bot listar integrações`\n\n**Principais categorias:**\n- 🛒 **Plataformas de E-commerce:** Magento, Wake OMS, Bling, Tray, etc.\n- 📦 **ERPs:** Aton, E-millennium, Eccosys, etc.\n- 🏪 **Marketplaces:** Amazon, B2W, Mercado Livre, etc.\n- 🚚 **TMS:** Intelipost, Frenet, etc.\n\n💡 **Dica:** Você também pode consultar nossa planilha completa de integrações!",
+      "link": "https://docs.google.com/spreadsheets/d/17_ch_pQ0Tj0KvVCEzyii5mzHyh4mOiQBjgtO7-fQEVQ",
+      "prioridade": "alta",
+      "categoria": "geral",
+      "ativo": true,
+      "criado_em": "2025-10-15",
+      "atualizado_em": "2025-10-15"
+    },
+    {
+      "id": "faq_005",
+      "pergunta": "Como funciona o webhook?",
+      "palavras_chave": ["webhook", "notificacao", "notificação", "callback", "evento", "trigger"],
+      "resposta": "**Webhooks - Notificações em tempo real**\n\nOs webhooks permitem que você receba notificações automáticas quando eventos importantes acontecem.\n\n**Eventos disponíveis:**\n- 📦 Novo pedido criado\n- 🚚 Status de entrega atualizado\n- ✅ Pedido entregue\n- ❌ Falha na entrega\n- 💰 Pagamento confirmado\n\n**Como configurar:**\n1. Crie um endpoint HTTPS no seu sistema\n2. Configure a URL no painel de integrações\n3. Valide o webhook usando o secret fornecido\n\n📚 **Documentação técnica:** https://api-docs.nuvemenvio.com.br/webhooks",
+      "link": "https://api-docs.nuvemenvio.com.br/webhooks",
+      "prioridade": "media",
+      "categoria": "api",
+      "ativo": true,
+      "criado_em": "2025-10-15",
+      "atualizado_em": "2025-10-15"
+    }
+  ],
+  "metadata": {
+    "versao": "1.0",
+    "ultima_atualizacao": "2025-10-15T20:55:00Z",
+    "total_faqs": 5,
+    "descricao": "Base de conhecimento de perguntas frequentes do chatbot de integrações"
+  }
+}
+
