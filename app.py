@@ -534,7 +534,12 @@ def slack_actions():
     """Handler para botões interativos"""
     logger.info("🔘 Requisição recebida em /slack/actions")
     logger.info(f"Headers: {dict(request.headers)}")
-    logger.info(f"Form data: {request.form}")
+    
+    # ⚠️ IMPORTANTE: Ler o body ANTES de acessar request.form
+    # Se acessar request.form primeiro, o body é consumido e fica vazio
+    request_body = request.get_data()
+    
+    logger.info(f"📦 Body size: {len(request_body)} bytes")
     
     # Validação de assinatura específica para botões/actions
     try:
@@ -542,10 +547,6 @@ def slack_actions():
         if not signing_secret:
             logger.error("❌ SLACK_SIGNING_SECRET não configurado!")
             return "Configuration error", 500
-            
-        # Para requisições de botões, o Slack envia dados como form-encoded
-        request_body = request.get_data()
-        logger.info(f"🔍 Validando assinatura para body de {len(request_body)} bytes")
         
         # Debug headers importantes
         timestamp = request.headers.get('X-Slack-Request-Timestamp')
