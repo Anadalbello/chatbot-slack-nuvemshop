@@ -412,7 +412,9 @@ def slack_events():
                     resposta_faq = formatar_resposta_faq(resultado_faq)
                     
                     if resposta_faq:
-                        # Enviar resposta da FAQ
+                        # Enviar resposta da FAQ (formato igual ao Confluence/Zendesk)
+                        resposta_mrkdwn = resposta_faq.replace("**", "*")
+                        
                         slack_client.chat_postMessage(
                             channel=channel,
                             thread_ts=thread_ts,
@@ -422,7 +424,7 @@ def slack_events():
                                     "type": "section",
                                     "text": {
                                         "type": "mrkdwn",
-                                        "text": resposta_faq
+                                        "text": resposta_mrkdwn
                                     }
                                 },
                                 {
@@ -433,6 +435,22 @@ def slack_events():
                                             "text": f"🤖 _Resposta rápida do FAQ | Confiança: {resultado_faq['confianca']:.0%}_"
                                         }
                                     ]
+                                }
+                            ]
+                        )
+                        
+                        # Botões separados (igual ao formato original)
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text="Estas informações ajudaram?",
+                            blocks=[
+                                {
+                                    "type": "section",
+                                    "text": {
+                                        "type": "mrkdwn",
+                                        "text": "❓ *Estas informações ajudaram?*"
+                                    }
                                 },
                                 {
                                     "type": "actions",
@@ -441,7 +459,7 @@ def slack_events():
                                             "type": "button",
                                             "text": {
                                                 "type": "plain_text",
-                                                "text": "✅ Resolveu minha dúvida"
+                                                "text": "✅ Sim, me ajudou!"
                                             },
                                             "value": json.dumps({
                                                 "action": "resolvido",
@@ -454,18 +472,31 @@ def slack_events():
                                             "type": "button",
                                             "text": {
                                                 "type": "plain_text",
-                                                "text": "🔍 Buscar mais informações"
+                                                "text": "📋 Ver portal completo"
                                             },
                                             "value": json.dumps({
-                                                "action": "buscar_mais",
+                                                "action": "portal",
                                                 "pergunta": pergunta_limpa
                                             }),
-                                            "action_id": "buscar_mais"
+                                            "action_id": "portal"
+                                        },
+                                        {
+                                            "type": "button",
+                                            "text": {
+                                                "type": "plain_text",
+                                                "text": "🎫 Abrir chamado"
+                                            },
+                                            "value": json.dumps({
+                                                "action": "chamado",
+                                                "pergunta": pergunta_limpa
+                                            }),
+                                            "action_id": "chamado"
                                         }
                                     ]
                                 }
                             ]
                         )
+                        
                         logger.info("✅ Resposta FAQ enviada com sucesso")
                         return jsonify({"ok": True})
                 else:
