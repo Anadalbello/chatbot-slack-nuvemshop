@@ -337,13 +337,14 @@ def slack_events():
 
     if "event" in data:
         event = data["event"]
-        # Responder a menções (@bot) E mensagens diretas (DM)
+        # Responder a menções (@bot), mensagens diretas (DM) e conversas de grupo
         if event.get("type") in ["app_mention", "message"]:
-            # Verificar se é DM ou menção
+            # Verificar se é DM, conversa de grupo ou menção
             is_dm = event.get("channel_type") == "im"
+            is_group = event.get("channel_type") == "mpim"  # Multi-party instant message (grupo)
             is_mention = "@U096CTRBBDZ" in event.get("text", "")
             
-            if is_dm or is_mention:
+            if is_dm or is_group or is_mention:
                 user = event["user"]
                 text = event["text"]
                 channel = event["channel"]
