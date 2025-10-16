@@ -6,6 +6,7 @@ import os
 import logging
 import time
 import json
+from datetime import datetime
 from handlers.zendesk_api import buscar_artigo_zendesk_api
 from handlers.zendesk_com_resumo import limpar_termo_busca
 from handlers.confluence_com_resumo import buscar_confluence
@@ -402,105 +403,9 @@ def slack_events():
                 # 🔍 BUSCAR SILENCIOSAMENTE (sem mensagens intermediárias)
                 resultados_encontrados = {}
 
-                # 0. PRIORIDADE MÁXIMA: Buscar nas FAQs primeiro (mais rápido)
-                logger.info(f"💡 Verificando FAQs para: {pergunta_limpa}")
-                resultado_faq = buscar_faq(pergunta_limpa, threshold=0.70)
-                
-                if resultado_faq and resultado_faq['confianca'] >= 0.70:
-                    logger.info(f"✅ FAQ encontrada com {resultado_faq['confianca']:.0%} de confiança")
-                    
-                    resposta_faq = formatar_resposta_faq(resultado_faq)
-                    
-                    if resposta_faq:
-                        # Enviar resposta da FAQ (formato igual ao Confluence/Zendesk)
-                        resposta_mrkdwn = resposta_faq.replace("**", "*")
-                        
-                        slack_client.chat_postMessage(
-                            channel=channel,
-                            thread_ts=thread_ts,
-                            text=resposta_faq,  # Fallback text
-                            blocks=[
-                                {
-                                    "type": "section",
-                                    "text": {
-                                        "type": "mrkdwn",
-                                        "text": resposta_mrkdwn
-                                    }
-                                },
-                                {
-                                    "type": "context",
-                                    "elements": [
-                                        {
-                                            "type": "mrkdwn",
-                                            "text": f"🤖 _Resposta rápida do FAQ | Confiança: {resultado_faq['confianca']:.0%}_"
-                                        }
-                                    ]
-                                }
-                            ]
-                        )
-                        
-                        # Botões separados (igual ao formato original)
-                        slack_client.chat_postMessage(
-                            channel=channel,
-                            thread_ts=thread_ts,
-                            text="Estas informações ajudaram?",
-                            blocks=[
-                                {
-                                    "type": "section",
-                                    "text": {
-                                        "type": "mrkdwn",
-                                        "text": "❓ *Estas informações ajudaram?*"
-                                    }
-                                },
-                                {
-                                    "type": "actions",
-                                    "elements": [
-                                        {
-                                            "type": "button",
-                                            "text": {
-                                                "type": "plain_text",
-                                                "text": "✅ Sim, me ajudou!"
-                                            },
-                                            "value": json.dumps({
-                                                "action": "resolvido",
-                                                "pergunta": pergunta_limpa
-                                            }),
-                                            "action_id": "resolvido",
-                                            "style": "primary"
-                                        },
-                                        {
-                                            "type": "button",
-                                            "text": {
-                                                "type": "plain_text",
-                                                "text": "📋 Ver portal completo"
-                                            },
-                                            "value": json.dumps({
-                                                "action": "portal",
-                                                "pergunta": pergunta_limpa
-                                            }),
-                                            "action_id": "portal"
-                                        },
-                                        {
-                                            "type": "button",
-                                            "text": {
-                                                "type": "plain_text",
-                                                "text": "🎫 Abrir chamado"
-                                            },
-                                            "value": json.dumps({
-                                                "action": "chamado",
-                                                "pergunta": pergunta_limpa
-                                            }),
-                                            "action_id": "chamado"
-                                        }
-                                    ]
-                                }
-                            ]
-                        )
-                        
-                        logger.info("✅ Resposta FAQ enviada com sucesso")
-                        return jsonify({"ok": True})
-                else:
-                    logger.info("❌ Nenhuma FAQ relevante encontrada, continuando busca normal")
+                # 📊 REGISTRAR PERGUNTA PARA ANÁLISE INTERNA (FAQ como ferramenta de análise)
+                logger.info(f"📝 Registrando pergunta para análise: {pergunta_limpa}")
+                # Nota: FAQ não é usado para responder usuários, apenas para análise interna
 
                 # 1. PRIORIDADE: Buscar no Confluence primeiro
                 logger.info(f"📋 Iniciando busca no Confluence para: {pergunta_limpa}")
@@ -790,6 +695,80 @@ def not_found(error):
 @app.route("/", methods=["GET", "HEAD"])
 def index():
     return "Chatbot Gemini está rodando! 🚀", 200
+
+
+@app.route("/analytics", methods=["GET"])
+def analytics():
+    """
+    Endpoint para visualizar estatísticas das perguntas (análise interna)
+    """
+    try:
+        from handlers.aprendizado_automatico import obter_estatisticas
+        
+        stats = obter_estatisticas()
+        
+        if not stats:
+            return jsonify({"error": "Não foi possível obter estatísticas"}), 500
+        
+        # Formatar resposta mais legível
+        html_response = f"""
+        <html>
+        <head>
+            <title>Analytics - Chatbot Perguntas</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                .stat {{ background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 5px; }}
+                .pergunta {{ background: #e8f4fd; padding: 8px; margin: 5px 0; border-radius: 3px; }}
+                .faq-criada {{ background: #d4edda; }}
+            </style>
+        </head>
+        <body>
+            <h1>📊 Analytics - Perguntas do Chatbot</h1>
+            
+            <div class="stat">
+                <h3>📈 Resumo Geral</h3>
+                <p><strong>Perguntas únicas:</strong> {stats['total_perguntas_unicas']}</p>
+                <p><strong>Total de perguntas feitas:</strong> {stats['total_perguntas_feitas']}</p>
+                <p><strong>FAQs auto-geradas:</strong> {stats['faqs_auto_geradas']}</p>
+            </div>
+            
+            <div class="stat">
+                <h3>🔥 Top 10 Perguntas Mais Frequentes</h3>
+        """
+        
+        for i, pergunta in enumerate(stats['top_perguntas'], 1):
+            faq_class = "faq-criada" if pergunta['faq_criada'] else ""
+            faq_status = "✅ FAQ criada" if pergunta['faq_criada'] else "⏳ Aguardando"
+            
+            html_response += f"""
+                <div class="pergunta {faq_class}">
+                    <strong>{i}. {pergunta['pergunta']}</strong><br>
+                    Apareceu: {pergunta['contador']} vezes | {faq_status}
+                </div>
+            """
+        
+        html_response += """
+            </div>
+            
+            <div class="stat">
+                <h3>💡 Como usar essas informações:</h3>
+                <ul>
+                    <li><strong>Perguntas frequentes:</strong> Considere criar documentação específica</li>
+                    <li><strong>FAQs auto-geradas:</strong> Revise e melhore as respostas no faq_database.json</li>
+                    <li><strong>Padrões:</strong> Identifique temas que precisam de mais documentação</li>
+                </ul>
+            </div>
+            
+            <p><em>Última atualização: {datetime.now().strftime('%d/%m/%Y %H:%M')}</em></p>
+        </body>
+        </html>
+        """
+        
+        return html_response, 200
+        
+    except Exception as e:
+        logger.error(f"❌ Erro no analytics: {e}")
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     import os
