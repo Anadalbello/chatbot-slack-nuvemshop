@@ -127,3 +127,4 @@ if __name__ == "__main__":
     print("\n=== TESTE: Por tipo ERP ===")
     print(listar_por_tipo("ERP"))
 
+
