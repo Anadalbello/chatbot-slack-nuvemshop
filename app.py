@@ -20,7 +20,7 @@ from handlers.buscar_integracoes_dinamico import buscar_todas_integracoes_conflu
 from handlers.buscar_integracoes_sheets_publico import buscar_integracoes_google_sheets_publico, buscar_integracao_especifica_sheets_publico
 from handlers.buscar_faq import buscar_faq, formatar_resposta_faq
 from handlers.aprendizado_automatico import registrar_pergunta
-from handlers.filtrar_links_relevantes import filtrar_links_relevantes, gerar_resposta_sem_resultados
+# from handlers.filtrar_links_relevantes import filtrar_links_relevantes, gerar_resposta_sem_resultados
 import re
 
 # Configurar logging
@@ -255,31 +255,19 @@ def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, p
             )
             
             if resposta_gemini:
-                # 🔗 FILTRAR LINKS RELEVANTES (não mais aleatórios!)
-                try:
-                    links_relevantes = filtrar_links_relevantes(resultados_confluence, pergunta_limpa, max_links=3)
-                except Exception as e:
-                    logger.error(f"❌ Erro no filtro de links: {e}")
-                    # Fallback: usar links simples
-                    links_relevantes = re.findall(r'🔗 (https?://[^\s\)]+)', resultados_confluence)[:3]
+                # Extrair links do conteúdo
+                links = re.findall(r'🔗 (https?://[^\s\)]+)', resultados_confluence)
                 
                 # Formatar resposta final
                 resposta_completa = f"**{pergunta_limpa}**\n\n{resposta_gemini}\n\n"
+                resposta_completa += "---\n\n📚 **Documentação completa:**\n"
                 
-                if links_relevantes:
-                    resposta_completa += "---\n\n📚 **Documentação completa:**\n"
-                    for i, link in enumerate(links_relevantes, 1):
-                        resposta_completa += f"{i}. {link}\n"
-                    resposta_completa += "\n_Para mais informações ou dúvidas específicas, estou à disposição para ajudar._"
-                else:
-                    # Se não há links relevantes, orientar para portal/chamado
-                    resposta_completa += "\n💡 **Não encontrei documentação específica sobre este tópico.**\n\n"
-                    resposta_completa += "**Recomendo:**\n"
-                    resposta_completa += "• 📋 **Portal de Integrações:** Acesse nossa documentação completa\n"
-                    resposta_completa += "• 🎫 **Abrir chamado:** Nossa equipe pode ajudar com casos específicos\n\n"
-                    resposta_completa += "_Para assistência personalizada, recomendo abrir um chamado._"
+                for i, link in enumerate(links[:3], 1):
+                    resposta_completa += f"{i}. {link}\n"
                 
-                logger.info(f"✅ Resposta inteligente gerada com {len(links_relevantes)} links relevantes")
+                resposta_completa += "\n_Para mais informações ou dúvidas específicas, estou à disposição para ajudar._"
+                
+                logger.info("✅ Resposta inteligente gerada com sucesso")
                 return resposta_completa
             else:
                 # Fallback: usar método simples
@@ -305,30 +293,18 @@ def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, p
             )
             
             if resposta_gemini:
-                # 🔗 FILTRAR LINKS RELEVANTES (não mais aleatórios!)
-                try:
-                    links_relevantes = filtrar_links_relevantes(resultados_zendesk, pergunta_limpa, max_links=3)
-                except Exception as e:
-                    logger.error(f"❌ Erro no filtro de links: {e}")
-                    # Fallback: usar links simples
-                    links_relevantes = re.findall(r'🔗 (https?://[^\s\)]+)', resultados_zendesk)[:3]
+                # Extrair links
+                links = re.findall(r'🔗 (https?://[^\s\)]+)', resultados_zendesk)
                 
                 resposta_completa = f"**{pergunta_limpa}**\n\n{resposta_gemini}\n\n"
+                resposta_completa += "---\n\n📚 **Artigos relacionados:**\n"
                 
-                if links_relevantes:
-                    resposta_completa += "---\n\n📚 **Artigos relacionados:**\n"
-                    for i, link in enumerate(links_relevantes, 1):
-                        resposta_completa += f"{i}. {link}\n"
-                    resposta_completa += "\n_Para mais assistência, entre em contato com a equipe de suporte._"
-                else:
-                    # Se não há links relevantes, orientar para portal/chamado
-                    resposta_completa += "\n💡 **Não encontrei artigos específicos sobre este tópico.**\n\n"
-                    resposta_completa += "**Recomendo:**\n"
-                    resposta_completa += "• 📋 **Portal de Integrações:** Acesse nossa documentação completa\n"
-                    resposta_completa += "• 🎫 **Abrir chamado:** Nossa equipe pode ajudar com casos específicos\n\n"
-                    resposta_completa += "_Para assistência personalizada, recomendo abrir um chamado._"
+                for i, link in enumerate(links[:3], 1):
+                    resposta_completa += f"{i}. {link}\n"
                 
-                logger.info(f"✅ Resposta inteligente gerada com {len(links_relevantes)} links relevantes")
+                resposta_completa += "\n_Para mais assistência, entre em contato com a equipe de suporte._"
+                
+                logger.info("✅ Resposta inteligente gerada com sucesso")
                 return resposta_completa
             else:
                 # Fallback: método simples
@@ -520,8 +496,16 @@ def slack_events():
                 else:
                     logger.info("❌ Nenhum resultado encontrado - oferecendo alternativas")
                     
-                    # Usar função de resposta sem resultados
-                    mensagem_sem_resultado = gerar_resposta_sem_resultados(pergunta_limpa)
+                    # Mensagem no estilo Ask Nina
+                    mensagem_sem_resultado = (
+                        "Olá!\n\n"
+                        f"Com base nas informações disponíveis em meu contexto, não localizei documentação específica sobre *{pergunta_limpa}* em nossa base de conhecimento.\n\n"
+                        "Para verificar a disponibilidade dessa informação ou explorar alternativas, você pode:\n\n"
+                        "• Acessar nosso portal de integrações para documentação completa\n"
+                        "• Entrar em contato com o time de suporte para orientações específicas\n"
+                        "• Abrir um chamado no Jira para que possamos ajudar diretamente\n\n"
+                        "_Estou à disposição para ajudar com outras questões._"
+                    )
                     
                     slack_client.chat_postMessage(
                         channel=channel,
