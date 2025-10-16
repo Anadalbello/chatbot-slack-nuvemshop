@@ -381,27 +381,33 @@ def slack_events():
 
     if "event" in data:
         event = data["event"]
-        if event.get("type") == "app_mention":
-            user = event["user"]
-            text = event["text"]
-            channel = event["channel"]
+        # Responder a menções (@bot) E mensagens diretas (DM)
+        if event.get("type") in ["app_mention", "message"]:
+            # Verificar se é DM ou menção
+            is_dm = event.get("channel_type") == "im"
+            is_mention = "@U096CTRBBDZ" in event.get("text", "")
             
-            # 🧵 SUPORTE A THREADS: Se a mensagem já está em uma thread, usar o thread_ts
-            # Se não, criar nova thread com o ts da mensagem atual
-            thread_ts = event.get("thread_ts") or event.get("ts")
-            logger.info(f"🧵 Thread TS: {thread_ts} | Original TS: {event.get('ts')}")
-            
-            # 🛡️ VERIFICAR SE É EVENTO DUPLICADO
-            if event_ja_processado(event.get("event_ts", ""), user, text):
-                logger.info("Evento duplicado ignorado")
-                return jsonify({"ok": True})
-            
-            logger.info(f"Mensagem recebida de {user}: {text}")
+            if is_dm or is_mention:
+                user = event["user"]
+                text = event["text"]
+                channel = event["channel"]
+                
+                # 🧵 SUPORTE A THREADS: Se a mensagem já está em uma thread, usar o thread_ts
+                # Se não, criar nova thread com o ts da mensagem atual
+                thread_ts = event.get("thread_ts") or event.get("ts")
+                logger.info(f"🧵 Thread TS: {thread_ts} | Original TS: {event.get('ts')}")
+                
+                # 🛡️ VERIFICAR SE É EVENTO DUPLICADO
+                if event_ja_processado(event.get("event_ts", ""), user, text):
+                    logger.info("Evento duplicado ignorado")
+                    return jsonify({"ok": True})
+                
+                logger.info(f"Mensagem recebida de {user}: {text}")
 
-            # Enviar mensagem imediata de confirmação
-            pergunta_limpa = limpar_termo_busca(text)
-            
-            try:
+                # Enviar mensagem imediata de confirmação
+                pergunta_limpa = limpar_termo_busca(text)
+                
+                try:
                 # 🎯 DETECTAR SE É PEDIDO PARA LISTAR INTEGRAÇÕES/PARCEIROS
                 palavras_listar = ["listar", "lista", "quais são", "quais sao", "tem quais", "quantos", "todos os", "todas as"]
                 palavras_integracao = ["integra", "parceiro", "sistema", "plataforma"]
