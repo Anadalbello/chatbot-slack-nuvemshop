@@ -256,7 +256,12 @@ def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, p
             
             if resposta_gemini:
                 # 🔗 FILTRAR LINKS RELEVANTES (não mais aleatórios!)
-                links_relevantes = filtrar_links_relevantes(resultados_confluence, pergunta_limpa, max_links=3)
+                try:
+                    links_relevantes = filtrar_links_relevantes(resultados_confluence, pergunta_limpa, max_links=3)
+                except Exception as e:
+                    logger.error(f"❌ Erro no filtro de links: {e}")
+                    # Fallback: usar links simples
+                    links_relevantes = re.findall(r'🔗 (https?://[^\s\)]+)', resultados_confluence)[:3]
                 
                 # Formatar resposta final
                 resposta_completa = f"**{pergunta_limpa}**\n\n{resposta_gemini}\n\n"
@@ -301,7 +306,12 @@ def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, p
             
             if resposta_gemini:
                 # 🔗 FILTRAR LINKS RELEVANTES (não mais aleatórios!)
-                links_relevantes = filtrar_links_relevantes(resultados_zendesk, pergunta_limpa, max_links=3)
+                try:
+                    links_relevantes = filtrar_links_relevantes(resultados_zendesk, pergunta_limpa, max_links=3)
+                except Exception as e:
+                    logger.error(f"❌ Erro no filtro de links: {e}")
+                    # Fallback: usar links simples
+                    links_relevantes = re.findall(r'🔗 (https?://[^\s\)]+)', resultados_zendesk)[:3]
                 
                 resposta_completa = f"**{pergunta_limpa}**\n\n{resposta_gemini}\n\n"
                 
