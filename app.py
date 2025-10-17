@@ -258,11 +258,33 @@ def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, p
                 # Extrair links do conteúdo
                 links = re.findall(r'🔗 (https?://[^\s\)]+)', resultados_confluence)
                 
+                # 🎯 FILTRO SIMPLES: Priorizar links com palavras da pergunta
+                pergunta_lower = pergunta_limpa.lower()
+                palavras_pergunta = set(re.findall(r'\b\w+\b', pergunta_lower))
+                
+                # Filtrar links relevantes
+                links_relevantes = []
+                links_restantes = []
+                
+                for link in links:
+                    link_lower = link.lower()
+                    # Verificar se o link contém palavras da pergunta
+                    palavras_no_link = set(re.findall(r'\b\w+\b', link_lower))
+                    if palavras_pergunta.intersection(palavras_no_link):
+                        links_relevantes.append(link)
+                    else:
+                        links_restantes.append(link)
+                
+                # Usar links relevantes primeiro, depois os restantes
+                links_finais = links_relevantes[:2] + links_restantes[:1]
+                if not links_finais:
+                    links_finais = links[:3]  # Fallback
+                
                 # Formatar resposta final
                 resposta_completa = f"**{pergunta_limpa}**\n\n{resposta_gemini}\n\n"
                 resposta_completa += "---\n\n📚 **Documentação completa:**\n"
                 
-                for i, link in enumerate(links[:3], 1):
+                for i, link in enumerate(links_finais, 1):
                     resposta_completa += f"{i}. {link}\n"
                 
                 resposta_completa += "\n_Para mais informações ou dúvidas específicas, estou à disposição para ajudar._"
@@ -296,10 +318,32 @@ def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, p
                 # Extrair links
                 links = re.findall(r'🔗 (https?://[^\s\)]+)', resultados_zendesk)
                 
+                # 🎯 FILTRO SIMPLES: Priorizar links com palavras da pergunta
+                pergunta_lower = pergunta_limpa.lower()
+                palavras_pergunta = set(re.findall(r'\b\w+\b', pergunta_lower))
+                
+                # Filtrar links relevantes
+                links_relevantes = []
+                links_restantes = []
+                
+                for link in links:
+                    link_lower = link.lower()
+                    # Verificar se o link contém palavras da pergunta
+                    palavras_no_link = set(re.findall(r'\b\w+\b', link_lower))
+                    if palavras_pergunta.intersection(palavras_no_link):
+                        links_relevantes.append(link)
+                    else:
+                        links_restantes.append(link)
+                
+                # Usar links relevantes primeiro, depois os restantes
+                links_finais = links_relevantes[:2] + links_restantes[:1]
+                if not links_finais:
+                    links_finais = links[:3]  # Fallback
+                
                 resposta_completa = f"**{pergunta_limpa}**\n\n{resposta_gemini}\n\n"
                 resposta_completa += "---\n\n📚 **Artigos relacionados:**\n"
                 
-                for i, link in enumerate(links[:3], 1):
+                for i, link in enumerate(links_finais, 1):
                     resposta_completa += f"{i}. {link}\n"
                 
                 resposta_completa += "\n_Para mais assistência, entre em contato com a equipe de suporte._"
