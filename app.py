@@ -381,35 +381,28 @@ def slack_events():
 
     if "event" in data:
         event = data["event"]
-        # Responder a menções (@bot), mensagens diretas (DM) e conversas de grupo
-        if event.get("type") in ["app_mention", "message"]:
-            # Verificar se é DM, conversa de grupo ou menção
-            is_dm = event.get("channel_type") == "im"
-            is_group = event.get("channel_type") == "mpim"  # Multi-party instant message (grupo)
-            is_mention = "@U096CTRBBDZ" in event.get("text", "")
+        if event.get("type") == "app_mention":
+            user = event["user"]
+            text = event["text"]
+            channel = event["channel"]
             
-            if is_dm or is_group or is_mention:
-                user = event["user"]
-                text = event["text"]
-                channel = event["channel"]
-                
-                # 🧵 SUPORTE A THREADS: Se a mensagem já está em uma thread, usar o thread_ts
-                # Se não, criar nova thread com o ts da mensagem atual
-                thread_ts = event.get("thread_ts") or event.get("ts")
-                logger.info(f"🧵 Thread TS: {thread_ts} | Original TS: {event.get('ts')}")
-                
-                # 🛡️ VERIFICAR SE É EVENTO DUPLICADO
-                if event_ja_processado(event.get("event_ts", ""), user, text):
-                    logger.info("Evento duplicado ignorado")
-                    return jsonify({"ok": True})
-                
-                logger.info(f"Mensagem recebida de {user}: {text}")
+            # 🧵 SUPORTE A THREADS: Se a mensagem já está em uma thread, usar o thread_ts
+            # Se não, criar nova thread com o ts da mensagem atual
+            thread_ts = event.get("thread_ts") or event.get("ts")
+            logger.info(f"🧵 Thread TS: {thread_ts} | Original TS: {event.get('ts')}")
+            
+            # 🛡️ VERIFICAR SE É EVENTO DUPLICADO
+            if event_ja_processado(event.get("event_ts", ""), user, text):
+                logger.info("Evento duplicado ignorado")
+                return jsonify({"ok": True})
+            
+            logger.info(f"Mensagem recebida de {user}: {text}")
 
-                # Enviar mensagem imediata de confirmação
-                pergunta_limpa = limpar_termo_busca(text)
-                
-                try:
-                    # 🎯 DETECTAR SE É PEDIDO PARA LISTAR INTEGRAÇÕES/PARCEIROS
+            # Enviar mensagem imediata de confirmação
+            pergunta_limpa = limpar_termo_busca(text)
+            
+            try:
+                # 🎯 DETECTAR SE É PEDIDO PARA LISTAR INTEGRAÇÕES/PARCEIROS
                 palavras_listar = ["listar", "lista", "quais são", "quais sao", "tem quais", "quantos", "todos os", "todas as"]
                 palavras_integracao = ["integra", "parceiro", "sistema", "plataforma"]
                 
@@ -599,20 +592,9 @@ def slack_events():
 @app.route("/slack/actions", methods=["POST"])
 def slack_actions():
     """Handler para botões interativos"""
-    logger.info("🔘 Requisição recebida em /slack/actions")
-    
-    # ⚠️ NOTA: Validação de assinatura desabilitada para botões pois o Flask
-    # consome o body ao acessar request.form, tornando impossível validar.
-    # Segurança mantida através do token do Slack no payload.
-    logger.info("✅ Processando ação de botão (validação via token do Slack)")
-
     try:
         payload_str = request.form.get("payload")
-        logger.info(f"📦 Payload recebido: {payload_str[:200]}...")
-        
         payload = json.loads(payload_str)
-        logger.info(f"👤 User: {payload.get('user', {}).get('id')}")
-        logger.info(f"📢 Channel: {payload.get('channel', {}).get('id')}")
         
         user = payload["user"]["id"]
         channel = payload["channel"]["id"]
@@ -620,36 +602,18 @@ def slack_actions():
         # IMPORTANTE: Extrair thread_ts da mensagem original para manter na thread
         message = payload.get("message", {})
         thread_ts = message.get("thread_ts") or message.get("ts")
-        logger.info(f"🧵 Thread TS: {thread_ts}")
         
         action = payload["actions"][0]
-        action_id = action["action_id"]
-        
-        logger.info(f"🔘 Action ID: {action_id}")
-        logger.info(f"💾 Action value: {action.get('value')}")
-        
-        # Extrair dados do botão
         action_data = json.loads(action["value"])
         acao = action_data["action"]
         pergunta = action_data["pergunta"]
         
-        logger.info(f"🎯 Ação: {acao}, Pergunta: {pergunta}")
-        
-        # Responder com base na ação
+        # Responder com base na ação - RESPOSTAS SIMPLES E RÁPIDAS
         if acao == "resolvido":
             slack_client.chat_postMessage(
                 channel=channel,
                 thread_ts=thread_ts,
-                text=f"Perfeito! Ajudei com: {pergunta}",  # Fallback
-                blocks=[
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": f"🎉 *Perfeito!* Fico feliz que consegui ajudar com: _{pergunta}_\n\nSe precisar de mais alguma coisa, é só me mencionar! 😊"
-                        }
-                    }
-                ]
+                text="🎉 Perfeito! Fico feliz que consegui ajudar! 😊"
             )
             
         elif acao == "portal":
@@ -657,16 +621,7 @@ def slack_actions():
             slack_client.chat_postMessage(
                 channel=channel,
                 thread_ts=thread_ts,
-                text=f"Portal de Integrações: {portal_url}",  # Fallback
-                blocks=[
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": f"📋 *Portal de Integrações* para: _{pergunta}_\n\n🔗 *Acesse:* <{portal_url}|Portal de Integrações>\n\n💡 *No portal você encontra:*\n• Documentação completa da API\n• Guias de integração passo a passo\n• Exemplos de código\n• Webhooks e notificações\n• FAQs e troubleshooting\n\nSe ainda não encontrar o que precisa, me mencione novamente! 🤖"
-                        }
-                    }
-                ]
+                text=f"📋 Portal de Integrações: {portal_url}"
             )
             
         elif acao == "chamado":
@@ -676,23 +631,14 @@ def slack_actions():
             slack_client.chat_postMessage(
                 channel=channel,
                 thread_ts=thread_ts,
-                text=f"Abrir chamado: {jira_create_url}",  # Fallback
-                blocks=[
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": f"🎫 *Abrir Chamado* para: _{pergunta}_\n\n🔗 *Criar chamado:* <{jira_create_url}|Abrir no Jira>\n\n📝 *Preencha com estas informações:*\n• *Assunto:* {pergunta}\n• *Descrição detalhada:* Explique sua dúvida ou problema\n• *Contexto:* Plataforma, integração ou API específica\n• *Urgência:* Nível de prioridade do seu caso\n\n👥 *A equipe de integrações analisará e responderá em breve!*"
-                        }
-                    }
-                ]
+                text=f"🎫 Abrir chamado: {jira_create_url}"
             )
             
-        return jsonify({"status": "ok"})
+        return jsonify({"ok": True})
         
     except Exception as e:
         logger.error(f"Erro ao processar ação: {e}")
-        return jsonify({"status": "error"})
+        return jsonify({"ok": True})
 
 @app.route("/test", methods=["GET"])
 def test_endpoint():
