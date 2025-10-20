@@ -40,7 +40,7 @@ verifier = SignatureVerifier(signing_secret)
 
 # 🛡️ SISTEMA ANTI-DUPLICAÇÃO
 eventos_processados = {}
-TEMPO_CACHE = 300  # 5 minutos
+TEMPO_CACHE = 900  # 15 minutos - maior que o tempo de detecção de duplicatas
 
 def event_ja_processado(event_id, user, text):
     """Verifica se o evento já foi processado recentemente - SISTEMA ANTI-DUPLICAÇÃO ROBUSTO"""
@@ -70,7 +70,7 @@ def event_ja_processado(event_id, user, text):
     for chave in chaves:
         if chave in eventos_processados:
             tempo_desde_ultimo = agora - eventos_processados[chave]['timestamp']
-            if tempo_desde_ultimo < 8:  # 8 segundos - compromisso entre velocidade e segurança
+            if tempo_desde_ultimo < 600:  # 10 minutos - detectar duplicatas por mais tempo
                 logger.warning(f"Evento duplicado detectado: {chave}")
                 return True
     
