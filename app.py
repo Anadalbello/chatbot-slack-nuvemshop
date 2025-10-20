@@ -410,12 +410,24 @@ def slack_events():
                 if eh_cumprimento:
                     logger.info("👋 Detectado cumprimento inicial - mostrando menu de boas-vindas")
                     
-                    slack_client.chat_postMessage(
-                        channel=channel,
-                        thread_ts=thread_ts,
-                        text="Menu de Boas-vindas",
-                        blocks=criar_menu_boas_vindas()["blocks"]
-                    )
+                    try:
+                        menu = criar_menu_boas_vindas()
+                        logger.info(f"✅ Menu criado com {len(menu['blocks'])} blocos")
+                        
+                        response = slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text="Menu de Boas-vindas",
+                            blocks=menu["blocks"]
+                        )
+                        logger.info(f"📤 Menu enviado com sucesso! TS: {response.get('ts')}")
+                    except Exception as e:
+                        logger.error(f"❌ Erro ao enviar menu de boas-vindas: {e}")
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text=f"❌ Erro interno: {e}"
+                        )
                     return jsonify({"ok": True})
 
                 # 🎯 DETECTAR COMANDO DE MENU (MANTIDO)
@@ -623,8 +635,11 @@ def slack_events():
 def slack_actions():
     """Handler para botões interativos"""
     try:
+        logger.info("🔘 Recebida ação do Slack")
         payload_str = request.form.get("payload")
         payload = json.loads(payload_str)
+        
+        logger.info(f"📊 Payload recebido: {payload.keys()}")
         
         user = payload["user"]["id"]
         channel = payload["channel"]["id"]
@@ -635,6 +650,8 @@ def slack_actions():
         
         action = payload["actions"][0]
         acao = action["action_id"]
+        
+        logger.info(f"🎯 Ação detectada: {acao}")
         
         # Para ações que usam JSON no value, extrair os dados
         if "value" in action and action["value"]:
@@ -681,19 +698,30 @@ def slack_actions():
             topico = action["value"]
             logger.info(f"📋 Usuário selecionou tópico: {topico}")
             
-            submenu = criar_submenu_topico(topico)
-            if submenu:
+            try:
+                submenu = criar_submenu_topico(topico)
+                if submenu:
+                    logger.info(f"✅ Submenu criado para {topico}")
+                    slack_client.chat_postMessage(
+                        channel=channel,
+                        thread_ts=thread_ts,
+                        text=f"Submenu - {topico}",
+                        blocks=submenu["blocks"]
+                    )
+                    logger.info(f"📤 Submenu enviado para {channel}")
+                else:
+                    logger.warning(f"⚠️ Submenu retornou None para {topico}")
+                    slack_client.chat_postMessage(
+                        channel=channel,
+                        thread_ts=thread_ts,
+                        text="❌ Tópico não encontrado"
+                    )
+            except Exception as e:
+                logger.error(f"❌ Erro ao processar tópico {topico}: {e}")
                 slack_client.chat_postMessage(
                     channel=channel,
                     thread_ts=thread_ts,
-                    text=f"Submenu - {topico}",
-                    blocks=submenu["blocks"]
-                )
-            else:
-                slack_client.chat_postMessage(
-                    channel=channel,
-                    thread_ts=thread_ts,
-                    text="❌ Tópico não encontrado"
+                    text=f"❌ Erro interno: {e}"
                 )
 
         elif acao == "submenu_opcao":
