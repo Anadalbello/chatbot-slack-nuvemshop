@@ -724,7 +724,7 @@ def slack_actions():
                     text=f"❌ Erro interno: {e}"
                 )
 
-        elif acao == "submenu_opcao":
+        elif acao.startswith("submenu_opcao_"):
             # Usar o value diretamente
             topico_coluna = action["value"]
             topico_id, coluna = topico_coluna.split("_", 1)

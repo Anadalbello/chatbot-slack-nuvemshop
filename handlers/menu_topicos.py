@@ -169,7 +169,7 @@ def criar_submenu_topico(topico_id):
             "type": "button",
             "text": {"type": "plain_text", "text": f"{descricao} ({coluna})"},
             "value": f"{topico_id}_{coluna}",
-            "action_id": "submenu_opcao"
+            "action_id": f"submenu_opcao_{topico_id}_{coluna}"
         })
     
     # Dividir botões em grupos de 3 (limite do Slack)
