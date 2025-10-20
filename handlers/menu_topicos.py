@@ -214,24 +214,40 @@ def buscar_por_topico_e_coluna(topico_id, coluna):
     try:
         logger.info(f"🔍 Buscando informações para {topico_id} - coluna {coluna}")
         
-        # Buscar todas as integrações
-        lista_integracoes = buscar_integracoes_google_sheets_publico()
-        
-        if not lista_integracoes:
-            return "❌ Não foi possível acessar a base de dados de integrações."
-        
-        # Filtrar por coluna específica (implementação simplificada)
-        # Aqui você pode implementar a lógica específica para filtrar por coluna
+        # Obter informações da categoria
         categoria = CATEGORIAS_MENU.get(topico_id, {})
         nome_categoria = categoria.get("nome", "Tópico")
         descricao_coluna = categoria.get("descricoes", {}).get(coluna, f"Coluna {coluna}")
         
+        # Resposta rápida e informativa
         resposta = f"📊 **{nome_categoria} - {descricao_coluna}**\n\n"
-        resposta += f"Informações sobre {descricao_coluna.lower()}:\n\n"
-        resposta += "🔍 *Busca realizada na base de dados de integrações*\n"
+        resposta += f"ℹ️ *Informações sobre {descricao_coluna.lower()}:*\n\n"
         resposta += f"📋 *Categoria:* {nome_categoria}\n"
-        resposta += f"🎯 *Foco:* {descricao_coluna}\n\n"
-        resposta += "_Para informações mais específicas, use a Pesquisa Global._"
+        resposta += f"🎯 *Foco:* {descricao_coluna}\n"
+        resposta += f"📊 *Coluna da planilha:* {coluna}\n\n"
+        
+        # Adicionar informações específicas baseadas na coluna
+        if coluna == "F":  # Cálculo de Frete
+            resposta += "🚚 *Cálculo de Frete:*\n"
+            resposta += "• APIs disponíveis para cálculo\n"
+            resposta += "• Parâmetros necessários (peso, dimensões, CEP)\n"
+            resposta += "• Integração com transportadoras\n\n"
+        elif coluna == "G":  # Importação de pedidos
+            resposta += "📦 *Importação de Pedidos:*\n"
+            resposta += "• Webhooks para novos pedidos\n"
+            resposta += "• Sincronização de status\n"
+            resposta += "• Mapeamento de campos\n\n"
+        elif coluna == "A":  # Nome
+            resposta += "🏷️ *Nome da Integração:*\n"
+            resposta += "• Identificação da plataforma\n"
+            resposta += "• Nome oficial da integração\n\n"
+        elif coluna == "B":  # Tipo
+            resposta += "🔧 *Tipo de Integração:*\n"
+            resposta += "• Plataforma de e-commerce\n"
+            resposta += "• ERP/Sistema de gestão\n"
+            resposta += "• Marketplace\n\n"
+        
+        resposta += "💡 *Para informações mais detalhadas, use a Pesquisa Global ou entre em contato com o suporte.*"
         
         return resposta
         

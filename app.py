@@ -634,9 +634,20 @@ def slack_actions():
         thread_ts = message.get("thread_ts") or message.get("ts")
         
         action = payload["actions"][0]
-        action_data = json.loads(action["value"])
-        acao = action_data["action"]
-        pergunta = action_data["pergunta"]
+        acao = action["action_id"]
+        
+        # Para ações que usam JSON no value, extrair os dados
+        if "value" in action and action["value"]:
+            try:
+                action_data = json.loads(action["value"])
+                pergunta = action_data.get("pergunta", "")
+            except (json.JSONDecodeError, TypeError):
+                # Se não for JSON válido, usar o value diretamente
+                action_data = {"value": action["value"]}
+                pergunta = ""
+        else:
+            action_data = {}
+            pergunta = ""
         
         # Responder com base na ação - RESPOSTAS SIMPLES E RÁPIDAS
         if acao == "resolvido":
@@ -666,8 +677,8 @@ def slack_actions():
             
         elif acao in ["menu_topico_frete", "menu_topico_pedidos", "menu_topico_config", 
                       "menu_topico_checkout", "menu_topico_qualidade", "menu_topico_observacoes"]:
-            # Extrair o tópico do action_id
-            topico = acao.replace("menu_topico_", "")
+            # Usar o value diretamente como tópico
+            topico = action["value"]
             logger.info(f"📋 Usuário selecionou tópico: {topico}")
             
             submenu = criar_submenu_topico(topico)
@@ -686,7 +697,8 @@ def slack_actions():
                 )
 
         elif acao == "submenu_opcao":
-            topico_coluna = action_data["topico"]
+            # Usar o value diretamente
+            topico_coluna = action["value"]
             topico_id, coluna = topico_coluna.split("_", 1)
             
             logger.info(f"🎯 Usuário selecionou: {topico_id} - {coluna}")
