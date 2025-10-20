@@ -664,8 +664,10 @@ def slack_actions():
                 text=f"🎫 Abrir chamado: {jira_create_url}"
             )
             
-        elif acao == "menu_topico":
-            topico = action_data["topico"]
+        elif acao in ["menu_topico_frete", "menu_topico_pedidos", "menu_topico_config", 
+                      "menu_topico_checkout", "menu_topico_qualidade", "menu_topico_observacoes"]:
+            # Extrair o tópico do action_id
+            topico = acao.replace("menu_topico_", "")
             logger.info(f"📋 Usuário selecionou tópico: {topico}")
             
             submenu = criar_submenu_topico(topico)

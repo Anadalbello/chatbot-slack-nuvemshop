@@ -93,19 +93,19 @@ def criar_menu_boas_vindas():
                         "type": "button",
                         "text": {"type": "plain_text", "text": "🚚 Frete e Cálculo"},
                         "value": "topico_frete",
-                        "action_id": "menu_topico"
+                        "action_id": "menu_topico_frete"
                     },
                     {
                         "type": "button",
                         "text": {"type": "plain_text", "text": "📦 Pedidos e Logística"},
                         "value": "topico_pedidos", 
-                        "action_id": "menu_topico"
+                        "action_id": "menu_topico_pedidos"
                     },
                     {
                         "type": "button",
                         "text": {"type": "plain_text", "text": "🧩 Configuração"},
                         "value": "topico_config",
-                        "action_id": "menu_topico"
+                        "action_id": "menu_topico_config"
                     }
                 ]
             },
@@ -116,19 +116,19 @@ def criar_menu_boas_vindas():
                         "type": "button",
                         "text": {"type": "plain_text", "text": "🛒 Checkout"},
                         "value": "topico_checkout",
-                        "action_id": "menu_topico"
+                        "action_id": "menu_topico_checkout"
                     },
                     {
                         "type": "button",
                         "text": {"type": "plain_text", "text": "🧠 Qualidade"},
                         "value": "topico_qualidade",
-                        "action_id": "menu_topico"
+                        "action_id": "menu_topico_qualidade"
                     },
                     {
                         "type": "button",
                         "text": {"type": "plain_text", "text": "📝 Observações"},
                         "value": "topico_observacoes",
-                        "action_id": "menu_topico"
+                        "action_id": "menu_topico_observacoes"
                     }
                 ]
             },
