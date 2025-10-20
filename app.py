@@ -20,6 +20,7 @@ from handlers.buscar_integracoes_dinamico import buscar_todas_integracoes_conflu
 from handlers.buscar_integracoes_sheets_publico import buscar_integracoes_google_sheets_publico, buscar_integracao_especifica_sheets_publico
 from handlers.buscar_faq import buscar_faq, formatar_resposta_faq
 from handlers.aprendizado_automatico import registrar_pergunta
+from handlers.menu_topicos import criar_menu_boas_vindas, criar_submenu_topico, buscar_por_topico_e_coluna
 # from handlers.filtrar_links_relevantes import filtrar_links_relevantes, gerar_resposta_sem_resultados
 import re
 
@@ -402,6 +403,35 @@ def slack_events():
             pergunta_limpa = limpar_termo_busca(text)
             
             try:
+                # 🎯 DETECTAR CUMPRIMENTO INICIAL (NOVO)
+                palavras_cumprimento = ["oi", "olá", "ola", "hello", "hi", "hey", "bom dia", "boa tarde", "boa noite"]
+                eh_cumprimento = any(palavra in pergunta_limpa.lower() for palavra in palavras_cumprimento)
+
+                if eh_cumprimento:
+                    logger.info("👋 Detectado cumprimento inicial - mostrando menu de boas-vindas")
+                    
+                    slack_client.chat_postMessage(
+                        channel=channel,
+                        thread_ts=thread_ts,
+                        text="Menu de Boas-vindas",
+                        blocks=criar_menu_boas_vindas()["blocks"]
+                    )
+                    return jsonify({"ok": True})
+
+                # 🎯 DETECTAR COMANDO DE MENU (MANTIDO)
+                palavras_menu = ["menu", "tópicos", "categorias", "ajuda", "help", "opções"]
+                eh_comando_menu = any(palavra in pergunta_limpa.lower() for palavra in palavras_menu)
+
+                if eh_comando_menu:
+                    logger.info("📋 Detectado comando de menu")
+                    
+                    slack_client.chat_postMessage(
+                        channel=channel,
+                        thread_ts=thread_ts,
+                        text="Menu de Tópicos",
+                        blocks=criar_menu_boas_vindas()["blocks"]
+                    )
+                    return jsonify({"ok": True})
                 # 🎯 DETECTAR SE É PEDIDO PARA LISTAR INTEGRAÇÕES/PARCEIROS
                 palavras_listar = ["listar", "lista", "quais são", "quais sao", "tem quais", "quantos", "todos os", "todas as"]
                 palavras_integracao = ["integra", "parceiro", "sistema", "plataforma"]
@@ -632,6 +662,92 @@ def slack_actions():
                 channel=channel,
                 thread_ts=thread_ts,
                 text=f"🎫 Abrir chamado: {jira_create_url}"
+            )
+            
+        elif acao == "menu_topico":
+            topico = action_data["topico"]
+            logger.info(f"📋 Usuário selecionou tópico: {topico}")
+            
+            submenu = criar_submenu_topico(topico)
+            if submenu:
+                slack_client.chat_postMessage(
+                    channel=channel,
+                    thread_ts=thread_ts,
+                    text=f"Submenu - {topico}",
+                    blocks=submenu["blocks"]
+                )
+            else:
+                slack_client.chat_postMessage(
+                    channel=channel,
+                    thread_ts=thread_ts,
+                    text="❌ Tópico não encontrado"
+                )
+
+        elif acao == "submenu_opcao":
+            topico_coluna = action_data["topico"]
+            topico_id, coluna = topico_coluna.split("_", 1)
+            
+            logger.info(f"🎯 Usuário selecionou: {topico_id} - {coluna}")
+            
+            resultado = buscar_por_topico_e_coluna(topico_id, coluna)
+            
+            slack_client.chat_postMessage(
+                channel=channel,
+                thread_ts=thread_ts,
+                text=resultado
+            )
+
+        elif acao == "pesquisa_global":
+            logger.info("🔍 Usuário ativou modo pesquisa global")
+            
+            slack_client.chat_postMessage(
+                channel=channel,
+                thread_ts=thread_ts,
+                text="🔍 *Modo Pesquisa Global Ativado*\n\nAgora você pode fazer qualquer pergunta e eu vou buscar no Confluence e Zendesk!\n\n*Exemplos:*\n• Como integrar com Magento?\n• Temos integração com Tray?\n• Como calcular frete na API?\n• Como funciona o webhook?\n\n💡 *Dica:* Digite sua pergunta normalmente que eu buscarei nas bases de conhecimento!"
+            )
+
+        elif acao == "listar_integracoes":
+            logger.info("📋 Usuário solicitou lista de integrações")
+            
+            # Usar o fluxo atual de listar integrações
+            lista_integracoes = buscar_integracoes_google_sheets_publico()
+            
+            if not lista_integracoes:
+                logger.info("⚠️ Google Sheets falhou, buscando do Confluence...")
+                lista_integracoes = buscar_todas_integracoes_confluence()
+            
+            if lista_integracoes:
+                lista_mrkdwn = lista_integracoes.replace("**", "*")
+                
+                slack_client.chat_postMessage(
+                    channel=channel,
+                    thread_ts=thread_ts,
+                    text="Lista de integrações disponíveis",
+                    blocks=[
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": lista_mrkdwn
+                            }
+                        }
+                    ]
+                )
+            else:
+                slack_client.chat_postMessage(
+                    channel=channel,
+                    thread_ts=thread_ts,
+                    text="❌ Não foi possível buscar a lista de integrações no momento."
+                )
+
+        elif acao == "voltar_menu":
+            logger.info("⬅️ Usuário voltou ao menu principal")
+            
+            slack_client.chat_postMessage(
+                channel=channel,
+                thread_ts=thread_ts,
+                text="Menu Principal",
+                blocks=criar_menu_boas_vindas()["blocks"]
             )
             
         return jsonify({"ok": True})
