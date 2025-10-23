@@ -167,7 +167,7 @@ def criar_submenu_topico(topico_id):
     for coluna, descricao in descricoes.items():
         botoes.append({
             "type": "button",
-            "text": {"type": "plain_text", "text": f"{descricao} ({coluna})"},
+            "text": {"type": "plain_text", "text": descricao},
             "value": f"{topico_id}_{coluna}",
             "action_id": f"submenu_opcao_{topico_id}_{coluna}"
         })
@@ -222,9 +222,6 @@ def buscar_por_topico_e_coluna(topico_id, coluna):
         # Resposta rápida e informativa
         resposta = f"📊 **{nome_categoria} - {descricao_coluna}**\n\n"
         resposta += f"ℹ️ *Informações sobre {descricao_coluna.lower()}:*\n\n"
-        resposta += f"📋 *Categoria:* {nome_categoria}\n"
-        resposta += f"🎯 *Foco:* {descricao_coluna}\n"
-        resposta += f"📊 *Coluna da planilha:* {coluna}\n\n"
         
         # Adicionar informações específicas baseadas na coluna
         if coluna == "F":  # Cálculo de Frete
@@ -237,6 +234,31 @@ def buscar_por_topico_e_coluna(topico_id, coluna):
             resposta += "• Webhooks para novos pedidos\n"
             resposta += "• Sincronização de status\n"
             resposta += "• Mapeamento de campos\n\n"
+        elif coluna == "H":  # Múltiplos Volumes
+            resposta += "📦 *Múltiplos Volumes (MV):*\n"
+            resposta += "• Suporte a pedidos com múltiplos volumes\n"
+            resposta += "• Cálculo de frete por volume\n"
+            resposta += "• Rastreamento individual\n\n"
+        elif coluna == "I":  # Etiqueta
+            resposta += "🏷️ *Etiquetas:*\n"
+            resposta += "• Geração automática de etiquetas\n"
+            resposta += "• Formato padrão das transportadoras\n"
+            resposta += "• Impressão e envio\n\n"
+        elif coluna == "O":  # Atualização de Status
+            resposta += "🔄 *Atualização de Status:*\n"
+            resposta += "• Sincronização automática de status\n"
+            resposta += "• Notificações em tempo real\n"
+            resposta += "• Histórico de mudanças\n\n"
+        elif coluna == "J":  # Devolução de Rastreio
+            resposta += "↩️ *Devolução de Rastreio:*\n"
+            resposta += "• Processo de devolução\n"
+            resposta += "• Rastreamento de retorno\n"
+            resposta += "• Gestão de produtos devolvidos\n\n"
+        elif coluna == "O2":  # Multi CD
+            resposta += "🏢 *Multi CD:*\n"
+            resposta += "• Múltiplos centros de distribuição\n"
+            resposta += "• Otimização de rotas\n"
+            resposta += "• Gestão de estoque distribuído\n\n"
         elif coluna == "A":  # Nome
             resposta += "🏷️ *Nome da Integração:*\n"
             resposta += "• Identificação da plataforma\n"
@@ -246,6 +268,26 @@ def buscar_por_topico_e_coluna(topico_id, coluna):
             resposta += "• Plataforma de e-commerce\n"
             resposta += "• ERP/Sistema de gestão\n"
             resposta += "• Marketplace\n\n"
+        elif coluna == "K":  # Seguro configurável no frete
+            resposta += "🛡️ *Seguro Configurável no Frete:*\n"
+            resposta += "• Opções de seguro disponíveis\n"
+            resposta += "• Configuração por produto\n"
+            resposta += "• Cálculo automático de valor\n\n"
+        elif coluna == "L":  # Seguro configurável na criação de pedido
+            resposta += "🛡️ *Seguro na Criação de Pedido:*\n"
+            resposta += "• Seguro configurável no checkout\n"
+            resposta += "• Opções para o cliente\n"
+            resposta += "• Integração com cálculo de frete\n\n"
+        elif coluna == "N":  # Calcula peso cubado
+            resposta += "📏 *Cálculo de Peso Cubado:*\n"
+            resposta += "• Consideração de dimensões\n"
+            resposta += "• Peso volumétrico\n"
+            resposta += "• Otimização de embalagem\n\n"
+        elif coluna == "M":  # Manuais para integração/cálculo frete
+            resposta += "📚 *Manuais de Integração:*\n"
+            resposta += "• Documentação técnica completa\n"
+            resposta += "• Guias de implementação\n"
+            resposta += "• Exemplos de código\n\n"
         
         resposta += "💡 *Para informações mais detalhadas, use a Pesquisa Global ou entre em contato com o suporte.*"
         
