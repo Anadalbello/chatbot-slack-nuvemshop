@@ -227,10 +227,10 @@ def buscar_por_topico_e_coluna(topico_id, coluna):
             logger.info("✅ Dados da tabela Google Sheets obtidos")
             # Filtrar por coluna específica (implementação simplificada)
             # Aqui você pode implementar a lógica específica para filtrar por coluna
-            resposta = f"📊 **{nome_categoria} - {descricao_coluna}**\n\n"
+            resposta = f"**{nome_categoria} - {descricao_coluna}**\n\n"
         else:
             logger.warning("⚠️ Não foi possível acessar a tabela Google Sheets")
-            resposta = f"📊 **{nome_categoria} - {descricao_coluna}**\n\n"
+            resposta = f"**{nome_categoria} - {descricao_coluna}**\n\n"
         
         # Adicionar informações específicas baseadas na coluna
         if coluna == "F":  # Cálculo de Frete
