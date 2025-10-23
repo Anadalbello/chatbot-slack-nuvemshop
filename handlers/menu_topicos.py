@@ -219,9 +219,20 @@ def buscar_por_topico_e_coluna(topico_id, coluna):
         nome_categoria = categoria.get("nome", "Tópico")
         descricao_coluna = categoria.get("descricoes", {}).get(coluna, f"Coluna {coluna}")
         
-        # Resposta rápida e informativa
-        resposta = f"📊 **{nome_categoria} - {descricao_coluna}**\n\n"
-        resposta += f"ℹ️ *Informações sobre {descricao_coluna.lower()}:*\n\n"
+        # Buscar na tabela Google Sheets
+        logger.info(f"📊 Buscando na tabela Google Sheets para coluna {coluna}")
+        lista_integracoes = buscar_integracoes_google_sheets_publico()
+        
+        if lista_integracoes:
+            logger.info("✅ Dados da tabela Google Sheets obtidos")
+            # Filtrar por coluna específica (implementação simplificada)
+            # Aqui você pode implementar a lógica específica para filtrar por coluna
+            resposta = f"📊 **{nome_categoria} - {descricao_coluna}**\n\n"
+            resposta += f"ℹ️ *Informações sobre {descricao_coluna.lower()}:*\n\n"
+        else:
+            logger.warning("⚠️ Não foi possível acessar a tabela Google Sheets")
+            resposta = f"📊 **{nome_categoria} - {descricao_coluna}**\n\n"
+            resposta += f"ℹ️ *Informações sobre {descricao_coluna.lower()}:*\n\n"
         
         # Adicionar informações específicas baseadas na coluna
         if coluna == "F":  # Cálculo de Frete
