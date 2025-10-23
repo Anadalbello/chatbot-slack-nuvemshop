@@ -289,7 +289,7 @@ def buscar_por_topico_e_coluna(topico_id, coluna):
             resposta += "• Guias de implementação\n"
             resposta += "• Exemplos de código\n\n"
         
-        resposta += "💡 *Para informações mais detalhadas, use a Pesquisa Global ou entre em contato com o suporte.*"
+        resposta += "💡 *Para mais informações específicas, use a Pesquisa Global ou entre em contato com o suporte.*"
         
         return resposta
         
