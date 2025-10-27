@@ -221,16 +221,18 @@ def buscar_por_topico_e_coluna(topico_id, coluna):
         
         # Buscar na tabela Google Sheets
         logger.info(f"📊 Buscando na tabela Google Sheets para coluna {coluna}")
+        
+        # Mostrar mensagem de busca para o usuário
+        resposta = f"🔍 *Buscando em {descricao_coluna}...*\n\n"
+        
         lista_integracoes = buscar_integracoes_google_sheets_publico()
         
         if lista_integracoes:
             logger.info("✅ Dados da tabela Google Sheets obtidos")
-            # Filtrar por coluna específica (implementação simplificada)
-            # Aqui você pode implementar a lógica específica para filtrar por coluna
-            resposta = f"**{descricao_coluna}**\n\n"
+            # Continuar a resposta com as informações
         else:
             logger.warning("⚠️ Não foi possível acessar a tabela Google Sheets")
-            resposta = f"**{descricao_coluna}**\n\n"
+            # Continuar a resposta com informações estáticas
         
         # Adicionar informações específicas baseadas na coluna
         if coluna == "F":  # Cálculo de Frete
