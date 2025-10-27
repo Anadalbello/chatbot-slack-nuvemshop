@@ -217,7 +217,15 @@ def buscar_por_topico_e_coluna(topico_id, coluna):
         # Obter informações da categoria
         categoria = CATEGORIAS_MENU.get(topico_id, {})
         nome_categoria = categoria.get("nome", "Tópico")
-        descricao_coluna = categoria.get("descricoes", {}).get(coluna, f"Coluna {coluna}")
+        
+        # Buscar a descrição correta da coluna
+        descricoes = categoria.get("descricoes", {})
+        descricao_coluna = descricoes.get(coluna)
+        
+        # Se não encontrar, tentar obter do mapeamento de fallback
+        if not descricao_coluna:
+            logger.warning(f"⚠️ Coluna {coluna} não encontrada para {topico_id}, usando descrição genérica")
+            descricao_coluna = f"Opção {coluna}"
         
         # Buscar na tabela Google Sheets
         logger.info(f"📊 Buscando na tabela Google Sheets para coluna {coluna}")

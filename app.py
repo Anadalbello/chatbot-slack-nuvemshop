@@ -727,7 +727,23 @@ def slack_actions():
         elif acao.startswith("submenu_opcao_"):
             # Usar o value diretamente
             topico_coluna = action["value"]
-            topico_id, coluna = topico_coluna.split("_", 1)
+            
+            # Extrair o tópico e a coluna corretamente
+            # O formato é: topico_pedidos_I ou topico_frete_F
+            # Precisamos separar o tópico (topico_pedidos) da coluna (I, F, etc)
+            parts = topico_coluna.split("_")
+            if len(parts) >= 3:
+                # topico_pedidos_I -> topico_pedidos, I
+                topico_id = f"{parts[0]}_{parts[1]}"  # topico_pedidos
+                coluna = parts[2]  # I
+            elif len(parts) == 2:
+                # topico_I -> topico, I
+                topico_id = parts[0]
+                coluna = parts[1]
+            else:
+                logger.error(f"❌ Formato inválido de value: {topico_coluna}")
+                topico_id = "topico"
+                coluna = "A"
             
             logger.info(f"🎯 Usuário selecionou: {topico_id} - {coluna}")
             
