@@ -119,15 +119,23 @@ class KnowledgeManager:
                 
                 # Chamar handler de acordo com a assinatura específica
                 # Google Sheets: não suporta busca genérica (apenas lista todas ou busca específica)
-                # Para busca genérica (search_knowledge), pular Google Sheets
+                # Integracoes JSON: usa handler de integração específica para busca
                 if source_id == 'google_sheets':
                     logger.debug(f"⚠️ Google Sheets não suporta busca genérica, pulando...")
                     continue
-                    
-                # Todos os outros handlers aceitam apenas termo como argumento posicional
-                # Confluence: buscar_confluence(termo)
-                # Zendesk: buscar_artigo_zendesk_api(termo_original)
-                result = handler(query)
+                elif source_id == 'integracoes_json':
+                    # Para JSON, usar handler de integração específica se disponível
+                    handler_integracao = source_data.get('handler_integracao')
+                    if handler_integracao:
+                        result = handler_integracao(query)
+                    else:
+                        logger.debug(f"⚠️ Handler de integração não disponível para JSON, pulando...")
+                        continue
+                else:
+                    # Todos os outros handlers aceitam apenas termo como argumento posicional
+                    # Confluence: buscar_confluence(termo)
+                    # Zendesk: buscar_artigo_zendesk_api(termo_original)
+                    result = handler(query)
                 
                 if result and self._is_valid_result(result):
                     results.append({

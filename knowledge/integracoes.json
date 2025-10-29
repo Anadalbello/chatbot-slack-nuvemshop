@@ -1,0 +1,1283 @@
+{
+  "version": "1.0",
+  "last_updated": "2025-10-29T20:32:50.550359",
+  "source": "Google Sheets",
+  "total_integracoes": 79,
+  "integracoes": [
+    {
+      "nome": "Alternativa",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "ERP",
+      "complexidade": "Complexa (dependemos do prazo do parceiro)",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Alternativa",
+        "plataformas": "ERP",
+        "integracao": "Complexa (dependemos do prazo do parceiro)",
+        "": "Temos acesso/Bom"
+      }
+    },
+    {
+      "nome": "Amazon",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Marketplace",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Amazon",
+        "plataformas": "Marketplace",
+        "integracao": "Complexa",
+        "": "Tabela tem que ser digitada manualmente na plataforma"
+      }
+    },
+    {
+      "nome": "Anymarket",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "HUB",
+      "complexidade": "Média",
+      "responsavel": "API = Mandaê\nTabela = Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Anymarket",
+        "plataformas": "HUB",
+        "integracao": "Média",
+        "": "http://app.anymarket.com.br/login.html"
+      }
+    },
+    {
+      "nome": "Aton/Ambar",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "ERP",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Aton/Ambar",
+        "plataformas": "ERP",
+        "integracao": "Complexa",
+        "": "Temos acesso/Bom"
+      }
+    },
+    {
+      "nome": "B2W",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Marketplace",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "B2W",
+        "plataformas": "Marketplace",
+        "integracao": "Complexa",
+        "": "Mandaê"
+      }
+    },
+    {
+      "nome": "Betalabs",
+      "descricao_curta": "Versão Engine - Nova\nSuspensa temporariamente",
+      "descricao_longa": "Versão Engine - Nova\nSuspensa temporariamente",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Betalabs",
+        "plataformas": "Plataforma",
+        "": "http://nomedoprojeto.api.betalabs.net/api/appsname=nfe",
+        "integracao": "Complexa"
+      }
+    },
+    {
+      "nome": "BigShop",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "BigShop",
+        "plataformas": "Plataforma",
+        "integracao": "Média",
+        "": "Médio"
+      }
+    },
+    {
+      "nome": "Bis2Bis",
+      "descricao_curta": "Essa integração pode demorar mais de 6 meses",
+      "descricao_longa": "Essa integração pode demorar mais de 6 meses",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa (dependemos do prazo do parceiro)",
+      "responsavel": "Cliente/Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Bis2Bis",
+        "plataformas": "Plataforma",
+        "": "Baixo",
+        "integracao": "Complexa (dependemos do prazo do parceiro)"
+      }
+    },
+    {
+      "nome": "Bizcommerce",
+      "descricao_curta": "Magento\nIntegrador: João",
+      "descricao_longa": "Magento\nIntegrador: João",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Bizcommerce",
+        "plataformas": "Plataforma",
+        "": "https://www.lojadocliente.com.br/",
+        "integracao": "Média"
+      }
+    },
+    {
+      "nome": "Bling",
+      "descricao_curta": "Bling (Nativo)",
+      "descricao_longa": "Bling (Nativo)",
+      "tipo": "ERP",
+      "complexidade": "",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Bling",
+        "plataformas": "ERP",
+        "": "https://www.bling.com.br/"
+      }
+    },
+    {
+      "nome": "Braavo",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Parceiro/Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Braavo",
+        "plataformas": "Plataforma",
+        "integracao": "Média",
+        "": "Simples"
+      }
+    },
+    {
+      "nome": "Bseller",
+      "descricao_curta": "Integração suspensa, consultar o time de Integrações.",
+      "descricao_longa": "Integração suspensa, consultar o time de Integrações.",
+      "tipo": "ERP",
+      "complexidade": "Complexa",
+      "responsavel": "Mandaê (Linkapi)",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Bseller",
+        "plataformas": "ERP",
+        "": "Complexo",
+        "integracao": "Complexa",
+        "qualificacao": "Custo mensal: R$ 10.000,00"
+      }
+    },
+    {
+      "nome": "C&A",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Marketplace",
+      "complexidade": "bli",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "C&A",
+        "plataformas": "Marketplace",
+        "integracao": "bli",
+        "": "Mandaê"
+      }
+    },
+    {
+      "nome": "CartPanda",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Simples",
+      "responsavel": "Cliente ou Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "CartPanda",
+        "plataformas": "Plataforma",
+        "integracao": "Simples",
+        "": "Médio"
+      }
+    },
+    {
+      "nome": "Ciashop",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Ciashop",
+        "plataformas": "Plataforma",
+        "integracao": "Complexa",
+        "": "Tem alguns gaps"
+      }
+    },
+    {
+      "nome": "Cissa Magazine",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Marketplace",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Cissa Magazine",
+        "plataformas": "Marketplace",
+        "integracao": "Complexa",
+        "": "Complexo"
+      }
+    },
+    {
+      "nome": "Clubom",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Clubom",
+        "plataformas": "Plataforma",
+        "integracao": "Complexa",
+        "": "Complexo"
+      }
+    },
+    {
+      "nome": "Cnova",
+      "descricao_curta": "Via Varejo",
+      "descricao_longa": "Via Varejo",
+      "tipo": "Marketplace",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Cnova",
+        "plataformas": "Marketplace",
+        "": "Médio",
+        "integracao": "Complexa"
+      }
+    },
+    {
+      "nome": "Convertize",
+      "descricao_curta": "Integração suspensa para pedidos, consultar o time de Integrações.",
+      "descricao_longa": "Integração suspensa para pedidos, consultar o time de Integrações.",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "Mandaê (linkapi)",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Convertize",
+        "plataformas": "Plataforma",
+        "": "Complexo",
+        "integracao": "Complexa"
+      }
+    },
+    {
+      "nome": "Convertr",
+      "descricao_curta": "omie",
+      "descricao_longa": "omie",
+      "tipo": "Plataforma",
+      "complexidade": "Simples",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Convertr",
+        "plataformas": "Plataforma",
+        "": "https://dashboard.convertr.app.br/",
+        "integracao": "Simples",
+        "qualificacao": "Sem custos"
+      }
+    },
+    {
+      "nome": "Dloja",
+      "descricao_curta": "Simplo7",
+      "descricao_longa": "Simplo7",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Dloja",
+        "plataformas": "Plataforma",
+        "": "https://ajuda.simplo7.com.br/hc/pt-br/articles/4404061191067-Manda%C3%AA",
+        "integracao": "Média"
+      }
+    },
+    {
+      "nome": "Dooca | Bagy",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Dooca | Bagy",
+        "plataformas": "Plataforma",
+        "integracao": "Média",
+        "": "https://dooca.com.br/"
+      }
+    },
+    {
+      "nome": "Dotstore",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Dotstore",
+        "plataformas": "Plataforma",
+        "integracao": "Complexa",
+        "": "Complexo"
+      }
+    },
+    {
+      "nome": "E-com.club",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "E-com.club",
+        "plataformas": "Plataforma",
+        "integracao": "Complexa",
+        "": "Complexo"
+      }
+    },
+    {
+      "nome": "E-millennium",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "ERP",
+      "complexidade": "Complexa (dependemos do prazo do parceiro)",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "E-millennium",
+        "plataformas": "ERP",
+        "integracao": "Complexa (dependemos do prazo do parceiro)",
+        "": "Parceiro"
+      }
+    },
+    {
+      "nome": "Ec-Shop",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Ec-Shop",
+        "plataformas": "Plataforma",
+        "integracao": "Complexa",
+        "": "Complexo"
+      }
+    },
+    {
+      "nome": "Eccosys",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "ERP",
+      "complexidade": "Média",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Eccosys",
+        "plataformas": "ERP",
+        "integracao": "Média",
+        "": "https://w.eccosys.com.br/login.php"
+      }
+    },
+    {
+      "nome": "Ezcommerce",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Ezcommerce",
+        "plataformas": "Plataforma",
+        "integracao": "Complexa",
+        "": "Simples"
+      }
+    },
+    {
+      "nome": "Fastcommerce",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Fastcommerce",
+        "plataformas": "Plataforma",
+        "integracao": "Média",
+        "": "https://www.rumo.com.br/adm/UserLogon.asp"
+      }
+    },
+    {
+      "nome": "Frenet",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Frenet",
+        "plataformas": "Plataforma",
+        "integracao": "Média",
+        "": "Médio"
+      }
+    },
+    {
+      "nome": "Intelipost",
+      "descricao_curta": "Prazo para integração: elevado",
+      "descricao_longa": "Prazo para integração: elevado",
+      "tipo": "TMS",
+      "complexidade": "Complexa",
+      "responsavel": "Mandaê/Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Intelipost",
+        "plataformas": "TMS",
+        "": "Se a integração for com muitas plataformas apresenta muito problema",
+        "integracao": "Complexa"
+      }
+    },
+    {
+      "nome": "Invento Sistemas",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "ERP",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Invento Sistemas",
+        "plataformas": "ERP",
+        "integracao": "Média",
+        "": "Complexo"
+      }
+    },
+    {
+      "nome": "Irroba",
+      "descricao_curta": "Segue o manual da Irroba, completo https://irroba.octadesk.com/kb/article/integracao-com-a-mandae",
+      "descricao_longa": "Segue o manual da Irroba, completo https://irroba.octadesk.com/kb/article/integracao-com-a-mandae",
+      "tipo": "Plataforma",
+      "complexidade": "Simples",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Irroba",
+        "plataformas": "Plataforma",
+        "": "https://www.irroba.com.br/conta/login",
+        "integracao": "Simples"
+      }
+    },
+    {
+      "nome": "Iset",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Simples",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Iset",
+        "plataformas": "Plataforma",
+        "integracao": "Simples",
+        "": "https://help.iset.com.br/mandae/"
+      }
+    },
+    {
+      "nome": "Jetcommerce",
+      "descricao_curta": "Integração suspensa para pedidos, consultar o time de Integrações.",
+      "descricao_longa": "Integração suspensa para pedidos, consultar o time de Integrações.",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "Mandaê (linkapi)",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Jetcommerce",
+        "plataformas": "Plataforma",
+        "": "Baixo",
+        "integracao": "Complexa",
+        "qualificacao": "Custo mensal: R$ 10.000,00"
+      }
+    },
+    {
+      "nome": "KPL",
+      "descricao_curta": "Integração suspensa, consultar o time de Integrações.",
+      "descricao_longa": "Integração suspensa, consultar o time de Integrações.",
+      "tipo": "ERP",
+      "complexidade": "Complexa",
+      "responsavel": "Mandaê (linkapi)",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "KPL",
+        "plataformas": "ERP",
+        "": "Parceiro",
+        "integracao": "Complexa"
+      }
+    },
+    {
+      "nome": "Linxcommerce",
+      "descricao_curta": "Integração suspensa para pedidos, consultar o time de Integrações.",
+      "descricao_longa": "Integração suspensa para pedidos, consultar o time de Integrações.",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "Mandaê (linkapi)",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Linxcommerce",
+        "plataformas": "Plataforma",
+        "": "////",
+        "integracao": "Complexa",
+        "qualificacao": "Custo mensal: R$ 10.000,00"
+      }
+    },
+    {
+      "nome": "Livecommerce",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Livecommerce",
+        "plataformas": "Plataforma",
+        "integracao": "Média",
+        "": "Médio"
+      }
+    },
+    {
+      "nome": "Loja Integrada",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Simples",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Loja Integrada",
+        "plataformas": "Plataforma",
+        "integracao": "Simples",
+        "": "https://app.lojaintegrada.com.br/painel/login"
+      }
+    },
+    {
+      "nome": "Loja Mestre",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Cliente ou Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Loja Mestre",
+        "plataformas": "Plataforma",
+        "integracao": "Média",
+        "": "Contato: studiovr@gmail.com"
+      }
+    },
+    {
+      "nome": "Magazine Luiza",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Marketplace",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Magazine Luiza",
+        "plataformas": "Marketplace",
+        "integracao": "Complexa",
+        "": "Médio"
+      }
+    },
+    {
+      "nome": "Magento 1",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Cliente/Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Magento 1",
+        "plataformas": "Plataforma",
+        "integracao": "Média",
+        "": "Suporte fornecido pela agência contratada pelo cliente | Contato Técnico João: 11 99188-3343",
+        "qualificacao": "Custo mensal: R$ 2.300,00"
+      }
+    },
+    {
+      "nome": "Magento 2",
+      "descricao_curta": "Plataforma em operação, estamos fazendo alguns ajustes para termos um melhor aproveitamento e performance na integração.",
+      "descricao_longa": "Plataforma em operação, estamos fazendo alguns ajustes para termos um melhor aproveitamento e performance na integração.",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "Cliente/Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Magento 2",
+        "plataformas": "Plataforma",
+        "": "Complexo",
+        "integracao": "Complexa",
+        "qualificacao": "Custo mensal: R$ 2.300,00"
+      }
+    },
+    {
+      "nome": "Moovin",
+      "descricao_curta": "Integração Suspensa",
+      "descricao_longa": "Integração Suspensa",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Moovin",
+        "plataformas": "Plataforma",
+        "": "Ruim",
+        "integracao": "Complexa"
+      }
+    },
+    {
+      "nome": "NetShoes",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Marketplace",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "NetShoes",
+        "plataformas": "Marketplace",
+        "integracao": "Complexa",
+        "": "Médio"
+      }
+    },
+    {
+      "nome": "Notazz",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "ERP",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Notazz",
+        "plataformas": "ERP",
+        "integracao": "Média",
+        "": "Temos acesso/Bom"
+      }
+    },
+    {
+      "nome": "Nuvemshop",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Simples",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Nuvemshop",
+        "plataformas": "Plataforma",
+        "integracao": "Simples",
+        "": "https://www.nuvemshop.com.br/login"
+      }
+    },
+    {
+      "nome": "Omie",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "ERP",
+      "complexidade": "Simples",
+      "responsavel": "Mandaê | Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Omie",
+        "plataformas": "ERP",
+        "integracao": "Simples",
+        "": "Parceiro"
+      }
+    },
+    {
+      "nome": "Onclick",
+      "descricao_curta": "Integração suspensa, consultar o time de Integrações.",
+      "descricao_longa": "Integração suspensa, consultar o time de Integrações.",
+      "tipo": "ERP",
+      "complexidade": "Complexa",
+      "responsavel": "Mandaê (linkapi)",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Onclick",
+        "plataformas": "ERP",
+        "": "Parceiro",
+        "integracao": "Complexa"
+      }
+    },
+    {
+      "nome": "Opencart",
+      "descricao_curta": "Integração demorada porque precisa fazer um orçamento para subir o plugin na Opencart",
+      "descricao_longa": "Integração demorada porque precisa fazer um orçamento para subir o plugin na Opencart",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Opencart",
+        "plataformas": "Plataforma",
+        "": "Cobra pelo suporte",
+        "integracao": "Média"
+      }
+    },
+    {
+      "nome": "Plugae",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "HUB",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Plugae",
+        "plataformas": "HUB",
+        "integracao": "Média",
+        "": "Complexo"
+      }
+    },
+    {
+      "nome": "Plugg.to",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "HUB",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Plugg.to",
+        "plataformas": "HUB",
+        "integracao": "Complexa",
+        "": "Mandaê"
+      }
+    },
+    {
+      "nome": "Prestashop",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Prestashop",
+        "plataformas": "Plataforma",
+        "integracao": "Média",
+        "": "Cobra pelo suporte"
+      }
+    },
+    {
+      "nome": "Protheus",
+      "descricao_curta": "TOTVS\nIntegrador: Atos Data",
+      "descricao_longa": "TOTVS\nIntegrador: Atos Data",
+      "tipo": "ERP",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro Atos Data",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Protheus",
+        "plataformas": "ERP",
+        "": "Complexo",
+        "integracao": "Complexa",
+        "qualificacao": "Aproximadamente R$ 250 por CNPJ/mês"
+      }
+    },
+    {
+      "nome": "RastreioZap",
+      "descricao_curta": "Plataforma para envios de mensagem de rastreamento",
+      "descricao_longa": "Plataforma para envios de mensagem de rastreamento",
+      "tipo": "Plataforma",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "RastreioZap",
+        "plataformas": "Plataforma",
+        "": "Simples",
+        "integracao": "Complexa"
+      }
+    },
+    {
+      "nome": "Rastreio.Net",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Ferramenta",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Rastreio.Net",
+        "plataformas": "Ferramenta",
+        "integracao": "Média",
+        "": "Parceiro"
+      }
+    },
+    {
+      "nome": "Renner",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Marketplace",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Renner",
+        "plataformas": "Marketplace",
+        "integracao": "Complexa",
+        "": "Mandaê"
+      }
+    },
+    {
+      "nome": "Shopify",
+      "descricao_curta": "Se o cálculo de frete não for Shopify a importação de pedidos terá que ser por ERP ou manual/ planilha via WebApp.",
+      "descricao_longa": "Se o cálculo de frete não for Shopify a importação de pedidos terá que ser por ERP ou manual/ planilha via WebApp.",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Shopify",
+        "plataformas": "Plataforma",
+        "": "https://accounts.shopify.com/lookuprid=a4b993ce-4d80-41db-b213-1c04026e639e",
+        "integracao": "Média"
+      }
+    },
+    {
+      "nome": "Shoppub",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Simples",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Shoppub",
+        "plataformas": "Plataforma",
+        "integracao": "Simples",
+        "": "Médio"
+      }
+    },
+    {
+      "nome": "Skyhub",
+      "descricao_curta": "Integração suspensa, consultar o time de Integrações.",
+      "descricao_longa": "Integração suspensa, consultar o time de Integrações.",
+      "tipo": "HUB",
+      "complexidade": "Média",
+      "responsavel": "Mandaê (linkapi)",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Skyhub",
+        "plataformas": "HUB",
+        "": "Complexo",
+        "integracao": "Média"
+      }
+    },
+    {
+      "nome": "Softup",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "ERP",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Softup",
+        "plataformas": "ERP",
+        "integracao": "Média",
+        "": "Médio"
+      }
+    },
+    {
+      "nome": "Softvar",
+      "descricao_curta": "Integração suspensa, consultar o time de Integrações.",
+      "descricao_longa": "Integração suspensa, consultar o time de Integrações.",
+      "tipo": "ERP",
+      "complexidade": "Complexa",
+      "responsavel": "Mandaê (linkapi)",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Softvar",
+        "plataformas": "ERP",
+        "": "Parceiro",
+        "integracao": "Complexa"
+      }
+    },
+    {
+      "nome": "Sysemp",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "ERP",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Sysemp",
+        "plataformas": "ERP",
+        "integracao": "Média",
+        "": "Parceiro"
+      }
+    },
+    {
+      "nome": "Tiny",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "ERP",
+      "complexidade": "Simples",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Tiny",
+        "plataformas": "ERP",
+        "integracao": "Simples",
+        "": "https://tiny.com.br/"
+      }
+    },
+    {
+      "nome": "Track3r",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "TMS",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Track3r",
+        "plataformas": "TMS",
+        "integracao": "Média",
+        "": "-"
+      }
+    },
+    {
+      "nome": "Tray",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Simples",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Tray",
+        "plataformas": "Plataforma",
+        "integracao": "Simples",
+        "": "https://www.tray.com.br/login/redirect=redirected",
+        "qualificacao": "Custo mensal: R$ 500,00"
+      }
+    },
+    {
+      "nome": "TrayCorp\n(Wake Commerce)",
+      "descricao_curta": "FBITS",
+      "descricao_longa": "FBITS",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "TrayCorp\n(Wake Commerce)",
+        "plataformas": "Plataforma",
+        "": "https://accounts.fbits.net/",
+        "integracao": "Média",
+        "qualificacao": "Custo mensal: R$ 500,00"
+      }
+    },
+    {
+      "nome": "Vesti",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Vesti",
+        "plataformas": "Plataforma",
+        "integracao": "Média",
+        "": "-"
+      }
+    },
+    {
+      "nome": "Visual E-commerce",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Parceiro/ Propria Visual E-commerce",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Visual E-commerce",
+        "plataformas": "Plataforma",
+        "integracao": "Média",
+        "": "Baixo"
+      }
+    },
+    {
+      "nome": "VNDA",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "VNDA",
+        "plataformas": "Plataforma",
+        "integracao": "Média",
+        "": "Parceiro"
+      }
+    },
+    {
+      "nome": "VTEX",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Simples",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "VTEX",
+        "plataformas": "Plataforma",
+        "integracao": "Simples",
+        "": "https://NOMEDOCLIENTE.myvtex.com/admin/",
+        "qualificacao": "Custo mensal: R$ 500,00 (interrompido ano passado devido à negociação de valores)"
+      }
+    },
+    {
+      "nome": "WBUY",
+      "descricao_curta": "-",
+      "descricao_longa": "-",
+      "tipo": "Plataforma",
+      "complexidade": "Média",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "WBUY",
+        "plataformas": "Plataforma",
+        "": "-",
+        "integracao": "Média"
+      }
+    },
+    {
+      "nome": "Weesu",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Hub",
+      "complexidade": "Média",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Weesu",
+        "plataformas": "Hub",
+        "integracao": "Média",
+        "": "Médio"
+      }
+    },
+    {
+      "nome": "Winbooks",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "ERP",
+      "complexidade": "Complexa",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Winbooks",
+        "plataformas": "ERP",
+        "integracao": "Complexa",
+        "": "Via suporte técnico pela central (19) 322711-98 / (19) 3229-0222\nChat: https://clicsistemas.geiko.com.br/areacliente"
+      }
+    },
+    {
+      "nome": "Woocommerce",
+      "descricao_curta": "Integrador: João",
+      "descricao_longa": "Integrador: João",
+      "tipo": "Plataforma",
+      "complexidade": "Simples",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Woocommerce",
+        "plataformas": "Plataforma",
+        "": "https://wordpress.com/log-inredirect_to=%2Fme",
+        "integracao": "Simples"
+      }
+    },
+    {
+      "nome": "Yampi",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Plataforma",
+      "complexidade": "Simples",
+      "responsavel": "Mandaê",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Yampi",
+        "plataformas": "Plataforma",
+        "integracao": "Simples",
+        "": "https://app.yampi.com.br/"
+      }
+    },
+    {
+      "nome": "Integrai",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "Hub",
+      "complexidade": "Simples",
+      "responsavel": "Cliente/ Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Integrai",
+        "plataformas": "Hub",
+        "integracao": "Simples",
+        "": "https://www.integrai.com.br/",
+        "qualificacao": "Não existe custo para habilitar, mas o cliente precisa assinar a plataforma para usar todas as integrações."
+      }
+    },
+    {
+      "nome": "Bluesoft",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "ERP",
+      "complexidade": "Simples",
+      "responsavel": "Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Bluesoft",
+        "plataformas": "ERP",
+        "integracao": "Simples",
+        "": "https://bluesoft.com.br/"
+      }
+    },
+    {
+      "nome": "Magis5",
+      "descricao_curta": "",
+      "descricao_longa": "",
+      "tipo": "HUB",
+      "complexidade": "Simples",
+      "responsavel": "Cliente/ Parceiro",
+      "status": "",
+      "funcionalidades": [],
+      "metadata": {
+        "bling": "Magis5",
+        "plataformas": "HUB",
+        "integracao": "Simples",
+        "": "https://ajuda.magis5.com.br/",
+        "qualificacao": "Atualmente, não há nenhum custo adicional para habilitar a integração entre a Magis5 e a Mandaê, desde que o usuário possua acesso a ambas as contas."
+      }
+    }
+  ]
+}

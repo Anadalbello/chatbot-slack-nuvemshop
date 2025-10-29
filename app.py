@@ -471,8 +471,14 @@ def slack_events():
                 if user_intent == 'list_integrations':
                     logger.info("📋 Intent: list_integrations")
                     
-                    # PRIORIDADE 1: Google Sheets
-                    lista_integracoes = buscar_integracoes_google_sheets_publico()
+                    # PRIORIDADE 1: JSON (estilo Nina)
+                    from handlers.buscar_integracoes_json import buscar_integracoes_json
+                    lista_integracoes = buscar_integracoes_json()
+                    
+                    # FALLBACK: Google Sheets se JSON não existir
+                    if not lista_integracoes or "não encontrada" in lista_integracoes.lower():
+                        logger.info("⚠️ JSON não encontrado, tentando Google Sheets...")
+                        lista_integracoes = buscar_integracoes_google_sheets_publico()
                     
                     # FALLBACK: Confluence
                     if not lista_integracoes:

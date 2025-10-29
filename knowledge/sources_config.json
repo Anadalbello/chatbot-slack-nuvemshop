@@ -3,10 +3,24 @@
   "description": "Configuração das fontes de conhecimento (estilo Nina)",
   "sources": [
     {
-      "id": "google_sheets",
-      "name": "Google Sheets (Integrações)",
+      "id": "integracoes_json",
+      "name": "Integrações (JSON estático)",
       "enabled": true,
       "priority": 1,
+      "handler_module": "handlers.buscar_integracoes_json",
+      "handler_function": "buscar_integracao_especifica_json",
+      "handler_integracao_especifica": "buscar_integracao_especifica_json",
+      "config": {
+        "json_file": "knowledge/integracoes.json"
+      },
+      "timeout": 1,
+      "requires_validation": true
+    },
+    {
+      "id": "google_sheets",
+      "name": "Google Sheets (Integrações)",
+      "enabled": false,
+      "priority": 2,
       "handler_module": "handlers.buscar_integracoes_sheets_publico",
       "handler_function": "buscar_integracoes_google_sheets_publico",
       "handler_integracao_especifica": "buscar_integracao_especifica_sheets_publico",
@@ -20,7 +34,7 @@
       "id": "confluence",
       "name": "Confluence",
       "enabled": true,
-      "priority": 2,
+      "priority": 3,
       "handler_module": "handlers.confluence_com_resumo",
       "handler_function": "buscar_confluence",
       "config": {
@@ -35,7 +49,7 @@
       "id": "zendesk",
       "name": "Zendesk Help Center",
       "enabled": true,
-      "priority": 3,
+      "priority": 4,
       "handler_module": "handlers.zendesk_api",
       "handler_function": "buscar_artigo_zendesk_api",
       "config": {
