@@ -76,14 +76,14 @@ CATEGORIAS_MENU = {
 }
 
 def criar_menu_boas_vindas():
-    """Cria o menu principal de boas-vindas"""
+    """Cria o menu simplificado de boas-vindas (sem menu de tópicos)"""
     return {
         "blocks": [
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "👋 *Olá! Sou o assistente de integrações da Nuvem Envio*\n\nComo posso ajudá-lo hoje? Escolha uma opção:"
+                    "text": "👋 *Olá! Sou o assistente de integrações da Nuvem Envio*\n\nPosso ajudar você com:\n• Buscar informações sobre integrações\n• Listar integrações disponíveis\n• Responder perguntas sobre documentação\n\n*Como posso ajudá-lo hoje?*"
                 }
             },
             {
@@ -91,53 +91,7 @@ def criar_menu_boas_vindas():
                 "elements": [
                     {
                         "type": "button",
-                        "text": {"type": "plain_text", "text": "🚚 Frete e Cálculo"},
-                        "value": "topico_frete",
-                        "action_id": "menu_topico_frete"
-                    },
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "📦 Pedidos e Logística"},
-                        "value": "topico_pedidos", 
-                        "action_id": "menu_topico_pedidos"
-                    },
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "🧩 Configuração"},
-                        "value": "topico_config",
-                        "action_id": "menu_topico_config"
-                    }
-                ]
-            },
-            {
-                "type": "actions", 
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "🛒 Checkout"},
-                        "value": "topico_checkout",
-                        "action_id": "menu_topico_checkout"
-                    },
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "🧠 Qualidade"},
-                        "value": "topico_qualidade",
-                        "action_id": "menu_topico_qualidade"
-                    },
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "📝 Observações"},
-                        "value": "topico_observacoes",
-                        "action_id": "menu_topico_observacoes"
-                    }
-                ]
-            },
-            {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {"type": "plain_text", "text": "🔍 Pesquisa Global"},
+                        "text": {"type": "plain_text", "text": "🔍 Fazer uma Pergunta"},
                         "value": "pesquisa_global",
                         "action_id": "pesquisa_global",
                         "style": "primary"
@@ -149,6 +103,13 @@ def criar_menu_boas_vindas():
                         "action_id": "listar_integracoes"
                     }
                 ]
+            },
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "_💡 Dica: Você pode fazer perguntas diretamente, como:_\n• Como integrar com Magento?\n• Temos integração com Tray?\n• Como calcular frete?\n\n_Eu busco automaticamente em Google Sheets, Confluence e Zendesk!_"
+                }
             }
         ]
     }

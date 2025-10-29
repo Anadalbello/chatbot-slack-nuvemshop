@@ -20,7 +20,7 @@ from handlers.buscar_integracoes_dinamico import buscar_todas_integracoes_conflu
 from handlers.buscar_integracoes_sheets_publico import buscar_integracoes_google_sheets_publico, buscar_integracao_especifica_sheets_publico
 from handlers.buscar_faq import buscar_faq, formatar_resposta_faq
 from handlers.aprendizado_automatico import registrar_pergunta
-from handlers.menu_topicos import criar_menu_boas_vindas, criar_submenu_topico, buscar_por_topico_e_coluna
+from handlers.menu_topicos import criar_menu_boas_vindas
 # NOVA ESTRUTURA ESTILO NINA
 from core import KnowledgeManager, Recepcionista, FonteValidator
 # from handlers.filtrar_links_relevantes import filtrar_links_relevantes, gerar_resposta_sem_resultados
@@ -687,69 +687,6 @@ def slack_actions():
                 text=f"🎫 Abrir chamado: {jira_create_url}"
             )
             
-        elif acao in ["menu_topico_frete", "menu_topico_pedidos", "menu_topico_config", 
-                      "menu_topico_checkout", "menu_topico_qualidade", "menu_topico_observacoes"]:
-            # Usar o value diretamente como tópico
-            topico = action["value"]
-            logger.info(f"📋 Usuário selecionou tópico: {topico}")
-            
-            try:
-                submenu = criar_submenu_topico(topico)
-                if submenu:
-                    logger.info(f"✅ Submenu criado para {topico}")
-                    slack_client.chat_postMessage(
-                        channel=channel,
-                        thread_ts=thread_ts,
-                        text=f"Submenu - {topico}",
-                        blocks=submenu["blocks"]
-                    )
-                    logger.info(f"📤 Submenu enviado para {channel}")
-                else:
-                    logger.warning(f"⚠️ Submenu retornou None para {topico}")
-                    slack_client.chat_postMessage(
-                        channel=channel,
-                        thread_ts=thread_ts,
-                        text="❌ Tópico não encontrado"
-                    )
-            except Exception as e:
-                logger.error(f"❌ Erro ao processar tópico {topico}: {e}")
-                slack_client.chat_postMessage(
-                    channel=channel,
-                    thread_ts=thread_ts,
-                    text=f"❌ Erro interno: {e}"
-                )
-
-        elif acao.startswith("submenu_opcao_"):
-            # Usar o value diretamente
-            topico_coluna = action["value"]
-            
-            # Extrair o tópico e a coluna corretamente
-            # O formato é: topico_pedidos_I ou topico_frete_F
-            # Precisamos separar o tópico (topico_pedidos) da coluna (I, F, etc)
-            parts = topico_coluna.split("_")
-            if len(parts) >= 3:
-                # topico_pedidos_I -> topico_pedidos, I
-                topico_id = f"{parts[0]}_{parts[1]}"  # topico_pedidos
-                coluna = parts[2]  # I
-            elif len(parts) == 2:
-                # topico_I -> topico, I
-                topico_id = parts[0]
-                coluna = parts[1]
-            else:
-                logger.error(f"❌ Formato inválido de value: {topico_coluna}")
-                topico_id = "topico"
-                coluna = "A"
-            
-            logger.info(f"🎯 Usuário selecionou: {topico_id} - {coluna}")
-            
-            resultado = buscar_por_topico_e_coluna(topico_id, coluna)
-            
-            slack_client.chat_postMessage(
-                channel=channel,
-                thread_ts=thread_ts,
-                text=resultado
-            )
-
         elif acao == "pesquisa_global":
             logger.info("🔍 Usuário ativou modo pesquisa global")
             
