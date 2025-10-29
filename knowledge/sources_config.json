@@ -1,0 +1,56 @@
+{
+  "version": "1.0",
+  "description": "Configuração das fontes de conhecimento (estilo Nina)",
+  "sources": [
+    {
+      "id": "google_sheets",
+      "name": "Google Sheets (Integrações)",
+      "enabled": true,
+      "priority": 1,
+      "handler_module": "handlers.buscar_integracoes_sheets_publico",
+      "handler_function": "buscar_integracoes_google_sheets_publico",
+      "handler_integracao_especifica": "buscar_integracao_especifica_sheets_publico",
+      "config": {
+        "public_sheet_id": "17_ch_pQ0Tj0KvVCEzyii5mzHyh4mOiQBjgtO7-fQEVQ"
+      },
+      "timeout": 10,
+      "requires_validation": true
+    },
+    {
+      "id": "confluence",
+      "name": "Confluence",
+      "enabled": true,
+      "priority": 2,
+      "handler_module": "handlers.confluence_com_resumo",
+      "handler_function": "buscar_confluence",
+      "config": {
+        "space": "BDGCI",
+        "limit": 5,
+        "strategies": ["exact", "or_combined", "word_by_word"]
+      },
+      "timeout": 15,
+      "requires_validation": true
+    },
+    {
+      "id": "zendesk",
+      "name": "Zendesk Help Center",
+      "enabled": true,
+      "priority": 3,
+      "handler_module": "handlers.zendesk_api",
+      "handler_function": "buscar_artigo_zendesk_api",
+      "config": {
+        "limit": 3
+      },
+      "timeout": 10,
+      "requires_validation": true
+    }
+  ],
+  "search_strategy": {
+    "mode": "priority_based",
+    "stop_on_first_success": false,
+    "max_results": 5,
+    "combine_results": true,
+    "require_at_least_one_source": true
+  }
+}
+

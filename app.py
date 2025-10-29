@@ -21,6 +21,8 @@ from handlers.buscar_integracoes_sheets_publico import buscar_integracoes_google
 from handlers.buscar_faq import buscar_faq, formatar_resposta_faq
 from handlers.aprendizado_automatico import registrar_pergunta
 from handlers.menu_topicos import criar_menu_boas_vindas, criar_submenu_topico, buscar_por_topico_e_coluna
+# NOVA ESTRUTURA ESTILO NINA
+from core import KnowledgeManager, Recepcionista, FonteValidator
 # from handlers.filtrar_links_relevantes import filtrar_links_relevantes, gerar_resposta_sem_resultados
 import re
 
@@ -38,6 +40,13 @@ slack_token = os.getenv("SLACK_BOT_TOKEN")
 signing_secret = os.getenv("SLACK_SIGNING_SECRET")
 slack_client = WebClient(token=slack_token)
 verifier = SignatureVerifier(signing_secret)
+
+# 🧠 NOVA ESTRUTURA ESTILO NINA
+# Inicializar sistema de conhecimento estilo Nina
+knowledge_manager = KnowledgeManager()
+recepcionista = Recepcionista()
+fonte_validator = FonteValidator(knowledge_manager)
+logger.info("✅ Sistema estilo Nina inicializado")
 
 # 🛡️ SISTEMA ANTI-DUPLICAÇÃO
 eventos_processados = {}
@@ -399,44 +408,57 @@ def slack_events():
             
             logger.info(f"Mensagem recebida de {user}: {text}")
 
-            # Enviar mensagem imediata de confirmação
+            # Limpar termo de busca
             pergunta_limpa = limpar_termo_busca(text)
             
             try:
-                # 🎯 DETECTAR CUMPRIMENTO INICIAL (NOVO)
-                palavras_cumprimento = ["oi", "olá", "ola", "hello", "hi", "hey", "bom dia", "boa tarde", "boa noite"]
-                eh_cumprimento = any(palavra in pergunta_limpa.lower() for palavra in palavras_cumprimento)
-
-                if eh_cumprimento:
-                    logger.info("👋 Detectado cumprimento inicial - mostrando menu de boas-vindas")
-                    
+                # 🧠 ESTILO NINA: Usar Recepcionista para analisar a pergunta primeiro
+                # Buscar contexto da thread (se existir)
+                contexto_thread = None
+                # TODO: Implementar busca de contexto da thread se necessário
+                
+                logger.info("🧠 Recepcionista: Analisando pergunta...")
+                analise_recepcionista = recepcionista.analisar_pergunta(pergunta_limpa, contexto_thread)
+                
+                # Se precisa esclarecimento, enviar mensagem e retornar
+                if analise_recepcionista.get('needs_clarification'):
+                    logger.info("❓ Recepcionista: Precisa esclarecimento")
+                    mensagem_esclarecimento = analise_recepcionista.get('clarification_message', '')
+                    if mensagem_esclarecimento:
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text=mensagem_esclarecimento
+                        )
+                    return jsonify({"ok": True})
+                
+                # Extrair intent e query processada
+                user_intent = analise_recepcionista.get('user_intent', 'search_knowledge')
+                user_query = analise_recepcionista.get('user_detailed_query', pergunta_limpa)
+                user_language = analise_recepcionista.get('user_detected_language', 'pt')
+                
+                logger.info(f"🎯 Intent detectado: {user_intent} | Query: {user_query[:50]}... | Idioma: {user_language}")
+                
+                # 🎯 TRATAR INTENTS ESPECÍFICOS
+                
+                # 1. GREETING - Mostrar menu
+                if user_intent == 'greeting':
+                    logger.info("👋 Intent: greeting - mostrando menu de boas-vindas")
                     try:
                         menu = criar_menu_boas_vindas()
-                        logger.info(f"✅ Menu criado com {len(menu['blocks'])} blocos")
-                        
-                        response = slack_client.chat_postMessage(
+                        slack_client.chat_postMessage(
                             channel=channel,
                             thread_ts=thread_ts,
                             text="Menu de Boas-vindas",
                             blocks=menu["blocks"]
                         )
-                        logger.info(f"📤 Menu enviado com sucesso! TS: {response.get('ts')}")
                     except Exception as e:
-                        logger.error(f"❌ Erro ao enviar menu de boas-vindas: {e}")
-                        slack_client.chat_postMessage(
-                            channel=channel,
-                            thread_ts=thread_ts,
-                            text=f"❌ Erro interno: {e}"
-                        )
+                        logger.error(f"❌ Erro ao enviar menu: {e}")
                     return jsonify({"ok": True})
-
-                # 🎯 DETECTAR COMANDO DE MENU (MANTIDO)
-                palavras_menu = ["menu", "tópicos", "categorias", "ajuda", "help", "opções"]
-                eh_comando_menu = any(palavra in pergunta_limpa.lower() for palavra in palavras_menu)
-
-                if eh_comando_menu:
-                    logger.info("📋 Detectado comando de menu")
-                    
+                
+                # 2. MENU - Mostrar menu
+                if user_intent == 'menu':
+                    logger.info("📋 Intent: menu - mostrando menu")
                     slack_client.chat_postMessage(
                         channel=channel,
                         thread_ts=thread_ts,
@@ -444,170 +466,143 @@ def slack_events():
                         blocks=criar_menu_boas_vindas()["blocks"]
                     )
                     return jsonify({"ok": True})
-                # 🎯 DETECTAR SE É PEDIDO PARA LISTAR INTEGRAÇÕES/PARCEIROS
-                palavras_listar = ["listar", "lista", "quais são", "quais sao", "tem quais", "quantos", "todos os", "todas as"]
-                palavras_integracao = ["integra", "parceiro", "sistema", "plataforma"]
                 
-                pergunta_lower = pergunta_limpa.lower()
-                eh_pedido_lista = any(palavra in pergunta_lower for palavra in palavras_listar)
-                eh_sobre_integracoes = any(palavra in pergunta_lower for palavra in palavras_integracao)
-                
-                if eh_pedido_lista and eh_sobre_integracoes:
-                    logger.info("📋 Detectado pedido para listar integrações")
+                # 3. LIST_INTEGRATIONS - Listar integrações
+                if user_intent == 'list_integrations':
+                    logger.info("📋 Intent: list_integrations")
                     
-                    # PRIORIDADE 1: Tentar buscar do Google Sheets (público)
-                    logger.info("📊 Tentando buscar do Google Sheets primeiro...")
+                    # PRIORIDADE 1: Google Sheets
                     lista_integracoes = buscar_integracoes_google_sheets_publico()
                     
-                    # FALLBACK: Se Google Sheets falhar, buscar do Confluence
+                    # FALLBACK: Confluence
                     if not lista_integracoes:
                         logger.info("⚠️ Google Sheets falhou, buscando do Confluence...")
                         lista_integracoes = buscar_todas_integracoes_confluence()
                     
                     if lista_integracoes:
-                        # Converter para formato mrkdwn
                         lista_mrkdwn = lista_integracoes.replace("**", "*")
-                        
                         slack_client.chat_postMessage(
                             channel=channel,
                             thread_ts=thread_ts,
                             text="Lista de integrações disponíveis",
-                            blocks=[
-                                {
-                                    "type": "section",
-                                    "text": {
-                                        "type": "mrkdwn",
-                                        "text": lista_mrkdwn
-                                    }
-                                }
-                            ]
+                            blocks=[{
+                                "type": "section",
+                                "text": {"type": "mrkdwn", "text": lista_mrkdwn}
+                            }]
                         )
-                        logger.info("✅ Lista de integrações enviada")
-                        return jsonify({"ok": True})
                     else:
-                        logger.warning("⚠️ Não foi possível buscar lista de integrações (nem Sheets nem Confluence), continuando com busca normal")
-                
-                # 🔍 BUSCAR SILENCIOSAMENTE (sem mensagens intermediárias)
-                resultados_encontrados = {}
-
-                # 📊 REGISTRAR PERGUNTA PARA ANÁLISE INTERNA (FAQ como ferramenta de análise)
-                logger.info(f"📝 Registrando pergunta para análise: {pergunta_limpa}")
-                # Nota: FAQ não é usado para responder usuários, apenas para análise interna
-
-                # 1. PRIORIDADE: Buscar no Confluence primeiro
-                logger.info(f"📋 Iniciando busca no Confluence para: {pergunta_limpa}")
-                
-                # Melhorar o termo de busca extraindo palavras-chave
-                termo_busca_confluence = melhorar_busca_confluence(pergunta_limpa)
-                logger.info(f"🔍 Palavras-chave extraídas: {termo_busca_confluence}")
-                
-                resultado_confluence = buscar_confluence(termo_busca_confluence)
-                logger.info(f"Resultado Confluence: {resultado_confluence[:100] if resultado_confluence else 'None'}...")
-                
-                if resultado_confluence and eh_resultado_util(resultado_confluence):
-                    logger.info("✅ Resultado útil encontrado no Confluence")
-                    resultados_encontrados['confluence'] = resultado_confluence
-                else:
-                    logger.info("❌ Nenhum resultado útil no Confluence")
-                    
-                    # 2. FALLBACK: Só buscar no Zendesk se não encontrou no Confluence
-                    logger.info(f"🎫 Iniciando busca no Zendesk API para: {pergunta_limpa}")
-                    resultado_zendesk = buscar_artigo_zendesk_api(text)
-                    logger.info(f"Resultado Zendesk: {resultado_zendesk[:100] if resultado_zendesk else 'None'}...")
-                    
-                    if resultado_zendesk and eh_resultado_util(resultado_zendesk):
-                        logger.info("✅ Resultado útil encontrado no Zendesk")
-                        resultados_encontrados['zendesk'] = resultado_zendesk
-                    else:
-                        logger.info("❌ Nenhum resultado útil no Zendesk")
-
-                # 3. ENVIAR APENAS RESULTADO FINAL
-                if resultados_encontrados:
-                    logger.info(f"🎉 Total de resultados encontrados: {len(resultados_encontrados)}")
-                    
-                    # 🤖 REGISTRAR PERGUNTA PARA APRENDIZADO AUTOMÁTICO
-                    fonte = 'confluence' if 'confluence' in resultados_encontrados else 'zendesk'
-                    resposta_bruta = resultados_encontrados.get(fonte, '')
-                    
-                    resultado_registro = registrar_pergunta(pergunta_limpa, resposta_bruta, fonte)
-                    if resultado_registro.get('faq_criada'):
-                        logger.info(f"🎉 FAQ AUTO-GERADA! Pergunta '{pergunta_limpa}' apareceu {resultado_registro['contador']} vezes")
-                    
-                    resultado_formatado = formatar_resultados_encontrados(
-                        resultados_encontrados.get('zendesk'),
-                        resultados_encontrados.get('confluence'),
-                        pergunta_limpa
-                    )
-                    
-                    if resultado_formatado:
-                        logger.info("📤 Enviando resposta única para o Slack...")
-                        
-                        # Converter ** para * para formatação mrkdwn
-                        resultado_mrkdwn = resultado_formatado.replace("**", "*")
-                        
-                        response = slack_client.chat_postMessage(
-                            channel=channel,
-                            thread_ts=thread_ts,
-                            text=f"Resultados para: {pergunta_limpa}",  # Fallback para acessibilidade
-                            blocks=[
-                                {
-                                    "type": "section",
-                                    "text": {
-                                        "type": "mrkdwn",
-                                        "text": resultado_mrkdwn
-                                    }
-                                }
-                            ]
-                        )
-                        logger.info(f"✅ Resposta enviada! TS: {response.get('ts')}")
-                        
-                        # Botões em mensagem separada
                         slack_client.chat_postMessage(
                             channel=channel,
                             thread_ts=thread_ts,
-                            text="Estas informações ajudaram?",  # Fallback para acessibilidade
-                            blocks=[
-                                {
-                                    "type": "section",
-                                    "text": {
-                                        "type": "mrkdwn",
-                                        "text": "❓ *Estas informações ajudaram?*"
-                                    }
-                                }
-                            ] + criar_botoes_interacao(pergunta_limpa, resultados_encontrados)
+                            text="❌ Não foi possível buscar a lista de integrações no momento."
+                        )
+                    return jsonify({"ok": True})
+                
+                # 4. SPECIFIC_INTEGRATION - Buscar integração específica
+                if user_intent == 'specific_integration':
+                    logger.info(f"🔍 Intent: specific_integration - buscando: {user_query}")
+                    resultado_integracao = knowledge_manager.search_integration_specific(user_query)
+                    
+                    if resultado_integracao:
+                        resultado_mrkdwn = str(resultado_integracao['content']).replace("**", "*")
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text=f"Resultados para: {user_query}",
+                            blocks=[{
+                                "type": "section",
+                                "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
+                            }]
                         )
                         return jsonify({"ok": True})
+                    # Se não encontrou integração específica, continuar para busca geral
+                    logger.info("⚠️ Integração específica não encontrada, fazendo busca geral...")
                 
-                # Se não encontrou nada
-                else:
-                    logger.info("❌ Nenhum resultado encontrado - oferecendo alternativas")
-                    
-                    # Mensagem no estilo Ask Nina
-                    mensagem_sem_resultado = (
-                        "Olá!\n\n"
-                        f"Com base nas informações disponíveis em meu contexto, não localizei documentação específica sobre *{pergunta_limpa}* em nossa base de conhecimento.\n\n"
-                        "Para verificar a disponibilidade dessa informação ou explorar alternativas, você pode:\n\n"
-                        "• Acessar nosso portal de integrações para documentação completa\n"
-                        "• Entrar em contato com o time de suporte para orientações específicas\n"
-                        "• Abrir um chamado no Jira para que possamos ajudar diretamente\n\n"
-                        "_Estou à disposição para ajudar com outras questões._"
-                    )
+                # 5. SEARCH_KNOWLEDGE (ou fallback) - Buscar em todas as fontes
+                logger.info("🔍 Intent: search_knowledge - buscando em múltiplas fontes")
+                
+                # 🧠 ESTILO NINA: Usar KnowledgeManager para buscar em todas as fontes (ordem de prioridade)
+                resultados_busca = knowledge_manager.search(user_query)
+                
+                # 🧠 ESTILO NINA: Validar se tem fonte válida antes de responder
+                validacao = fonte_validator.validar_resultados(resultados_busca)
+                
+                if not validacao['tem_fonte_valida']:
+                    # Estilo Nina: Só responder se tiver fonte válida
+                    logger.warning("⚠️ Nenhuma fonte válida encontrada - não respondendo")
+                    mensagem_sem_fonte = validacao['mensagem_erro']
                     
                     slack_client.chat_postMessage(
                         channel=channel,
                         thread_ts=thread_ts,
-                        text=f"Não encontrei informações sobre: {pergunta_limpa}",  # Fallback
-                        blocks=[
-                            {
-                                "type": "section",
-                                "text": {
-                                    "type": "mrkdwn",
-                                    "text": mensagem_sem_resultado
-                                }
-                            }
-                        ] + criar_botoes_interacao(pergunta_limpa, {})
+                        text=f"Não encontrei informações sobre: {user_query}",
+                        blocks=[{
+                            "type": "section",
+                            "text": {"type": "mrkdwn", "text": mensagem_sem_fonte}
+                        }] + criar_botoes_interacao(user_query, {})
                     )
                     return jsonify({"ok": True})
+                
+                # Tem fonte válida - processar resposta
+                resultados_validos = validacao['resultados_validos']
+                logger.info(f"✅ {len(resultados_validos)} resultados válidos encontrados")
+                
+                # Converter resultados para formato compatível com função existente
+                resultados_encontrados = {}
+                for resultado in resultados_validos:
+                    fonte_id = resultado['source']
+                    resultados_encontrados[fonte_id] = resultado['content']
+                
+                # 🤖 REGISTRAR PERGUNTA PARA APRENDIZADO AUTOMÁTICO
+                fonte_principal = resultados_validos[0]['source']
+                resposta_bruta = resultados_validos[0]['content']
+                resultado_registro = registrar_pergunta(user_query, resposta_bruta, fonte_principal)
+                if resultado_registro.get('faq_criada'):
+                    logger.info(f"🎉 FAQ AUTO-GERADA! Pergunta '{user_query}' apareceu {resultado_registro['contador']} vezes")
+                
+                # Formatar resposta usando função existente
+                resultado_confluence = resultados_encontrados.get('confluence')
+                resultado_zendesk = resultados_encontrados.get('zendesk')
+                
+                resultado_formatado = formatar_resultados_encontrados(
+                    resultado_zendesk,
+                    resultado_confluence,
+                    user_query
+                )
+                
+                if resultado_formatado:
+                    resultado_mrkdwn = resultado_formatado.replace("**", "*")
+                    
+                    response = slack_client.chat_postMessage(
+                        channel=channel,
+                        thread_ts=thread_ts,
+                        text=f"Resultados para: {user_query}",
+                        blocks=[{
+                            "type": "section",
+                            "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
+                        }]
+                    )
+                    
+                    # Botões em mensagem separada
+                    slack_client.chat_postMessage(
+                        channel=channel,
+                        thread_ts=thread_ts,
+                        text="Estas informações ajudaram?",
+                        blocks=[{
+                            "type": "section",
+                            "text": {"type": "mrkdwn", "text": "❓ *Estas informações ajudaram?*"}
+                        }] + criar_botoes_interacao(user_query, resultados_encontrados)
+                    )
+                    return jsonify({"ok": True})
+                
+                # Fallback se formatação falhar
+                logger.warning("⚠️ Formatação de resultado falhou")
+                slack_client.chat_postMessage(
+                    channel=channel,
+                    thread_ts=thread_ts,
+                    text="Erro ao formatar resposta. Tente novamente."
+                )
+                return jsonify({"ok": True})
 
             except Exception as e:
                 logger.error(f"Erro ao processar mensagem: {e}")

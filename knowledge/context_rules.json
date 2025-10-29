@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "description": "Regras de contexto e validação (estilo Nina)",
+  "domain": {
+    "name": "integracoes_nuvemshop",
+    "description": "Chatbot especializado em integrações Nuvemshop/Nuvem Envio"
+  },
+  "rules": [
+    "Nuvemshop, Nuvem Envio e Mandae são empresas do mesmo grupo (NÃO são parceiros)",
+    "Todas as outras empresas são PARCEIROS que se integram com a Nuvemshop",
+    "Exemplos de parceiros: Magento, Wake OMS, SAP, Ativa, D2D On Platform, etc."
+  ],
+  "validation_rules": {
+    "require_source_before_response": true,
+    "reject_response_if_no_source": true,
+    "min_result_length": 20,
+    "reject_error_messages": true,
+    "error_keywords": ["erro", "error", "falha", "não foi possível", "não encontrado", "failed"]
+  },
+  "response_rules": {
+    "max_tokens_context": 4000,
+    "optimize_descriptions": true,
+    "trim_irrelevant_info": true,
+    "include_source_links": true
+  },
+  "entities": {
+    "empresas_grupo": ["Nuvemshop", "Nuvem Envio", "Mandae"],
+    "tipos_integracao": ["e-commerce", "ERP", "TMS", "marketplace", "wms"],
+    "complexidade": ["simples", "media", "complexa"]
+  },
+  "metadata": {
+    "last_updated": "2025-10-29",
+    "maintained_by": "time_integracoes"
+  }
+}
+
