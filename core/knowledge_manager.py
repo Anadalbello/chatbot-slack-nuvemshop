@@ -117,11 +117,17 @@ class KnowledgeManager:
             try:
                 logger.info(f"🔍 Buscando em '{source_id}' (prioridade {source_data['priority']})")
                 
-                # Chamar handler com configuração
-                if isinstance(config, dict) and 'limit' in config:
-                    result = handler(query, limit=config.get('limit', limit))
-                else:
-                    result = handler(query)
+                # Chamar handler de acordo com a assinatura específica
+                # Google Sheets: não suporta busca genérica (apenas lista todas ou busca específica)
+                # Para busca genérica (search_knowledge), pular Google Sheets
+                if source_id == 'google_sheets':
+                    logger.debug(f"⚠️ Google Sheets não suporta busca genérica, pulando...")
+                    continue
+                    
+                # Todos os outros handlers aceitam apenas termo como argumento posicional
+                # Confluence: buscar_confluence(termo)
+                # Zendesk: buscar_artigo_zendesk_api(termo_original)
+                result = handler(query)
                 
                 if result and self._is_valid_result(result):
                     results.append({
@@ -138,6 +144,8 @@ class KnowledgeManager:
                         
             except Exception as e:
                 logger.error(f"❌ Erro ao buscar em '{source_id}': {e}")
+                import traceback
+                logger.debug(traceback.format_exc())
                 continue
         
         # Ordenar por prioridade (menor = melhor)

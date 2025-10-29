@@ -501,14 +501,27 @@ def slack_events():
                 # 4. SPECIFIC_INTEGRATION - Buscar integração específica
                 if user_intent == 'specific_integration':
                     logger.info(f"🔍 Intent: specific_integration - buscando: {user_query}")
-                    resultado_integracao = knowledge_manager.search_integration_specific(user_query)
+                    
+                    # Extrair nome da integração da query (remover palavras comuns)
+                    # Ex: "temos integração com a VTEX" -> "VTEX"
+                    palavras_remover = ["temos", "tenho", "integração", "integracao", "com", "a", "o", "da", "do", "de", "para", "em"]
+                    palavras_query = user_query.lower().split()
+                    nome_integracao = " ".join([p for p in palavras_query if p not in palavras_remover and len(p) > 2])
+                    
+                    # Se não encontrou nome válido, usar a query toda
+                    if not nome_integracao or len(nome_integracao) < 2:
+                        nome_integracao = user_query
+                    
+                    logger.info(f"🔍 Nome extraído da integração: '{nome_integracao}'")
+                    
+                    resultado_integracao = knowledge_manager.search_integration_specific(nome_integracao)
                     
                     if resultado_integracao:
                         resultado_mrkdwn = str(resultado_integracao['content']).replace("**", "*")
                         slack_client.chat_postMessage(
                             channel=channel,
                             thread_ts=thread_ts,
-                            text=f"Resultados para: {user_query}",
+                            text=f"Resultados para: {nome_integracao}",
                             blocks=[{
                                 "type": "section",
                                 "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
