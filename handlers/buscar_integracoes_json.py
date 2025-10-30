@@ -111,13 +111,25 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
     nome_lower = nome_erp.lower().strip()
     logger.info(f"🔍 Buscando ERP: '{nome_erp}'")
     
-    # Buscar por match parcial no nome do ERP
+    # Extrair palavras-chave da query (remover palavras comuns)
+    palavras_remover = {"temos", "tenho", "integração", "integracao", "com", "a", "o", "da", "do", "de", "para", "em", 
+                        "qual", "quais", "sobre", "tem", "tem o", "tem a", "funcionalidades", "funcionalidade", "como", "funciona"}
+    palavras_query = set([p for p in nome_lower.split() if p not in palavras_remover and len(p) > 2])
+    
+    # Buscar por match: verificar se nome do ERP está na query OU se palavras-chave estão no nome do ERP
     matches = []
     for erp in erps:
         nome_erp_atual = erp.get("ERP", "").lower()
         # Busca parcial e também remove parênteses para busca mais flexível
         nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp_atual)
-        if nome_lower in nome_erp_atual or nome_lower in nome_limpo:
+        palavras_nome = set(nome_limpo.split())
+        
+        # Verificar se o nome do ERP está contido na query (busca invertida)
+        # Ex: query="quais funcionalidades tem o eccosys" -> nome="eccosys" deve ser encontrado
+        if nome_limpo in nome_lower or any(palavra in nome_lower for palavra in palavras_nome if len(palavra) > 2):
+            matches.append(erp)
+        # Verificar se palavras da query estão no nome do ERP
+        elif palavras_query and palavras_query.intersection(palavras_nome):
             matches.append(erp)
     
     if not matches:
@@ -208,8 +220,9 @@ def buscar_erp_generico(query: str) -> Optional[str]:
     logger.info(f"🔍 Busca genérica: '{query}'")
     
     # Lista de palavras comuns a ignorar
-    palavras_ignorar = ["temos", "tenho", "integração", "integracao", "com", "a", "o", "da", "do", "de", "para", "em", "qual", "quais", "sobre"]
-    palavras_query = [p for p in query_lower.split() if p not in palavras_ignorar and len(p) > 2]
+    palavras_ignorar = {"temos", "tenho", "integração", "integracao", "com", "a", "o", "da", "do", "de", "para", "em", 
+                        "qual", "quais", "sobre", "tem", "tem o", "tem a", "funcionalidades", "funcionalidade", "como", "funciona"}
+    palavras_query = set([p for p in query_lower.split() if p not in palavras_ignorar and len(p) > 2])
     
     matches = []
     scores = []
@@ -217,15 +230,17 @@ def buscar_erp_generico(query: str) -> Optional[str]:
     for erp in erps:
         nome_erp = erp.get("ERP", "").lower()
         nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp)
+        palavras_nome = set(nome_limpo.split())
         
         score = 0
         
-        # Busca exata no nome do ERP (maior pontuação)
-        if query_lower in nome_erp or query_lower in nome_limpo:
+        # Busca invertida: verificar se o nome do ERP está na query (maior pontuação)
+        # Ex: query="quais funcionalidades tem o eccosys" -> nome="eccosys" deve ser encontrado
+        if nome_limpo in query_lower or any(palavra in query_lower for palavra in palavras_nome if len(palavra) > 2):
             score = 100
-        # Busca parcial no nome
-        elif any(palavra in nome_erp or palavra in nome_limpo for palavra in palavras_query):
-            score = 80
+        # Busca por palavras-chave: verificar se palavras da query estão no nome do ERP
+        elif palavras_query and palavras_query.intersection(palavras_nome):
+            score = 90
         
         # Buscar em funcionalidades
         funcionalidades = erp.get("Funcionalidades", {})

@@ -199,18 +199,18 @@ class KnowledgeManager:
     def search_integration_specific(self, integration_name: str) -> Optional[Dict]:
         """
         Busca uma integração específica nas fontes que suportam essa funcionalidade
-        Prioriza Google Sheets (maior prioridade)
+        Se não encontrar com handler específico, tenta busca genérica
         """
         logger.info(f"🔍 Buscando integração específica: '{integration_name}'")
         
-        # Tentar fontes na ordem de prioridade
+        # Tentar fontes na ordem de prioridade usando handler específico
         for source_id, source_data in self.sources.items():
             handler_integracao = source_data.get('handler_integracao')
             if not handler_integracao:
                 continue
             
             try:
-                logger.info(f"🔍 Buscando '{integration_name}' em '{source_id}'")
+                logger.info(f"🔍 Buscando '{integration_name}' em '{source_id}' (handler específico)")
                 result = handler_integracao(integration_name)
                 
                 if result and self._is_valid_result(result):
@@ -224,6 +224,13 @@ class KnowledgeManager:
             except Exception as e:
                 logger.debug(f"Erro ao buscar em '{source_id}': {e}")
                 continue
+        
+        # Se não encontrou com handler específico, tentar busca genérica
+        logger.info(f"⚠️ Handler específico não encontrou, tentando busca genérica...")
+        generic_results = self.search(integration_name, limit=1)
+        if generic_results:
+            logger.info(f"✅ Integração encontrada via busca genérica")
+            return generic_results[0]
         
         logger.info(f"❌ Integração '{integration_name}' não encontrada em nenhuma fonte")
         return None

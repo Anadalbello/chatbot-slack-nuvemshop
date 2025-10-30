@@ -402,19 +402,11 @@ def slack_events():
                 if user_intent == 'specific_integration':
                     logger.info(f"🔍 Intent: specific_integration - buscando: {user_query}")
                     
-                    # Extrair nome da integração da query (remover palavras comuns)
-                    # Ex: "temos integração com a VTEX" -> "VTEX"
-                    palavras_remover = ["temos", "tenho", "integração", "integracao", "com", "a", "o", "da", "do", "de", "para", "em"]
-                    palavras_query = user_query.lower().split()
-                    nome_integracao = " ".join([p for p in palavras_query if p not in palavras_remover and len(p) > 2])
+                    # Para busca específica, usar a query diretamente (a busca vai extrair o nome do ERP)
+                    # A função buscar_erp_generico vai encontrar o ERP na query
+                    logger.info(f"🔍 Buscando ERP na query: '{user_query}'")
                     
-                    # Se não encontrou nome válido, usar a query toda
-                    if not nome_integracao or len(nome_integracao) < 2:
-                        nome_integracao = user_query
-                    
-                    logger.info(f"🔍 Nome extraído da integração: '{nome_integracao}'")
-                    
-                    resultado_integracao = knowledge_manager.search_integration_specific(nome_integracao)
+                    resultado_integracao = knowledge_manager.search_integration_specific(user_query)
                     
                     if resultado_integracao:
                         resultado_mrkdwn = str(resultado_integracao['content']).replace("**", "*")
