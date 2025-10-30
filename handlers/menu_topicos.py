@@ -83,7 +83,7 @@ def criar_menu_boas_vindas():
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "👋 *Olá! Sou o assistente de integrações da Nuvem Envio*\n\nPosso ajudar você com:\n• Buscar informações sobre integrações\n• Listar integrações disponíveis\n• Responder perguntas sobre documentação\n\n*Como posso ajudá-lo hoje?*"
+                    "text": "👋 *Olá! Sou o assistente de integrações da Nuvem Envio*\n\nPosso ajudar você com:\n• Buscar informações sobre ERPs e integrações\n• Listar ERPs disponíveis\n• Informações sobre funcionalidades, complexidade, responsáveis e custos\n\n*Como posso ajudá-lo hoje?*"
                 }
             },
             {
@@ -108,7 +108,7 @@ def criar_menu_boas_vindas():
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "_💡 Dica: Você pode fazer perguntas diretamente, como:_\n• Como integrar com Magento?\n• Temos integração com Tray?\n• Como calcular frete?\n\n_Eu busco automaticamente em Google Sheets, Confluence e Zendesk!_"
+                    "text": "_💡 Dica: Você pode fazer perguntas diretamente, como:_\n• Informações sobre Tiny\n• Como funciona o Omie?\n• Quais funcionalidades tem o Eccosys?\n• Temos integração com Notazz?\n\n_Eu busco automaticamente na base de conhecimento de ERPs!_"
                 }
             }
         ]
