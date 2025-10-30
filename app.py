@@ -7,17 +7,12 @@ import logging
 import time
 import json
 from datetime import datetime
-from handlers.zendesk_api import buscar_artigo_zendesk_api
 from handlers.zendesk_com_resumo import limpar_termo_busca
-from handlers.confluence_com_resumo import buscar_confluence
 from handlers.gemini_handler import get_gemini_response
 from handlers.jira import criar_chamado_jira
 from handlers.google_sites import buscar_google_sites
-from handlers.extrair_palavras_chave import melhorar_busca_confluence
 from handlers.resumir_com_gemini import criar_resumo_simples
 from handlers.resumir_conteudo_gemini import gerar_resposta_inteligente
-from handlers.buscar_integracoes_dinamico import buscar_todas_integracoes_confluence, buscar_integracao_especifica
-from handlers.buscar_integracoes_sheets_publico import buscar_integracoes_google_sheets_publico, buscar_integracao_especifica_sheets_publico
 from handlers.buscar_faq import buscar_faq, formatar_resposta_faq
 from handlers.aprendizado_automatico import registrar_pergunta
 from handlers.menu_topicos import criar_menu_boas_vindas
@@ -244,131 +239,38 @@ def criar_botoes_interacao(pergunta_limpa, resultados_encontrados):
         }
     ]
 
-def formatar_resultados_encontrados(resultados_zendesk, resultados_confluence, pergunta_limpa):
+def formatar_resultados_encontrados(resultados_json, pergunta_limpa):
     """
-    Formata resultados usando Gemini para gerar resposta inteligente
+    Formata resultados do JSON usando Gemini para gerar resposta inteligente
     Similar a como IAs respondem perguntas de forma natural
     """
     
-    logger.info(f"🎨 Formatando resultados - Zendesk: {bool(resultados_zendesk)}, Confluence: {bool(resultados_confluence)}")
+    logger.info(f"🎨 Formatando resultados do JSON")
     
     try:
-        # Priorizar Confluence
-        if resultados_confluence:
-            logger.info("🤖 Gerando resposta inteligente com Gemini para Confluence...")
+        if resultados_json:
+            logger.info("🤖 Gerando resposta inteligente com Gemini para JSON...")
             
             # Tentar gerar resposta com Gemini
             resposta_gemini = gerar_resposta_inteligente(
                 pergunta_limpa, 
-                resultados_confluence, 
-                "base de conhecimento no Confluence"
+                resultados_json, 
+                "base de conhecimento de ERPs (JSON)"
             )
             
             if resposta_gemini:
-                # Extrair links do conteúdo
-                links = re.findall(r'🔗 (https?://[^\s\)]+)', resultados_confluence)
-                
-                # 🎯 FILTRO SIMPLES: Priorizar links com palavras da pergunta
-                pergunta_lower = pergunta_limpa.lower()
-                palavras_pergunta = set(re.findall(r'\b\w+\b', pergunta_lower))
-                
-                # Filtrar links relevantes
-                links_relevantes = []
-                links_restantes = []
-                
-                for link in links:
-                    link_lower = link.lower()
-                    # Verificar se o link contém palavras da pergunta
-                    palavras_no_link = set(re.findall(r'\b\w+\b', link_lower))
-                    if palavras_pergunta.intersection(palavras_no_link):
-                        links_relevantes.append(link)
-                    else:
-                        links_restantes.append(link)
-                
-                # Usar links relevantes primeiro, depois os restantes
-                links_finais = links_relevantes[:2] + links_restantes[:1]
-                if not links_finais:
-                    links_finais = links[:3]  # Fallback
-                
                 # Formatar resposta final
                 resposta_completa = f"**{pergunta_limpa}**\n\n{resposta_gemini}\n\n"
-                resposta_completa += "---\n\n📚 **Documentação completa:**\n"
-                
-                for i, link in enumerate(links_finais, 1):
-                    resposta_completa += f"{i}. {link}\n"
-                
+                resposta_completa += "---\n\n"
                 resposta_completa += "\n_Para mais informações ou dúvidas específicas, estou à disposição para ajudar._"
                 
                 logger.info("✅ Resposta inteligente gerada com sucesso")
                 return resposta_completa
             else:
-                # Fallback: usar método simples
-                logger.info("⚠️ Gemini falhou, usando método simples")
-                confluence_info = extrair_resumo_e_link(resultados_confluence)
-                resumo = criar_resumo_simples(pergunta_limpa, resultados_confluence, "Confluence")
-                
-                resposta_completa = resumo + "\n\n"
-                resposta_completa += f"📎 *Acesse a documentação completa:*\n{confluence_info['link']}\n\n"
+                # Fallback: usar resultado direto
+                logger.info("⚠️ Gemini falhou, usando resultado direto do JSON")
+                resposta_completa = f"**{pergunta_limpa}**\n\n{resultados_json}\n\n"
                 resposta_completa += "_Se precisar de mais informações ou tiver dúvidas específicas, estou à disposição para ajudar._"
-                
-                return resposta_completa
-        
-        # Fallback: Zendesk
-        if resultados_zendesk:
-            logger.info("🤖 Gerando resposta inteligente com Gemini para Zendesk...")
-            
-            # Tentar gerar resposta com Gemini
-            resposta_gemini = gerar_resposta_inteligente(
-                pergunta_limpa, 
-                resultados_zendesk, 
-                "Central de Ajuda"
-            )
-            
-            if resposta_gemini:
-                # Extrair links
-                links = re.findall(r'🔗 (https?://[^\s\)]+)', resultados_zendesk)
-                
-                # 🎯 FILTRO SIMPLES: Priorizar links com palavras da pergunta
-                pergunta_lower = pergunta_limpa.lower()
-                palavras_pergunta = set(re.findall(r'\b\w+\b', pergunta_lower))
-                
-                # Filtrar links relevantes
-                links_relevantes = []
-                links_restantes = []
-                
-                for link in links:
-                    link_lower = link.lower()
-                    # Verificar se o link contém palavras da pergunta
-                    palavras_no_link = set(re.findall(r'\b\w+\b', link_lower))
-                    if palavras_pergunta.intersection(palavras_no_link):
-                        links_relevantes.append(link)
-                    else:
-                        links_restantes.append(link)
-                
-                # Usar links relevantes primeiro, depois os restantes
-                links_finais = links_relevantes[:2] + links_restantes[:1]
-                if not links_finais:
-                    links_finais = links[:3]  # Fallback
-                
-                resposta_completa = f"**{pergunta_limpa}**\n\n{resposta_gemini}\n\n"
-                resposta_completa += "---\n\n📚 **Artigos relacionados:**\n"
-                
-                for i, link in enumerate(links_finais, 1):
-                    resposta_completa += f"{i}. {link}\n"
-                
-                resposta_completa += "\n_Para mais assistência, entre em contato com a equipe de suporte._"
-                
-                logger.info("✅ Resposta inteligente gerada com sucesso")
-                return resposta_completa
-            else:
-                # Fallback: método simples
-                logger.info("⚠️ Gemini falhou, usando método simples")
-                zendesk_info = extrair_resumo_e_link(resultados_zendesk)
-                resumo = criar_resumo_simples(pergunta_limpa, resultados_zendesk, "Centro de Ajuda")
-                
-                resposta_completa = resumo + "\n\n"
-                resposta_completa += f"📎 *Acesse o artigo completo:*\n{zendesk_info['link']}\n\n"
-                resposta_completa += "_Para mais assistência, entre em contato com a equipe de suporte._"
                 
                 return resposta_completa
         
@@ -475,15 +377,7 @@ def slack_events():
                     from handlers.buscar_integracoes_json import buscar_integracoes_json
                     lista_integracoes = buscar_integracoes_json()
                     
-                    # FALLBACK: Google Sheets se JSON não existir
-                    if not lista_integracoes or "não encontrada" in lista_integracoes.lower():
-                        logger.info("⚠️ JSON não encontrado, tentando Google Sheets...")
-                        lista_integracoes = buscar_integracoes_google_sheets_publico()
-                    
-                    # FALLBACK: Confluence
-                    if not lista_integracoes:
-                        logger.info("⚠️ Google Sheets falhou, buscando do Confluence...")
-                        lista_integracoes = buscar_todas_integracoes_confluence()
+                    # Apenas JSON agora
                     
                     if lista_integracoes:
                         lista_mrkdwn = lista_integracoes.replace("**", "*")
@@ -580,12 +474,10 @@ def slack_events():
                     logger.info(f"🎉 FAQ AUTO-GERADA! Pergunta '{user_query}' apareceu {resultado_registro['contador']} vezes")
                 
                 # Formatar resposta usando função existente
-                resultado_confluence = resultados_encontrados.get('confluence')
-                resultado_zendesk = resultados_encontrados.get('zendesk')
+                resultado_json = resultados_encontrados.get('integracoes_json')
                 
                 resultado_formatado = formatar_resultados_encontrados(
-                    resultado_zendesk,
-                    resultado_confluence,
+                    resultado_json,
                     user_query
                 )
                 
@@ -712,18 +604,15 @@ def slack_actions():
             slack_client.chat_postMessage(
                 channel=channel,
                 thread_ts=thread_ts,
-                text="🔍 *Modo Pesquisa Global Ativado*\n\nAgora você pode fazer qualquer pergunta e eu vou buscar no Confluence e Zendesk!\n\n*Exemplos:*\n• Como integrar com Magento?\n• Temos integração com Tray?\n• Como calcular frete na API?\n• Como funciona o webhook?\n\n💡 *Dica:* Digite sua pergunta normalmente que eu buscarei nas bases de conhecimento!"
+                text="🔍 *Modo Pesquisa Global Ativado*\n\nAgora você pode fazer qualquer pergunta sobre ERPs e eu vou buscar na base de conhecimento!\n\n*Exemplos:*\n• Informações sobre Tiny\n• Como funciona o Omie?\n• Quais funcionalidades tem o Eccosys?\n• Temos integração com Notazz?\n\n💡 *Dica:* Digite sua pergunta normalmente que eu buscarei na base de conhecimento de ERPs!"
             )
 
         elif acao == "listar_integracoes":
             logger.info("📋 Usuário solicitou lista de integrações")
             
-            # Usar o fluxo atual de listar integrações
-            lista_integracoes = buscar_integracoes_google_sheets_publico()
-            
-            if not lista_integracoes:
-                logger.info("⚠️ Google Sheets falhou, buscando do Confluence...")
-                lista_integracoes = buscar_todas_integracoes_confluence()
+            # Usar o fluxo atual de listar integrações (apenas JSON)
+            from handlers.buscar_integracoes_json import buscar_integracoes_json
+            lista_integracoes = buscar_integracoes_json()
             
             if lista_integracoes:
                 lista_mrkdwn = lista_integracoes.replace("**", "*")

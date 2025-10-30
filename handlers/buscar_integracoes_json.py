@@ -1,19 +1,20 @@
 """
 Handler para buscar integrações do arquivo JSON
-Estilo Nina - usa arquivo JSON estático ao invés de Google Sheets API
+NOVO FORMATO: Lista direta de ERPs com Funcionalidades e Outras_Informacoes
 """
 
 import json
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
+import re
 
 logger = logging.getLogger(__name__)
 
 JSON_FILE = Path("knowledge/integracoes.json")
 
-def carregar_integracoes_json():
-    """Carrega integrações do arquivo JSON"""
+def carregar_integracoes_json() -> List[dict]:
+    """Carrega ERPs do arquivo JSON (novo formato)"""
     if not JSON_FILE.exists():
         logger.warning(f"Arquivo {JSON_FILE} não encontrado")
         return []
@@ -22,42 +23,49 @@ def carregar_integracoes_json():
         with open(JSON_FILE, 'r', encoding='utf-8') as f:
             dados = json.load(f)
         
-        integracoes = dados.get("integracoes", [])
-        logger.debug(f"✅ Carregadas {len(integracoes)} integrações do JSON")
-        return integracoes
+        # O JSON agora é uma lista direta de ERPs
+        if isinstance(dados, list):
+            erps = dados
+        else:
+            # Fallback para formato antigo se necessário
+            erps = dados.get("integracoes", [])
+        
+        logger.debug(f"✅ Carregados {len(erps)} ERPs do JSON")
+        return erps
     except Exception as e:
         logger.error(f"❌ Erro ao carregar JSON: {e}")
         return []
 
-def buscar_integracoes_json():
+def buscar_integracoes_json() -> str:
     """
-    Lista todas as integrações (equivalente a buscar_integracoes_google_sheets_publico)
+    Lista todas as integrações (ERPs)
     Retorna string formatada para Slack
     """
-    integracoes = carregar_integracoes_json()
+    erps = carregar_integracoes_json()
     
-    if not integracoes:
-        return "📊 Nenhuma integração encontrada no arquivo JSON."
+    if not erps:
+        return "📊 Nenhum ERP encontrado no arquivo JSON."
     
-    resposta = "📊 *Integrações Disponíveis*\n\n"
+    resposta = "📊 *ERPs Disponíveis*\n\n"
     
     # Limitar a 50 para não ultrapassar limite do Slack
-    integracoes_mostradas = integracoes[:50]
+    erps_mostrados = erps[:50]
     
-    for i, integ in enumerate(integracoes_mostradas, 1):
-        resposta += f"*{i}. {integ['nome']}*"
+    for i, erp in enumerate(erps_mostrados, 1):
+        nome_erp = erp.get("ERP", "Nome não informado")
+        resposta += f"*{i}. {nome_erp}*"
         
-        if integ.get('tipo'):
-            resposta += f" | _{integ['tipo']}_"
-        
-        if integ.get('complexidade'):
+        # Adicionar complexidade se disponível
+        outras_info = erp.get("Outras_Informacoes", {})
+        complexidade = outras_info.get("Complexidade", "")
+        if complexidade:
             emoji_map = {
                 "simples": "🟢", "baixa": "🟢",
                 "média": "🟡", "medio": "🟡", "media": "🟡",
                 "alta": "🔴", "complexa": "🔴"
             }
             emoji = "⚪"
-            complexidade_lower = integ['complexidade'].lower()
+            complexidade_lower = complexidade.lower()
             for key, em in emoji_map.items():
                 if key in complexidade_lower:
                     emoji = em
@@ -66,127 +74,221 @@ def buscar_integracoes_json():
         
         resposta += "\n"
         
+        # Adicionar informações básicas
         detalhes = []
-        if integ.get('responsavel'):
-            detalhes.append(f"👤 {integ['responsavel']}")
-        if integ.get('status') and integ['status'].lower() not in ["ativo", "ativa", "sim", "yes", "disponivel", "disponível"]:
-            detalhes.append(f"⚠️ {integ['status']}")
+        responsavel_config = outras_info.get("Responsavel_Configuracao", "")
+        if responsavel_config:
+            detalhes.append(f"⚙️ Config: {responsavel_config}")
         
         if detalhes:
             resposta += f"   {' | '.join(detalhes)}\n"
         
         resposta += "\n"
     
-    if len(integracoes) > 50:
-        resposta += f"\n_... e mais {len(integracoes) - 50} integrações_\n"
+    if len(erps) > 50:
+        resposta += f"\n_... e mais {len(erps) - 50} ERPs_\n"
     
-    resposta += f"\n📊 *Total: {len(integracoes)} integrações*"
-    resposta += f"\n💡 _Dados sincronizados do Google Sheets_"
+    resposta += f"\n📊 *Total: {len(erps)} ERPs*"
     
     return resposta
 
-def buscar_integracao_especifica_json(nome_integracao: str) -> Optional[str]:
+def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
     """
-    Busca integração específica (equivalente a buscar_integracao_especifica_sheets_publico)
+    Busca ERP específico pelo nome
     
     Args:
-        nome_integracao: Nome da integração a buscar
+        nome_erp: Nome do ERP a buscar
         
     Returns:
         String formatada ou None se não encontrar
     """
-    integracoes = carregar_integracoes_json()
+    erps = carregar_integracoes_json()
     
-    if not integracoes:
-        logger.warning("Nenhuma integração carregada do JSON")
+    if not erps:
+        logger.warning("Nenhum ERP carregado do JSON")
         return None
     
-    nome_lower = nome_integracao.lower()
-    logger.info(f"🔍 Buscando integração: '{nome_integracao}'")
+    nome_lower = nome_erp.lower().strip()
+    logger.info(f"🔍 Buscando ERP: '{nome_erp}'")
     
-    # Buscar por match parcial no nome
+    # Buscar por match parcial no nome do ERP
     matches = []
-    for integ in integracoes:
-        if nome_lower in integ['nome'].lower():
-            matches.append(integ)
+    for erp in erps:
+        nome_erp_atual = erp.get("ERP", "").lower()
+        # Busca parcial e também remove parênteses para busca mais flexível
+        nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp_atual)
+        if nome_lower in nome_erp_atual or nome_lower in nome_limpo:
+            matches.append(erp)
     
     if not matches:
-        logger.info(f"❌ Integração '{nome_integracao}' não encontrada")
+        logger.info(f"❌ ERP '{nome_erp}' não encontrado")
         return None
     
-    # Usar o primeiro match (ou melhor match se implementar scoring)
-    integ = matches[0]
+    # Usar o primeiro match (melhor match seria implementar scoring)
+    erp = matches[0]
+    nome_erp_encontrado = erp.get("ERP", "Nome não informado")
     
-    logger.info(f"✅ Integração encontrada: {integ['nome']}")
+    logger.info(f"✅ ERP encontrado: {nome_erp_encontrado}")
     
     # Formatar resposta detalhada
-    resposta = f"*📊 {integ['nome']}*\n\n"
-    
-    # Descrição
-    if integ.get('descricao_longa'):
-        resposta += f"{integ['descricao_longa']}\n\n"
-    elif integ.get('descricao_curta'):
-        resposta += f"{integ['descricao_curta']}\n\n"
-    
-    # Informações principais
-    if integ.get('tipo'):
-        resposta += f"*Tipo*: {integ['tipo']}\n"
-    if integ.get('complexidade'):
-        resposta += f"*Complexidade*: {integ['complexidade']}\n"
-    if integ.get('responsavel'):
-        resposta += f"*Responsável*: {integ['responsavel']}\n"
-    if integ.get('status'):
-        resposta += f"*Status*: {integ['status']}\n"
+    resposta = f"*📊 {nome_erp_encontrado}*\n\n"
     
     # Funcionalidades
-    if integ.get('funcionalidades'):
-        resposta += f"\n*Funcionalidades*:\n"
-        for func in integ['funcionalidades']:
-            resposta += f"• {func}\n"
+    funcionalidades = erp.get("Funcionalidades", {})
+    if funcionalidades:
+        resposta += "*Funcionalidades:*\n"
+        for func_nome, func_valor in funcionalidades.items():
+            # Formatar nome da funcionalidade (remover underscores)
+            func_nome_formatado = func_nome.replace("_", " ").title()
+            resposta += f"• *{func_nome_formatado}*: {func_valor}\n"
+        resposta += "\n"
     
-    # Link
-    if integ.get('link'):
-        resposta += f"\n🔗 *Link*: {integ['link']}\n"
-    
-    # Metadata adicional (campos extras que podem ser úteis)
-    metadata_extra = integ.get('metadata', {})
-    campos_interessantes = ['observacao', 'observação', 'detalhes', 'observacoes']
-    for campo in campos_interessantes:
-        if campo in metadata_extra and metadata_extra[campo]:
-            resposta += f"\n*Observações*: {metadata_extra[campo]}\n"
-            break
+    # Outras Informações
+    outras_info = erp.get("Outras_Informacoes", {})
+    if outras_info:
+        resposta += "*Outras Informações:*\n"
+        
+        # Complexidade
+        complexidade = outras_info.get("Complexidade", "")
+        if complexidade:
+            resposta += f"• *Complexidade*: {complexidade}\n"
+        
+        # Responsáveis
+        responsavel_config = outras_info.get("Responsavel_Configuracao", "")
+        if responsavel_config:
+            resposta += f"• *Responsável pela Configuração*: {responsavel_config}\n"
+        
+        responsavel_testes = outras_info.get("Responsavel_Testes", "")
+        if responsavel_testes:
+            resposta += f"• *Responsável pelos Testes*: {responsavel_testes}\n"
+        
+        desenvolvedor = outras_info.get("Desenvolvedor_Integracao", "")
+        if desenvolvedor:
+            resposta += f"• *Desenvolvedor da Integração*: {desenvolvedor}\n"
+        
+        # Custos
+        custos = outras_info.get("Custos_Envolvidos", "")
+        if custos:
+            resposta += f"• *Custos Envolvidos*: {custos}\n"
+        
+        # Limitações
+        limitacoes = outras_info.get("Limitacoes_Ausencia", "")
+        if limitacoes and limitacoes.lower() not in ["nada consta.", "nada consta", ""]:
+            resposta += f"• *Limitações/Ausências*: {limitacoes}\n"
+        
+        # Site
+        site = outras_info.get("Site", "")
+        if site and site.lower() not in ["não informado.", "não informado"]:
+            resposta += f"• *Site*: {site}\n"
+        
+        # Manual
+        manual = outras_info.get("Manual", "")
+        if manual:
+            resposta += f"• *Manual*: {manual}\n"
     
     return resposta
 
-def formatar_json_para_contexto_gemini():
+def buscar_erp_generico(query: str) -> Optional[str]:
+    """
+    Busca genérica em ERPs - função para uso do KnowledgeManager
+    Busca pelo nome do ERP ou por termos relacionados às funcionalidades
+    
+    Args:
+        query: Termo de busca genérico
+        
+    Returns:
+        String formatada ou None se não encontrar
+    """
+    erps = carregar_integracoes_json()
+    
+    if not erps:
+        return None
+    
+    query_lower = query.lower().strip()
+    logger.info(f"🔍 Busca genérica: '{query}'")
+    
+    # Lista de palavras comuns a ignorar
+    palavras_ignorar = ["temos", "tenho", "integração", "integracao", "com", "a", "o", "da", "do", "de", "para", "em", "qual", "quais", "sobre"]
+    palavras_query = [p for p in query_lower.split() if p not in palavras_ignorar and len(p) > 2]
+    
+    matches = []
+    scores = []
+    
+    for erp in erps:
+        nome_erp = erp.get("ERP", "").lower()
+        nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp)
+        
+        score = 0
+        
+        # Busca exata no nome do ERP (maior pontuação)
+        if query_lower in nome_erp or query_lower in nome_limpo:
+            score = 100
+        # Busca parcial no nome
+        elif any(palavra in nome_erp or palavra in nome_limpo for palavra in palavras_query):
+            score = 80
+        
+        # Buscar em funcionalidades
+        funcionalidades = erp.get("Funcionalidades", {})
+        for func_nome, func_valor in funcionalidades.items():
+            func_texto = (func_nome + " " + str(func_valor)).lower()
+            if query_lower in func_texto:
+                score = max(score, 60)
+            elif any(palavra in func_texto for palavra in palavras_query):
+                score = max(score, 40)
+        
+        # Buscar em outras informações
+        outras_info = erp.get("Outras_Informacoes", {})
+        for chave, valor in outras_info.items():
+            info_texto = (chave + " " + str(valor)).lower()
+            if query_lower in info_texto:
+                score = max(score, 50)
+            elif any(palavra in info_texto for palavra in palavras_query):
+                score = max(score, 30)
+        
+        if score > 0:
+            matches.append(erp)
+            scores.append(score)
+    
+    # Ordenar por score (maior primeiro)
+    if matches:
+        matches_ordenados = [m for _, m in sorted(zip(scores, matches), reverse=True)]
+        # Retornar apenas o melhor match
+        return buscar_integracao_especifica_json(matches_ordenados[0].get("ERP", ""))
+    
+    logger.info(f"❌ Nenhum resultado encontrado para: '{query}'")
+    return None
+
+def formatar_json_para_contexto_gemini() -> str:
     """
     Formata o JSON para contexto do Gemini (estilo Nina)
-    Retorna string formatada similar ao formatar_json_para_contexto da Nina
+    Retorna string formatada com todas as informações dos ERPs
     """
-    integracoes = carregar_integracoes_json()
+    erps = carregar_integracoes_json()
     
-    if not integracoes:
+    if not erps:
         return ""
     
     contexto = ""
-    for integ in integracoes:
-        contexto += f"Nome: {integ['nome']}\n"
+    for erp in erps:
+        nome_erp = erp.get("ERP", "Nome não informado")
+        contexto += f"ERP: {nome_erp}\n"
         
-        if integ.get('tipo'):
-            contexto += f"Tipo: {integ['tipo']}\n"
+        # Funcionalidades
+        funcionalidades = erp.get("Funcionalidades", {})
+        if funcionalidades:
+            contexto += "Funcionalidades:\n"
+            for func_nome, func_valor in funcionalidades.items():
+                func_nome_formatado = func_nome.replace("_", " ")
+                contexto += f"  - {func_nome_formatado}: {func_valor}\n"
         
-        if integ.get('descricao_longa'):
-            contexto += f"Detalhes: {integ['descricao_longa']}\n"
-        elif integ.get('descricao_curta'):
-            contexto += f"Detalhes: {integ['descricao_curta']}\n"
-        
-        if integ.get('funcionalidades'):
-            contexto += f"Funcionalidades: {', '.join(integ['funcionalidades'])}\n"
-        
-        if integ.get('responsavel'):
-            contexto += f"Responsável: {integ['responsavel']}\n"
+        # Outras Informações
+        outras_info = erp.get("Outras_Informacoes", {})
+        if outras_info:
+            contexto += "Outras Informações:\n"
+            for chave, valor in outras_info.items():
+                chave_formatada = chave.replace("_", " ")
+                contexto += f"  - {chave_formatada}: {valor}\n"
         
         contexto += "\n"
     
     return contexto
-

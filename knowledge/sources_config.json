@@ -8,7 +8,7 @@
       "enabled": true,
       "priority": 1,
       "handler_module": "handlers.buscar_integracoes_json",
-      "handler_function": "buscar_integracao_especifica_json",
+      "handler_function": "buscar_erp_generico",
       "handler_integracao_especifica": "buscar_integracao_especifica_json",
       "config": {
         "json_file": "knowledge/integracoes.json"
@@ -33,7 +33,7 @@
     {
       "id": "confluence",
       "name": "Confluence",
-      "enabled": true,
+      "enabled": false,
       "priority": 3,
       "handler_module": "handlers.confluence_com_resumo",
       "handler_function": "buscar_confluence",
@@ -48,7 +48,7 @@
     {
       "id": "zendesk",
       "name": "Zendesk Help Center",
-      "enabled": true,
+      "enabled": false,
       "priority": 4,
       "handler_module": "handlers.zendesk_api",
       "handler_function": "buscar_artigo_zendesk_api",
