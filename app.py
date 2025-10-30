@@ -413,7 +413,7 @@ def slack_events():
                         slack_client.chat_postMessage(
                             channel=channel,
                             thread_ts=thread_ts,
-                            text=f"Resultados para: {nome_integracao}",
+                            text=f"Resultados para: {user_query}",
                             blocks=[{
                                 "type": "section",
                                 "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
