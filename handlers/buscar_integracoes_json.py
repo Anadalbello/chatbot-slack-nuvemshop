@@ -52,7 +52,7 @@ def buscar_integracoes_json() -> str:
     erps_mostrados = erps[:50]
     
     for i, erp in enumerate(erps_mostrados, 1):
-        nome_erp = erp.get("ERP", "Nome não informado")
+        nome_erp = erp.get("Nome", erp.get("ERP", "Nome não informado"))
         resposta += f"*{i}. {nome_erp}*"
         
         # Adicionar complexidade se disponível
@@ -119,7 +119,7 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
     # Buscar por match: verificar se nome do ERP está na query OU se palavras-chave estão no nome do ERP
     matches = []
     for erp in erps:
-        nome_erp_atual = erp.get("ERP", "").lower()
+        nome_erp_atual = erp.get("Nome", erp.get("ERP", "")).lower()
         # Busca parcial e também remove parênteses para busca mais flexível
         nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp_atual)
         palavras_nome = set(nome_limpo.split())
@@ -138,12 +138,22 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
     
     # Usar o primeiro match (melhor match seria implementar scoring)
     erp = matches[0]
-    nome_erp_encontrado = erp.get("ERP", "Nome não informado")
+    nome_erp_encontrado = erp.get("Nome", erp.get("ERP", "Nome não informado"))
     
     logger.info(f"✅ ERP encontrado: {nome_erp_encontrado}")
     
     # Formatar resposta detalhada
     resposta = f"*📊 {nome_erp_encontrado}*\n\n"
+    
+    # Categoria e Tipo de Integração (se disponíveis)
+    categoria = erp.get("Categoria", "")
+    tipo_integracao = erp.get("Tipo_Integracao", "")
+    if categoria:
+        resposta += f"*Categoria*: {categoria}\n"
+    if tipo_integracao:
+        resposta += f"*Tipo de Integração*: {tipo_integracao}\n"
+    if categoria or tipo_integracao:
+        resposta += "\n"
     
     # Funcionalidades
     funcionalidades = erp.get("Funcionalidades", {})
@@ -198,6 +208,17 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         if manual:
             resposta += f"• *Manual*: {manual}\n"
     
+    # Suporte e Contato (se disponível)
+    suporte = erp.get("Suporte_Contato", {})
+    if suporte:
+        resposta += "\n*Suporte/Contato:*\n"
+        email = suporte.get("Email", "")
+        telefone = suporte.get("Telefone", "")
+        if email and email != "N/A":
+            resposta += f"• *Email*: {email}\n"
+        if telefone and telefone != "N/A":
+            resposta += f"• *Telefone*: {telefone}\n"
+    
     return resposta
 
 def buscar_erp_generico(query: str) -> Optional[str]:
@@ -228,7 +249,7 @@ def buscar_erp_generico(query: str) -> Optional[str]:
     scores = []
     
     for erp in erps:
-        nome_erp = erp.get("ERP", "").lower()
+        nome_erp = erp.get("Nome", erp.get("ERP", "")).lower()
         nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp)
         palavras_nome = set(nome_limpo.split())
         
@@ -268,7 +289,9 @@ def buscar_erp_generico(query: str) -> Optional[str]:
     if matches:
         matches_ordenados = [m for _, m in sorted(zip(scores, matches), reverse=True)]
         # Retornar apenas o melhor match
-        return buscar_integracao_especifica_json(matches_ordenados[0].get("ERP", ""))
+        erp_encontrado = matches_ordenados[0]
+        nome_erp = erp_encontrado.get("Nome", erp_encontrado.get("ERP", ""))
+        return buscar_integracao_especifica_json(nome_erp)
     
     logger.info(f"❌ Nenhum resultado encontrado para: '{query}'")
     return None
@@ -285,8 +308,14 @@ def formatar_json_para_contexto_gemini() -> str:
     
     contexto = ""
     for erp in erps:
-        nome_erp = erp.get("ERP", "Nome não informado")
-        contexto += f"ERP: {nome_erp}\n"
+        nome_erp = erp.get("Nome", erp.get("ERP", "Nome não informado"))
+        categoria = erp.get("Categoria", "")
+        tipo_integracao = erp.get("Tipo_Integracao", "")
+        contexto += f"Nome: {nome_erp}\n"
+        if categoria:
+            contexto += f"Categoria: {categoria}\n"
+        if tipo_integracao:
+            contexto += f"Tipo de Integração: {tipo_integracao}\n"
         
         # Funcionalidades
         funcionalidades = erp.get("Funcionalidades", {})

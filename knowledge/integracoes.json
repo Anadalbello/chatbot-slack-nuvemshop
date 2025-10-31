@@ -1,6 +1,1127 @@
 [
   {
-    "ERP": "Tiny (Nova)",
+    "Categoria": "Ferramenta",
+    "Nome": "RastreioZAP",
+    "Tipo_Integracao": "Apenas Rastreio",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Não (❌)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A (Apenas atualização de status de rastreio)",
+      "Site": "rastreiozap.com.br",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Ferramenta",
+    "Nome": "RastreioeCia",
+    "Tipo_Integracao": "Apenas Rastreio",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Não (❌)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A (Apenas atualização de status de rastreio)",
+      "Site": "https://rastreioecia.net/",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Ciashop (por VTEX)",
+    "Tipo_Integracao": "Tabela de Frete",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Tabela de frete) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Vericode",
+      "Desenvolvedor_Integracao": "Ciashop",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "Ciashop",
+      "Manual": "Documentação Ciashop"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Hub",
+    "Nome": "Pluggy.to (Hub)",
+    "Tipo_Integracao": "Tabela de Frete",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Tabela de frete) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Cliente/Parceiro",
+      "Responsavel_Testes": "Simshi",
+      "Desenvolvedor_Integracao": "Vericode",
+      "Limitacoes_Ausencia": "Possui somente integração de cálculo do frete por tabela.",
+      "Site": "http://pluggy.to/",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Yampi",
+    "Tipo_Integracao": "Tabela de Frete",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Tabela de frete) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Yampi",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "O cálculo de frete apresenta divergência no caso de múltiplos volumes, devido à limitação da favor da tabela.",
+      "Site": "https://www.yampi.com.br/",
+      "Manual": "Centro de ajuda Yampi"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "E-com.club",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Vericode",
+      "Desenvolvedor_Integracao": "Mandaê",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "e-com.club",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "CartPanda",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "cartpanda.com",
+      "Manual": "Manual exclusivo do cliente da Mandaê."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Braavo",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê / Parceiro",
+      "Responsavel_Testes": "Vericode",
+      "Desenvolvedor_Integracao": "Mandaê",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "Não informado.",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Convertr",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Cliente ou Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "Não informado.",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Bis2Bis",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Alta",
+      "Responsavel_Configuracao": "Mandaê / Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "Não importa o frete via API. É preciso fazer a configuração manual. Múltiplos volumes com peso zero não são importados.",
+      "Site": "bis2bis.com.br",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "BigShop",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "BigShop",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "bigshop.com.br",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Bagy",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "bagy.com.br",
+      "Manual": "Manual Mandaê / Manual Parceiro Bagy"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Fastcommerce",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Vericode",
+      "Desenvolvedor_Integracao": "Vericode",
+      "Limitacoes_Ausencia": "O cálculo de frete por API é limitado a somente uma transportadora. O cálculo de frete da tabela no Fastcommerce deve ser configurado pelo parceiro/cliente.",
+      "Site": "fastcommerce.com.br",
+      "Manual": "Manual Configuração Mandaê."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Bizcommerce",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê / Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Mandaê",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "bizcommerce.com.br",
+      "Manual": "Manual Mandaê."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Loja Mestre",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "Loja Mestre",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Iset",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "Iset.tech",
+      "Manual": "Configuração Mandaê"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Irroba",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "Não tem cálculo de múltiplos volumes. Impressão de etiqueta somente via JSON/PDF.",
+      "Site": "irroba.com.br",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Magento",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Alta",
+      "Responsavel_Configuracao": "Cliente/Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Integração e o Parceiro",
+      "Limitacoes_Ausencia": "Módulo de rastreio não atualiza status automaticamente. Não devolve o URL da etiqueta. Não permite múltiplos volumes (se for volume com peso 0.00).",
+      "Site": "magento.com",
+      "Manual": "Magento Commerce Mandaê - Módulo e Manual"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Prestashop",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "Não faz integração de multi volumes.",
+      "Site": "https://www.prestashop.com/",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Nuvemshop",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Nuvemshop",
+      "Limitacoes_Ausencia": "Não retorna o valor do frete para múltiplos volumes.",
+      "Site": "https://www.nuvemshop.com.br/",
+      "Manual": "Link direto no painel, aba 'Canais de Venda'"
+    },
+    "Suporte_Contato": {
+      "Email": "E-mail de Suporte Nuvemshop",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Live eCommerce",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Mandaê",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "Live eCommerce",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Shopify",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Mandaê",
+      "Limitacoes_Ausencia": "Não faz integração de multi volumes. É permitido apenas um provedor de serviço de frete no plano básico.",
+      "Site": "https://www.shopify.com.br/",
+      "Manual": "Link Docs"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Shoppub",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "Não faz integração de múltiplos volumes.",
+      "Site": "shoppub.com.br",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "VTEX",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Alta",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Mandaê",
+      "Limitacoes_Ausencia": "Integração via API por um provedor externo.",
+      "Site": "VTEX Commerce Cloud",
+      "Manual": "VTEX Developer Docs"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Tray",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Sim (✔️)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Mandaê",
+      "Limitacoes_Ausencia": "Não trata valor declarado. Utiliza valor dos produtos. Não funciona em sandbox/homologação. Não devolve o URL da etiqueta.",
+      "Site": "tray.com.br/ecommerce",
+      "Manual": "Manual no Suporte Tray"
+    },
+    "Suporte_Contato": {
+      "Email": "E-mail de Suporte Tray",
+      "Telefone": "Telefone de Suporte Tray"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Wake Commerce",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Vericode",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "O critério para o peso cubado é aplicado sobre o cálculo do frete, mas sem impactar o tracking. Não devolve dados da API de frete e rastreio.",
+      "Site": "vtex.com.br/wakecommerce",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Vnda",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Vnda",
+      "Responsavel_Testes": "Vnda",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "Não retorna no checkout personalizado o nome transportador na modalidade de frete.",
+      "Site": "vnda.com.br/",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Woocommerce",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Sim (✔️)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Vericode",
+      "Responsavel_Testes": "Vericode",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "O plugin foi feito pelo parceiro e é de responsabilidade ou suporte da Mandaê ou Woocommerce a correção para a questão dos volumes.",
+      "Site": "Não forneceu.",
+      "Manual": "WooCommerce - Mandaê ou Cliente"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Wbuy",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "https://www.wbuy.com.br/",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Simplo7",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Cliente ou Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "simplo7.com.br",
+      "Manual": "Manual no Painel Administrativo"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Uappi",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Cliente ou Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "uappi.com.br",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Vesti",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "vestisolucoes.com.br",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Visual E-commerce",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "https://www.visual-commerce.com.br/",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Hub",
+    "Nome": "Plugae",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Cliente/Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Mandaê",
+      "Limitacoes_Ausencia": "Não faz a integração da guia de frete por API. Não é possível configurar valor mínimo de seguro na integração do checkout.",
+      "Site": "plugae.com.br",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Frenet",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Frenet",
+      "Limitacoes_Ausencia": "Não retorna o nome da transportadora no checkout personalizado. Não devolve o URL da etiqueta por API para impressão.",
+      "Site": "frenet.com.br",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Hub",
+    "Nome": "Magis5",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Não (❌)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê/Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "Não calcula frete por API.",
+      "Site": "magis5.com.br",
+      "Manual": "Documentação Magis5"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "TMS",
+    "Nome": "InteliPost",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Tabela de frete) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Alta",
+      "Responsavel_Configuracao": "Parceiro e Mandaê",
+      "Responsavel_Testes": "Parceiro e Mandaê",
+      "Desenvolvedor_Integracao": "Mandaê",
+      "Limitacoes_Ausencia": "Cálculo de frete via Tabela de frete. Não há suporte para seguros diferentes na Tabela.",
+      "Site": "intelipost.com.br",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "E-mail do painel",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "TMS",
+    "Nome": "TRACK32",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Não (❌)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "Não calcula frete por API.",
+      "Site": "track32.com.br",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Hub",
+    "Nome": "ANYMARKET",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "O módulo de Frete/Seguro é configurável apenas com valores fixos, sendo impossível configurar valores variáveis.",
+      "Site": "anymarket.com.br",
+      "Manual": "Manual Anymarket"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Hub",
+    "Nome": "base.",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API - interna) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Sim (✔️)",
+      "Impressao_Etiqueta": "Sim (Indiv. e Lote) (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Base",
+      "Responsavel_Testes": "Base",
+      "Desenvolvedor_Integracao": "Base",
+      "Limitacoes_Ausencia": "A API 'base.' possui regras que podem impactar a alteração/edição de pedidos. O cálculo de frete via API é apenas para consumo interno.",
+      "Site": "base.com",
+      "Manual": "Documentação Base"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Hub",
+    "Nome": "integral",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Alta",
+      "Responsavel_Configuracao": "Cliente/Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "Não faz integração de multi volumes (somente se habilitado). É preciso abrir um chamado para habilitar a integração, sendo responsabilidade do cliente pagar taxas.",
+      "Site": "the-shop-integral.com",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "E-mail de Suporte",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Hub",
+    "Nome": "weesu",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Mandaê/Vericode",
+      "Desenvolvedor_Integracao": "Mandaê/Vericode",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "weesu.com.br",
+      "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "ERP",
+    "Nome": "TOTVS Protheus",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Não (❌)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Parceiro (Chave de Token, customerID, P.Token)",
+      "Responsavel_Testes": "Mandaê e outros",
+      "Desenvolvedor_Integracao": "Manual (Mandaê e outros)",
+      "Limitacoes_Ausencia": "Nada consta.",
+      "Site": "https://blog.totvs.com/erp/integracoes-com-mandae",
+      "Manual": "Não forneceu.",
+      "Suporte": "Link direto no portal do cliente (chave de acesso solicitada pela Mandaê)"
+    },
+    "Suporte_Contato": {
+      "Email": "E-mail de Suporte TOTVS",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "ERP",
+    "Nome": "Tiny (Nova)",
+    "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Via API (✔️)",
       "Multiplos_Volumes_Pedidos": "Sim (✔️)",
@@ -14,14 +1135,19 @@
       "Responsavel_Configuracao": "Cliente ou Mandaê (Enviar credenciais)",
       "Responsavel_Testes": "Parceiro e Mandaê",
       "Desenvolvedor_Integracao": "Parceiro",
-      "Custos_Envolvidos": "Sem custos",
       "Limitacoes_Ausencia": "Nada consta.",
       "Site": "http://www.tiny.com.br/",
       "Manual": "Configurações | Utilização"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
     }
   },
   {
-    "ERP": "Omie",
+    "Categoria": "ERP",
+    "Nome": "Omie",
+    "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Via API (✔️)",
       "Multiplos_Volumes_Pedidos": "Sim (✔️)",
@@ -35,14 +1161,19 @@
       "Responsavel_Configuracao": "Mandaê / Parceiro",
       "Responsavel_Testes": "Mandaê",
       "Desenvolvedor_Integracao": "Parceiro",
-      "Custos_Envolvidos": "Sem custos",
       "Limitacoes_Ausencia": "Envios somente com nota fiscal. Não comporta Multi-CD.",
       "Site": "https://www.omie.com.br/",
       "Manual": "Possui manual exclusivo."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
     }
   },
   {
-    "ERP": "Organiza",
+    "Categoria": "ERP",
+    "Nome": "Organiza",
+    "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Via API (✔️)",
       "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
@@ -56,14 +1187,19 @@
       "Responsavel_Configuracao": "Parceiro",
       "Responsavel_Testes": "Parceiro e Mandaê",
       "Desenvolvedor_Integracao": "Parceiro",
-      "Custos_Envolvidos": "Sem custos",
       "Limitacoes_Ausencia": "Não possui critério para valor declarado.",
       "Site": "Organiza.tech",
       "Manual": "Manual exclusivo no suporte do Organiza"
+    },
+    "Suporte_Contato": {
+      "Email": "lucas.nunes@organiza.com.br",
+      "Telefone": "54991848412"
     }
   },
   {
-    "ERP": "SoftUp",
+    "Categoria": "ERP",
+    "Nome": "SoftUp",
+    "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Via API (✔️)",
       "Multiplos_Volumes_Pedidos": "Sim (✔️)",
@@ -77,14 +1213,19 @@
       "Responsavel_Configuracao": "Parceiro (Enviar credenciais)",
       "Responsavel_Testes": "Parceiro e Mandaê",
       "Desenvolvedor_Integracao": "Parceiro",
-      "Custos_Envolvidos": "Sem custos",
       "Limitacoes_Ausencia": "Sem atualização de status.",
       "Site": "https://softuponline.com.br/",
       "Manual": "Parceiro não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "49 3441-1445"
     }
   },
   {
-    "ERP": "Eccosys",
+    "Categoria": "ERP",
+    "Nome": "Eccosys",
+    "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Não (❌)",
       "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
@@ -98,14 +1239,19 @@
       "Responsavel_Configuracao": "Mandaê",
       "Responsavel_Testes": "Parceiro e Mandaê",
       "Desenvolvedor_Integracao": "Parceiro",
-      "Custos_Envolvidos": "Sem custos",
       "Limitacoes_Ausencia": "Nada consta.",
       "Site": "https://eccosys.com.br/",
       "Manual": "eccosys.com/doc/integracoes/integracao-com-mandae"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "48 3661-0988"
     }
   },
   {
-    "ERP": "Sysemp",
+    "Categoria": "ERP",
+    "Nome": "Sysemp",
+    "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Não (❌)",
       "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
@@ -119,14 +1265,19 @@
       "Responsavel_Configuracao": "Parceiro",
       "Responsavel_Testes": "Parceiro e Vericode",
       "Desenvolvedor_Integracao": "Parceiro",
-      "Custos_Envolvidos": "Sem custos",
       "Limitacoes_Ausencia": "Nada consta.",
       "Site": "https://www.sysemp.com.br/",
       "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "suporte@sysemp.com.br",
+      "Telefone": "54 3021-3981"
     }
   },
   {
-    "ERP": "Alternativa",
+    "Categoria": "ERP",
+    "Nome": "Alternativa",
+    "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Não (❌)",
       "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
@@ -140,14 +1291,19 @@
       "Responsavel_Configuracao": "Parceiro (Enviar credenciais)",
       "Responsavel_Testes": "Parceiro e Mandaê",
       "Desenvolvedor_Integracao": "Parceiro",
-      "Custos_Envolvidos": "Sem custos",
       "Limitacoes_Ausencia": "Critério para valor declarado: mínimo de R$ 1,00. Nada consta.",
       "Site": "http://www.alternativasistemas.com.br/",
       "Manual": "Parceiro não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "Helpdesk",
+      "Telefone": "14 3879-0100"
     }
   },
   {
-    "ERP": "ATON",
+    "Categoria": "ERP",
+    "Nome": "ATON",
+    "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Não (❌)",
       "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
@@ -161,14 +1317,19 @@
       "Responsavel_Configuracao": "Parceiro (Enviar credenciais)",
       "Responsavel_Testes": "Parceiro e Mandaê",
       "Desenvolvedor_Integracao": "Parceiro",
-      "Custos_Envolvidos": "Sem custos",
       "Limitacoes_Ausencia": "Não atualiza status de rastreamento. Critério para valor declarado: fixado por contrato (0% ou menos) ou valor determinado.",
       "Site": "https://atonerp.com.br/",
       "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "19 9842-8881",
+      "Telefone": "19 3090-6767"
     }
   },
   {
-    "ERP": "E-Millennium",
+    "Categoria": "ERP",
+    "Nome": "E-Millennium",
+    "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Não (❌)",
       "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
@@ -182,14 +1343,19 @@
       "Responsavel_Configuracao": "Parceiro (Enviar credenciais)",
       "Responsavel_Testes": "Parceiro e Mandaê",
       "Desenvolvedor_Integracao": "Parceiro",
-      "Custos_Envolvidos": "São custos (o cliente deve abrir um chamado dentro do ERP para verificar)",
       "Limitacoes_Ausencia": "Não comporta múltiplos volumes.",
       "Site": "Não informado.",
       "Manual": "Manual de config. disponibilizado pela Mandaê."
+    },
+    "Suporte_Contato": {
+      "Email": "E-mail de Suporte E-Millennium",
+      "Telefone": "N/A"
     }
   },
   {
-    "ERP": "Notazz",
+    "Categoria": "ERP",
+    "Nome": "Notazz",
+    "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Não (❌)",
       "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
@@ -203,10 +1369,13 @@
       "Responsavel_Configuracao": "Parceiro (Enviar credenciais)",
       "Responsavel_Testes": "Parceiro e Mandaê",
       "Desenvolvedor_Integracao": "Parceiro",
-      "Custos_Envolvidos": "Sem custos",
       "Limitacoes_Ausencia": "Não possui atualização do rastreamento. Não suporta Impressão de etiqueta no ERP.",
       "Site": "https://notazz.com/",
       "Manual": "https://suporte.notazz.com/.../integracao-mandae"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
     }
   }
 ]
