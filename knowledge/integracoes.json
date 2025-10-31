@@ -1377,5 +1377,32 @@
       "Email": "N/A",
       "Telefone": "N/A"
     }
+  },
+  {
+    "Categoria": "ERP",
+    "Nome": "Bling",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "Nada consta.",
+      "Site": "https://www.bling.com.br/",
+      "Manual": "Manual no Suporte Bling (Link direto na página de integrações Mandaê)",
+      "Suporte": "Chat e E-mail de Suporte do Bling"
+    },
+    "Suporte_Contato": {
+      "Email": "suporte@bling.com.br",
+      "Telefone": "54 3771-0261"
+    }
   }
 ]
