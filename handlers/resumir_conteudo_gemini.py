@@ -50,32 +50,72 @@ model = genai.GenerativeModel(
 
 def extrair_conteudo_bruto(resultado_formatado):
     """
-    Extrai o conteúdo bruto (título, resumo, texto) dos resultados formatados
-    para enviar ao Gemini - SEM formatação markdown para evitar RECITATION
+    Extrai o conteúdo bruto dos resultados formatados para enviar ao Gemini
+    Funciona tanto com formato markdown antigo quanto com formato novo do JSON
     """
+    if not resultado_formatado:
+        return ""
+    
+    # Se já é uma string simples, tentar extrair informação útil
+    # Remover formatação markdown
+    texto_limpo = resultado_formatado
+    
+    # Remover emojis e markdown básico
+    texto_limpo = re.sub(r'\*([^*]+)\*', r'\1', texto_limpo)  # *texto* -> texto
+    texto_limpo = re.sub(r'\*\*([^*]+)\*\*', r'\1', texto_limpo)  # **texto** -> texto
+    texto_limpo = re.sub(r'_([^_]+)_', r'\1', texto_limpo)  # _texto_ -> texto
+    
+    # Remover divisores
+    texto_limpo = re.sub(r'━+', '', texto_limpo)
+    
+    # Extrair informações principais: nome, funcionalidades, outras info
     conteudo = []
     
-    # Extrair títulos (sem os **)
-    titulos = re.findall(r'\*\*([^*]+)\*\*', resultado_formatado)
+    # Extrair nome do ERP (primeira linha com emoji e nome)
+    nome_match = re.search(r'✨\s*([^\n]+)', texto_limpo)
+    if nome_match:
+        conteudo.append(f"Nome: {nome_match.group(1).strip()}")
     
-    # Extrair resumos (sem os __)
-    resumos = re.findall(r'_([^_]+)_', resultado_formatado)
+    # Extrair funcionalidades disponíveis
+    func_disponiveis = re.findall(r'✅[^\n]*Funcionalidades[^\n]*\n(.*?)(?=\n❌|\n━|$)', texto_limpo, re.DOTALL)
+    if func_disponiveis:
+        conteudo.append(f"Funcionalidades disponíveis: {func_disponiveis[0].strip()}")
     
-    # Combinar de forma mais natural
-    for i, titulo in enumerate(titulos):
-        # Simplificar o título removendo termos técnicos
-        titulo_simples = titulo.replace('Manual de configuração do', '').replace('copy', '').strip()
-        
-        if i < len(resumos):
-            resumo_limpo = resumos[i].strip()
-            texto = f"{titulo_simples}: {resumo_limpo}"
-        else:
-            texto = titulo_simples
-        
-        conteudo.append(texto)
+    # Extrair funcionalidades indisponíveis
+    func_indisponiveis = re.findall(r'❌[^\n]*Funcionalidades[^\n]*\n(.*?)(?=\n✅|\n━|$)', texto_limpo, re.DOTALL)
+    if func_indisponiveis:
+        conteudo.append(f"Funcionalidades indisponíveis: {func_indisponiveis[0].strip()}")
     
-    # Retornar texto limpo sem formatação
-    return " | ".join(conteudo)
+    # Extrair outras informações (complexidade, responsáveis, etc)
+    outras_info_match = re.search(r'📋[^\n]*Outras Informações[^\n]*\n(.*?)(?=\n📞|\n━|$)', texto_limpo, re.DOTALL)
+    if outras_info_match:
+        conteudo.append(f"Outras informações: {outras_info_match.group(1).strip()}")
+    
+    # Extrair contato
+    contato_match = re.search(r'📞[^\n]*Suporte/Contato[^\n]*\n(.*?)(?=\n|$)', texto_limpo, re.DOTALL)
+    if contato_match:
+        conteudo.append(f"Contato: {contato_match.group(1).strip()}")
+    
+    # Se conseguiu extrair partes estruturadas, retornar
+    if conteudo:
+        return "\n".join(conteudo)
+    
+    # Fallback: remover emojis e formatação, manter texto
+    # Remover emojis comuns
+    emojis = ['✨', '📂', '🔧', '✅', '❌', '🚚', '📦', '🛡️', '🏢', '🏷️', '🔄', 
+              '🟢', '🟡', '🔴', '⚪', '⚙️', '🧪', '👨‍💻', '💰', '⚠️', '🌐', '📚', '📞', '📧', '📱']
+    for emoji in emojis:
+        texto_limpo = texto_limpo.replace(emoji, '')
+    
+    # Limpar espaços múltiplos
+    texto_limpo = re.sub(r'\s+', ' ', texto_limpo).strip()
+    
+    # Se ainda tem conteúdo suficiente, retornar
+    if len(texto_limpo) > 50:
+        return texto_limpo
+    
+    # Último fallback: retornar texto original limpo sem quebras excessivas
+    return re.sub(r'\n\s*\n+', '\n', resultado_formatado).strip()
 
 
 def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de conhecimento"):
@@ -100,8 +140,10 @@ def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de con
         # Extrair conteúdo bruto
         conteudo_bruto = extrair_conteudo_bruto(conteudo_encontrado)
         
-        if not conteudo_bruto or len(conteudo_bruto.strip()) < 20:
-            logger.warning("⚠️ Conteúdo muito curto, usando fallback")
+        logger.debug(f"📄 Conteúdo extraído ({len(conteudo_bruto)} chars): {conteudo_bruto[:200]}...")
+        
+        if not conteudo_bruto or len(conteudo_bruto.strip()) < 10:
+            logger.warning(f"⚠️ Conteúdo muito curto ({len(conteudo_bruto) if conteudo_bruto else 0} chars), usando fallback")
             return None
         
         # Prompt com CONTEXTO específico sobre integrações
