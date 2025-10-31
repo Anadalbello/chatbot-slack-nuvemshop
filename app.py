@@ -514,14 +514,64 @@ def slack_events():
                 if resultado_formatado:
                     resultado_mrkdwn = resultado_formatado.replace("**", "*")
                     
+                    # Criar blocos com a resposta
+                    blocks_resposta = [{
+                        "type": "section",
+                        "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
+                    }]
+                    
+                    # Se a resposta for focada (não detalhada), adicionar botão para ver informações completas
+                    mostrar_botao_completo = (
+                        resposta_esperada != "detalhada" and 
+                        resultado_json and 
+                        intencao in ["verificar_existencia", "contato", "funcionalidades"]
+                    )
+                    
+                    if mostrar_botao_completo:
+                        # Extrair nome da integração do resultado JSON
+                        # Buscar no resultado formatado ou tentar extrair do JSON original
+                        nome_integracao = None
+                        try:
+                            from handlers.buscar_integracoes_json import carregar_integracoes_json, buscar_integracao_especifica_json
+                            # Tentar extrair nome da query ou usar a query diretamente
+                            if interpretacao.get('nome_erp'):
+                                nome_integracao = interpretacao.get('nome_erp')
+                            elif query_busca:
+                                # Buscar para garantir que temos o nome correto
+                                erps = carregar_integracoes_json()
+                                if erps:
+                                    for erp in erps:
+                                        nome_erp_atual = erp.get("Nome", erp.get("ERP", "")).lower()
+                                        if query_busca.lower() in nome_erp_atual or nome_erp_atual in query_busca.lower():
+                                            nome_integracao = erp.get("Nome", erp.get("ERP", ""))
+                                            break
+                        except Exception as e:
+                            logger.debug(f"Erro ao extrair nome da integração: {e}")
+                        
+                        if nome_integracao:
+                            # Adicionar botão para ver informações completas
+                            blocks_resposta.append({
+                                "type": "actions",
+                                "elements": [{
+                                    "type": "button",
+                                    "text": {
+                                        "type": "plain_text",
+                                        "text": "📋 Ver Informações Completas"
+                                    },
+                                    "style": "primary",
+                                    "action_id": "ver_completo",
+                                    "value": json.dumps({
+                                        "nome_integracao": nome_integracao,
+                                        "query_original": user_query
+                                    })
+                                }]
+                            })
+                    
                     response = slack_client.chat_postMessage(
                         channel=channel,
                         thread_ts=thread_ts,
                         text=f"📊 Encontrei informações sobre: {user_query}",
-                        blocks=[{
-                            "type": "section",
-                            "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
-                        }]
+                        blocks=blocks_resposta
                     )
                     
                     # Botões em mensagem separada - mais contextual e acolhedora
@@ -652,6 +702,84 @@ def slack_actions():
                 text="🔍 *Modo Pesquisa Global Ativado*\n\nAgora você pode fazer qualquer pergunta sobre ERPs e eu vou buscar na base de conhecimento!\n\n*Exemplos:*\n• Informações sobre Tiny\n• Como funciona o Omie?\n• Quais funcionalidades tem o Eccosys?\n• Temos integração com Notazz?\n\n💡 *Dica:* Digite sua pergunta normalmente que eu buscarei na base de conhecimento de ERPs!"
             )
 
+        elif acao == "ver_completo":
+            logger.info("📋 Usuário solicitou ver informações completas")
+            
+            # Extrair nome da integração do action_data
+            nome_integracao = None
+            if "nome_integracao" in action_data:
+                nome_integracao = action_data["nome_integracao"]
+            elif "value" in action and isinstance(action["value"], str):
+                try:
+                    data = json.loads(action["value"])
+                    nome_integracao = data.get("nome_integracao")
+                except:
+                    pass
+            
+            if nome_integracao:
+                try:
+                    from handlers.buscar_integracoes_json import buscar_integracao_especifica_json
+                    
+                    # Buscar informações completas da integração
+                    informacoes_completas = buscar_integracao_especifica_json(nome_integracao)
+                    
+                    if informacoes_completas:
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text=f"📋 Informações completas: {nome_integracao}",
+                            blocks=[{
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": informacoes_completas.replace("**", "*")
+                                }
+                            }]
+                        )
+                    else:
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text=f"😔 Não consegui encontrar informações completas sobre {nome_integracao}",
+                            blocks=[{
+                                "type": "section",
+                                "text": {
+                                    "type": "mrkdwn",
+                                    "text": f"😔 Não consegui encontrar informações completas sobre *{nome_integracao}*.\n\n"
+                                            "Tente buscar pelo nome exato da integração ou use 'listar integrações' para ver todas as opções disponíveis."
+                                }
+                            }]
+                        )
+                except Exception as e:
+                    logger.error(f"❌ Erro ao buscar informações completas: {e}")
+                    slack_client.chat_postMessage(
+                        channel=channel,
+                        thread_ts=thread_ts,
+                        text="😅 Ops! Erro ao buscar informações completas",
+                        blocks=[{
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "😅 *Ops! Erro ao buscar informações completas.*\n\n"
+                                        "Tente fazer uma nova pergunta com o nome exato da integração."
+                            }
+                        }]
+                    )
+            else:
+                slack_client.chat_postMessage(
+                    channel=channel,
+                    thread_ts=thread_ts,
+                    text="⚠️ Não consegui identificar qual integração você quer ver",
+                    blocks=[{
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "⚠️ *Não consegui identificar qual integração você quer ver.*\n\n"
+                                    "Por favor, faça uma nova pergunta com o nome exato da integração."
+                        }
+                    }]
+                )
+            
         elif acao == "listar_integracoes":
             logger.info("📋 Usuário solicitou lista de integrações")
             
