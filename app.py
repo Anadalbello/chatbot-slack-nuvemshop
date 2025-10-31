@@ -13,6 +13,7 @@ from handlers.jira import criar_chamado_jira
 from handlers.google_sites import buscar_google_sites
 from handlers.resumir_com_gemini import criar_resumo_simples
 from handlers.resumir_conteudo_gemini import gerar_resposta_inteligente
+from handlers.interpretar_intencao_gemini import interpretar_intencao_e_extrair_erp
 from handlers.buscar_faq import buscar_faq, formatar_resposta_faq
 from handlers.aprendizado_automatico import registrar_pergunta
 from handlers.menu_topicos import criar_menu_boas_vindas
@@ -239,39 +240,61 @@ def criar_botoes_interacao(pergunta_limpa, resultados_encontrados):
         }
     ]
 
-def formatar_resultados_encontrados(resultados_json, pergunta_limpa):
+def formatar_resultados_encontrados(resultados_json, pergunta_limpa, intencao="outro", resposta_esperada="detalhada"):
     """
-    Formata resultados do JSON usando Gemini para gerar resposta inteligente
-    Similar a como IAs respondem perguntas de forma natural
+    Formata resultados do JSON usando Gemini para gerar resposta inteligente e focada
+    Responde diretamente à pergunta do usuário, não apenas lista tudo
+    
+    Args:
+        resultados_json: Resultado formatado do JSON
+        pergunta_limpa: Pergunta original do usuário
+        intencao: Tipo de intenção detectada (verificar_existencia, detalhes, funcionalidades, contato, etc)
+        resposta_esperada: Tipo de resposta esperada (sim_nao, lista, detalhada, especifica)
     """
     
-    logger.info(f"🎨 Formatando resultados do JSON")
+    logger.info(f"🎨 Formatando resultados do JSON (intenção: {intencao}, resposta: {resposta_esperada})")
     
     try:
         if resultados_json:
-            logger.info("🤖 Gerando resposta inteligente com Gemini para JSON...")
+            logger.info("🤖 Gerando resposta inteligente e focada com Gemini...")
+            
+            # Construir prompt melhorado com contexto da intenção
+            prompt_com_contexto = pergunta_limpa
+            if intencao == "verificar_existencia":
+                prompt_com_contexto = f"{pergunta_limpa} (responda primeiro com 'Sim' ou 'Não')"
+            elif intencao == "contato":
+                prompt_com_contexto = f"{pergunta_limpa} (foque apenas nos dados de contato/suporte)"
+            elif intencao == "funcionalidades":
+                prompt_com_contexto = f"{pergunta_limpa} (foque apenas nas funcionalidades)"
             
             # Tentar gerar resposta com Gemini
             resposta_gemini = gerar_resposta_inteligente(
-                pergunta_limpa, 
+                prompt_com_contexto, 
                 resultados_json, 
                 "base de conhecimento de integrações (JSON)"
             )
             
             if resposta_gemini:
-                # Formatar resposta final - mais acolhedora
-                resposta_completa = f"✨ *{pergunta_limpa}*\n\n{resposta_gemini}\n\n"
-                resposta_completa += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-                resposta_completa += "💡 *Precisa de mais informações?*\n"
-                resposta_completa += "• Digite sua próxima pergunta diretamente\n"
-                resposta_completa += "• Use 'listar integrações' para ver todas as opções\n"
-                resposta_completa += "• Estou à disposição para ajudar! 😊"
+                # Formatar resposta final - focada e direta
+                resposta_completa = resposta_gemini
                 
-                logger.info("✅ Resposta inteligente gerada com sucesso")
+                # Adicionar informações complementares apenas se necessário (resposta detalhada)
+                # Mas manter foco na resposta direta
+                if resposta_esperada == "detalhada" and intencao not in ["contato", "funcionalidades"]:
+                    # Adicionar divisor e link para mais detalhes apenas se realmente necessário
+                    resposta_completa += "\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                    resposta_completa += "_💡 Precisa de mais informações? Digite sua próxima pergunta diretamente!_"
+                
+                logger.info("✅ Resposta inteligente e focada gerada com sucesso")
                 return resposta_completa
             else:
-                # Fallback: usar resultado direto - mas já está formatado pelo handler JSON
-                logger.info("⚠️ Gemini falhou, usando resultado direto do JSON")
+                # Fallback: usar resultado direto, mas tentar extrair informação relevante
+                logger.info("⚠️ Gemini falhou, usando resultado direto do JSON com formatação melhorada")
+                # Se for pergunta sim/não, adicionar resposta direta
+                if intencao == "verificar_existencia" and resultados_json:
+                    resposta_fallback = "✅ *Sim*, temos integração com esta plataforma.\n\n"
+                    resposta_fallback += resultados_json
+                    return resposta_fallback
                 return resultados_json
         
         logger.warning("⚠️ Nenhum resultado para formatar")
@@ -426,8 +449,19 @@ def slack_events():
                 # 5. SEARCH_KNOWLEDGE (ou fallback) - Buscar em todas as fontes
                 logger.info("🔍 Intent: search_knowledge - buscando em múltiplas fontes")
                 
+                # 🧠 ESTILO NINA: Interpretar intenção com Gemini antes de buscar
+                logger.info("🧠 Interpretando intenção com Gemini...")
+                interpretacao = interpretar_intencao_e_extrair_erp(user_query)
+                
+                # Usar query otimizada se disponível
+                query_busca = interpretacao.get('query_busca') or interpretacao.get('nome_erp') or user_query
+                intencao = interpretacao.get('intencao', 'outro')
+                resposta_esperada = interpretacao.get('resposta_esperada', 'detalhada')
+                
+                logger.info(f"🎯 Intenção: {intencao} | Query busca: {query_busca} | Resposta esperada: {resposta_esperada}")
+                
                 # 🧠 ESTILO NINA: Usar KnowledgeManager para buscar em todas as fontes (ordem de prioridade)
-                resultados_busca = knowledge_manager.search(user_query)
+                resultados_busca = knowledge_manager.search(query_busca)
                 
                 # 🧠 ESTILO NINA: Validar se tem fonte válida antes de responder
                 validacao = fonte_validator.validar_resultados(resultados_busca)
@@ -469,9 +503,12 @@ def slack_events():
                 # Formatar resposta usando função existente
                 resultado_json = resultados_encontrados.get('integracoes_json')
                 
+                # Passar informações de intenção para formatação inteligente
                 resultado_formatado = formatar_resultados_encontrados(
                     resultado_json,
-                    user_query
+                    user_query,
+                    intencao=intencao,
+                    resposta_esperada=resposta_esperada
                 )
                 
                 if resultado_formatado:

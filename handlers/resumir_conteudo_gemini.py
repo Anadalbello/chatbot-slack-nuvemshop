@@ -109,26 +109,33 @@ def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de con
         parceiros_mencionados = re.findall(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*|[A-Z]{2,})\b', conteudo_bruto)
         parceiros_unicos = list(set([p for p in parceiros_mencionados if p not in ['Espaco', 'Base', 'Manual', 'Documento']]))[:10]
         
-        prompt = f"""Voce e um assistente especializado em integracoes da Nuvemshop/Nuvem Envio.
+        prompt = f"""Você é um assistente especializado em integrações da Nuvem Envio/Nuvemshop.
 
 CONTEXTO IMPORTANTE:
-- Nuvemshop, Nuvem Envio e Mandae sao empresas do mesmo grupo (NAO sao parceiros)
-- Todas as outras empresas sao PARCEIROS que se integram com a Nuvemshop
-- Exemplos de parceiros: Magento, Wake OMS, SAP, Ativa, D2D On Platform, etc.
+- Nuvemshop, Nuvem Envio e Mandaê são empresas do mesmo grupo (NÃO são parceiros)
+- Todas as outras empresas são PARCEIROS que se integram
+- Exemplos de parceiros/ERPs: Notazz, Bling, Eccosys, Tiny, Omie, etc.
 
-PERGUNTA: {pergunta}
+PERGUNTA ORIGINAL: {pergunta}
 
-DOCUMENTACAO ENCONTRADA: {conteudo_bruto}
+DADOS DA INTEGRAÇÃO ENCONTRADA:
+{conteudo_bruto}
 
-PARCEIROS/SISTEMAS MENCIONADOS: {', '.join(parceiros_unicos) if parceiros_unicos else 'varios'}
+INSTRUÇÕES CRÍTICAS:
+1. RESPONDA DIRETAMENTE A PERGUNTA primeiro, depois forneça detalhes se necessário
+2. Se perguntarem "temos integração?" ou "existe integração?", responda: "Sim, temos integração com [nome]." ou "Não, não temos integração com [nome]."
+3. Se perguntarem sobre funcionalidades específicas, responda sobre essas funcionalidades primeiro
+4. Se perguntarem sobre contato/suporte, responda com os dados de contato primeiro
+5. Seja DIRETO e OBJETIVO - não liste tudo, foque no que foi perguntado
+6. Use formatação markdown para destacar informações importantes (*negrito*)
+7. Após responder diretamente, você pode adicionar informações complementares relevantes
 
-INSTRUCOES:
-- Se perguntarem para LISTAR parceiros, liste TODOS os sistemas/parceiros mencionados na documentacao
-- Se perguntarem COMO integrar, explique o processo
-- Seja direto e especifico
-- Use bullet points se for lista
+FORMATO DA RESPOSTA:
+- 1-2 frases respondendo diretamente a pergunta
+- Depois, se necessário, 1-2 frases com informações complementares relevantes
+- NÃO liste tudo - apenas o que é relevante para a pergunta
 
-Sua resposta (2-4 frases ou lista):"""
+Sua resposta (focada e direta):"""
 
         # Gerar resposta
         logger.info(f"📝 Tamanho do prompt: {len(prompt)} caracteres")
