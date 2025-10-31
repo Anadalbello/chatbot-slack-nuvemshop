@@ -1,0 +1,43 @@
+{
+  "timestamp": "20251029_110355",
+  "data_criacao": "2025-10-29T11:03:55.032890",
+  "motivo": "Backup antes da refatoração para padrão Nina",
+  "arquivos": [
+    ".env",
+    "CONFLUENCE_DATABASE_LIMITACOES.md",
+    "DEPLOY_RESUMO.md",
+    "GOOGLE_SHEETS_SETUP.md",
+    "app.py",
+    "app_emergency.py",
+    "app_simple.py",
+    "config_zendesk.py",
+    "configurar_env.py",
+    "diagnostico.py",
+    "diagnostico_confluence.py",
+    "faq_database.json",
+    "listar_espacos_confluence.py",
+    "perguntas_log.json",
+    "render.yaml",
+    "requirements.txt",
+    "rovo_alternatives.md",
+    "runtime.txt",
+    "sincronizar_integracoes_manual.py",
+    "test_google_sheets.py",
+    "testar_token_confluence.py",
+    "teste_pre_deploy.py",
+    "teste_zendesk_api.py",
+    "verificar_config_render.py"
+  ],
+  "diretorios": [
+    "handlers/"
+  ],
+  "python_version": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+  "erros": [],
+  "observacoes": [
+    "Este backup contém o estado atual do chatbot funcional",
+    ".env foi incluído conforme solicitado",
+    "NÃO inclui venv (ambiente virtual - recrie com python -m venv venv)",
+    "NÃO inclui __pycache__ (arquivos compilados)",
+    "Para restaurar: copiar arquivos de volta para a raiz do projeto"
+  ]
+}

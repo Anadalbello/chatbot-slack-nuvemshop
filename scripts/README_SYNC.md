@@ -51,3 +51,5 @@ python scripts/sincronizar_sheets_para_json.py
 
 Veja `README_JSON_NINA.md` para opções de automatização (cron, CI/CD, etc.)
 
+
+

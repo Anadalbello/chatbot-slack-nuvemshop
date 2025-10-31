@@ -76,14 +76,14 @@ CATEGORIAS_MENU = {
 }
 
 def criar_menu_boas_vindas():
-    """Cria o menu simplificado de boas-vindas (sem menu de tópicos)"""
+    """Cria o menu principal de boas-vindas"""
     return {
         "blocks": [
             {
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "👋 *Olá! Sou o Perguntaê, seu assistente de integrações da Nuvem Envio*\n\n🎯 *O que posso fazer por você?*\n\n• 📋 Listar todas as integrações disponíveis\n• 🔍 Buscar informações específicas sobre qualquer ERP/Plataforma\n• 📊 Consultar funcionalidades, complexidade e responsáveis\n• 📞 Informar dados de suporte e contato\n\n*Como posso ajudá-lo hoje?*"
+                    "text": "👋 *Olá! Sou o assistente de integrações da Nuvem Envio*\n\nComo posso ajudá-lo hoje? Escolha uma opção:"
                 }
             },
             {
@@ -91,7 +91,53 @@ def criar_menu_boas_vindas():
                 "elements": [
                     {
                         "type": "button",
-                        "text": {"type": "plain_text", "text": "🔍 Fazer uma Pergunta"},
+                        "text": {"type": "plain_text", "text": "🚚 Frete e Cálculo"},
+                        "value": "topico_frete",
+                        "action_id": "menu_topico_frete"
+                    },
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "📦 Pedidos e Logística"},
+                        "value": "topico_pedidos", 
+                        "action_id": "menu_topico_pedidos"
+                    },
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "🧩 Configuração"},
+                        "value": "topico_config",
+                        "action_id": "menu_topico_config"
+                    }
+                ]
+            },
+            {
+                "type": "actions", 
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "🛒 Checkout"},
+                        "value": "topico_checkout",
+                        "action_id": "menu_topico_checkout"
+                    },
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "🧠 Qualidade"},
+                        "value": "topico_qualidade",
+                        "action_id": "menu_topico_qualidade"
+                    },
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "📝 Observações"},
+                        "value": "topico_observacoes",
+                        "action_id": "menu_topico_observacoes"
+                    }
+                ]
+            },
+            {
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {"type": "plain_text", "text": "🔍 Pesquisa Global"},
                         "value": "pesquisa_global",
                         "action_id": "pesquisa_global",
                         "style": "primary"
@@ -103,13 +149,6 @@ def criar_menu_boas_vindas():
                         "action_id": "listar_integracoes"
                     }
                 ]
-            },
-            {
-                "type": "section",
-                    "text": {
-                    "type": "mrkdwn",
-                    "text": "_💡 *Dica:* Você pode fazer perguntas diretamente, como:_\n• Informações sobre Tiny\n• Como funciona o Omie?\n• Quais funcionalidades tem o Eccosys?\n• Temos integração com Notazz?\n\n🚀 *Eu busco automaticamente na base de conhecimento de integrações!*"
-                }
             }
         ]
     }

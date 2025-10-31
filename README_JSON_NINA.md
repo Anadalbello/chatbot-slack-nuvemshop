@@ -232,3 +232,5 @@ python scripts/sincronizar_sheets_para_json.py
 
 Agora seu bot funciona estilo Nina, usando JSON estático como fonte primária de dados sobre integrações!
 
+
+

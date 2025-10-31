@@ -9,3 +9,4 @@ from .fonte_validator import FonteValidator
 
 __all__ = ['KnowledgeManager', 'Recepcionista', 'FonteValidator']
 
+

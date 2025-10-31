@@ -47,10 +47,16 @@ class FonteValidator:
         
         if not tem_fonte_valida and require_source:
             logger.warning("⚠️ Nenhuma fonte válida encontrada - resposta será rejeitada")
+            # Tentar extrair query dos resultados para sugerir alternativas
+            query_para_sugestao = ""
+            if resultados:
+                # Extrair query do primeiro resultado se disponível
+                primeiro_resultado = resultados[0] if resultados else {}
+                query_para_sugestao = primeiro_resultado.get('query', '')
             return {
                 'tem_fonte_valida': False,
                 'resultados_validos': [],
-                'mensagem_erro': self._gerar_mensagem_sem_resultado()
+                'mensagem_erro': self._gerar_mensagem_sem_resultado(query_para_sugestao)
             }
         
         logger.info(f"✅ {len(resultados_validos)} resultados válidos encontrados")
@@ -72,20 +78,37 @@ class FonteValidator:
         # Usar validação do KnowledgeManager
         return self.kb._is_valid_result(content)
     
-    def _gerar_mensagem_sem_resultado(self) -> str:
+    def _gerar_mensagem_sem_resultado(self, query: str = "") -> str:
         """
         Gera mensagem quando não há fonte (estilo Nina)
-        Similar à mensagem atual do bot, mas garantindo clareza
+        Mais útil e acolhedora, com sugestões de integrações similares
         """
-        return (
-            "Olá!\n\n"
-            "Com base nas informações disponíveis em meu contexto, não localizei documentação específica sobre sua pergunta em nossa base de conhecimento.\n\n"
-            "Para verificar a disponibilidade dessa informação ou explorar alternativas, você pode:\n\n"
-            "• Acessar nosso portal de integrações para documentação completa\n"
-            "• Entrar em contato com o time de suporte para orientações específicas\n"
-            "• Abrir um chamado no Jira para que possamos ajudar diretamente\n\n"
-            "_Estou à disposição para ajudar com outras questões._"
+        mensagem = "😔 *Não encontrei informações específicas sobre sua busca*\n\n"
+        mensagem += "Mas não se preocupe! Aqui estão algumas opções:\n\n"
+        
+        # Tentar sugerir integrações similares se temos query
+        if query:
+            try:
+                from handlers.buscar_integracoes_json import sugerir_integracoes_similares
+                sugestoes = sugerir_integracoes_similares(query, limite=3)
+                
+                if sugestoes:
+                    mensagem += "🔍 *Sugestões de integrações similares:*\n"
+                    for sug in sugestoes:
+                        mensagem += f"• {sug}\n"
+                    mensagem += "\n"
+            except Exception as e:
+                logger.debug(f"Erro ao buscar sugestões: {e}")
+        
+        mensagem += (
+            "💡 *Você também pode:*\n"
+            "• Ver todas as integrações disponíveis (use: 'listar integrações')\n"
+            "• Reformular sua pergunta com o nome exato da integração\n"
+            "• Abrir um chamado para suporte especializado\n\n"
+            "_Estou aqui para ajudar! 🚀_"
         )
+        
+        return mensagem
     
     def pode_responder(self, resultados: List[Dict]) -> bool:
         """
@@ -94,4 +117,5 @@ class FonteValidator:
         """
         validacao = self.validar_resultados(resultados)
         return validacao['tem_fonte_valida']
+
 

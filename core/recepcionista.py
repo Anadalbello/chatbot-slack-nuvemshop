@@ -187,3 +187,4 @@ class Recepcionista:
             'thoughts': 'Análise fallback - detecção simples'
         }
 
+

@@ -44,9 +44,9 @@ def buscar_integracoes_json() -> str:
     erps = carregar_integracoes_json()
     
     if not erps:
-        return "📊 Nenhum ERP encontrado no arquivo JSON."
+        return "📊 Nenhuma integração encontrada no arquivo JSON."
     
-    resposta = "📊 *ERPs Disponíveis*\n\n"
+    resposta = "📊 *Integrações Disponíveis*\n\n"
     
     # Limitar a 50 para não ultrapassar limite do Slack
     erps_mostrados = erps[:50]
@@ -74,11 +74,14 @@ def buscar_integracoes_json() -> str:
         
         resposta += "\n"
         
-        # Adicionar informações básicas
+        # Adicionar informações básicas - Categoria e Tipo
         detalhes = []
-        responsavel_config = outras_info.get("Responsavel_Configuracao", "")
-        if responsavel_config:
-            detalhes.append(f"⚙️ Config: {responsavel_config}")
+        categoria = erp.get("Categoria", "")
+        tipo_integracao = erp.get("Tipo_Integracao", "")
+        if categoria:
+            detalhes.append(f"📂 {categoria}")
+        if tipo_integracao:
+            detalhes.append(f"🔧 {tipo_integracao}")
         
         if detalhes:
             resposta += f"   {' | '.join(detalhes)}\n"
@@ -86,9 +89,9 @@ def buscar_integracoes_json() -> str:
         resposta += "\n"
     
     if len(erps) > 50:
-        resposta += f"\n_... e mais {len(erps) - 50} ERPs_\n"
+        resposta += f"\n_... e mais {len(erps) - 50} integrações_\n"
     
-    resposta += f"\n📊 *Total: {len(erps)} ERPs*"
+    resposta += f"\n📊 *Total: {len(erps)} integrações*"
     
     return resposta
 
@@ -142,82 +145,122 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
     
     logger.info(f"✅ ERP encontrado: {nome_erp_encontrado}")
     
-    # Formatar resposta detalhada
-    resposta = f"*📊 {nome_erp_encontrado}*\n\n"
+    # Formatar resposta detalhada - mais visual e organizada
+    resposta = f"✨ *{nome_erp_encontrado}*\n"
     
     # Categoria e Tipo de Integração (se disponíveis)
     categoria = erp.get("Categoria", "")
     tipo_integracao = erp.get("Tipo_Integracao", "")
-    if categoria:
-        resposta += f"*Categoria*: {categoria}\n"
-    if tipo_integracao:
-        resposta += f"*Tipo de Integração*: {tipo_integracao}\n"
     if categoria or tipo_integracao:
-        resposta += "\n"
+        resposta += f"📂 {categoria}" if categoria else ""
+        resposta += f" | 🔧 {tipo_integracao}" if tipo_integracao else ""
+        resposta += "\n\n"
     
-    # Funcionalidades
+    # Funcionalidades com emojis mais descritivos
     funcionalidades = erp.get("Funcionalidades", {})
     if funcionalidades:
-        resposta += "*Funcionalidades:*\n"
+        # Mapeamento de emojis por funcionalidade
+        emoji_map = {
+            "Calculo_de_Frete": "🚚",
+            "Multiplos_Volumes_Pedidos": "📦",
+            "Configuracao_Seguro_Pedidos": "🛡️",
+            "Multi_CD": "🏢",
+            "Impressao_Etiqueta": "🏷️",
+            "Atualiza_Status_Rastreio": "🔄"
+        }
+        
+        # Separar funcionalidades disponíveis e indisponíveis
+        func_disponiveis = []
+        func_indisponiveis = []
+        
         for func_nome, func_valor in funcionalidades.items():
-            # Formatar nome da funcionalidade (remover underscores)
+            emoji = emoji_map.get(func_nome, "•")
             func_nome_formatado = func_nome.replace("_", " ").title()
-            resposta += f"• *{func_nome_formatado}*: {func_valor}\n"
-        resposta += "\n"
+            func_info = f"{emoji} *{func_nome_formatado}*: {func_valor}"
+            
+            if "✔️" in str(func_valor):
+                func_disponiveis.append(func_info)
+            else:
+                func_indisponiveis.append(func_info)
+        
+        # Mostrar disponíveis primeiro (mais importante)
+        if func_disponiveis:
+            resposta += "✅ *Funcionalidades Disponíveis:*\n"
+            for func in func_disponiveis:
+                resposta += f"{func}\n"
+            resposta += "\n"
+        
+        # Depois mostrar indisponíveis (se houver)
+        if func_indisponiveis:
+            resposta += "❌ *Funcionalidades Indisponíveis:*\n"
+            for func in func_indisponiveis:
+                resposta += f"{func}\n"
+            resposta += "\n"
     
-    # Outras Informações
+    # Outras Informações - com divisores visuais
     outras_info = erp.get("Outras_Informacoes", {})
     if outras_info:
-        resposta += "*Outras Informações:*\n"
+        resposta += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        resposta += "📋 *Outras Informações:*\n\n"
         
-        # Complexidade
+        # Complexidade com emoji baseado no valor
         complexidade = outras_info.get("Complexidade", "")
         if complexidade:
-            resposta += f"• *Complexidade*: {complexidade}\n"
+            complexidade_lower = complexidade.lower()
+            if "baixa" in complexidade_lower or "simples" in complexidade_lower:
+                emoji_comp = "🟢"
+            elif "média" in complexidade_lower or "medio" in complexidade_lower:
+                emoji_comp = "🟡"
+            elif "alta" in complexidade_lower or "complexa" in complexidade_lower:
+                emoji_comp = "🔴"
+            else:
+                emoji_comp = "⚪"
+            resposta += f"{emoji_comp} *Complexidade*: {complexidade}\n"
         
-        # Responsáveis
+        # Responsáveis com emojis
         responsavel_config = outras_info.get("Responsavel_Configuracao", "")
         if responsavel_config:
-            resposta += f"• *Responsável pela Configuração*: {responsavel_config}\n"
+            resposta += f"⚙️ *Responsável pela Configuração*: {responsavel_config}\n"
         
         responsavel_testes = outras_info.get("Responsavel_Testes", "")
         if responsavel_testes:
-            resposta += f"• *Responsável pelos Testes*: {responsavel_testes}\n"
+            resposta += f"🧪 *Responsável pelos Testes*: {responsavel_testes}\n"
         
         desenvolvedor = outras_info.get("Desenvolvedor_Integracao", "")
         if desenvolvedor:
-            resposta += f"• *Desenvolvedor da Integração*: {desenvolvedor}\n"
+            resposta += f"👨‍💻 *Desenvolvedor da Integração*: {desenvolvedor}\n"
         
         # Custos
         custos = outras_info.get("Custos_Envolvidos", "")
         if custos:
-            resposta += f"• *Custos Envolvidos*: {custos}\n"
+            resposta += f"💰 *Custos Envolvidos*: {custos}\n"
         
         # Limitações
         limitacoes = outras_info.get("Limitacoes_Ausencia", "")
-        if limitacoes and limitacoes.lower() not in ["nada consta.", "nada consta", ""]:
-            resposta += f"• *Limitações/Ausências*: {limitacoes}\n"
+        if limitacoes and limitacoes.lower() not in ["nada consta.", "nada consta", "n/a", ""]:
+            resposta += f"⚠️ *Limitações/Ausências*: {limitacoes}\n"
         
         # Site
         site = outras_info.get("Site", "")
         if site and site.lower() not in ["não informado.", "não informado"]:
-            resposta += f"• *Site*: {site}\n"
+            resposta += f"🌐 *Site*: {site}\n"
         
         # Manual
         manual = outras_info.get("Manual", "")
-        if manual:
-            resposta += f"• *Manual*: {manual}\n"
+        if manual and manual.lower() not in ["não forneceu.", "não forneceu"]:
+            resposta += f"📚 *Manual*: {manual}\n"
     
     # Suporte e Contato (se disponível)
     suporte = erp.get("Suporte_Contato", {})
     if suporte:
-        resposta += "\n*Suporte/Contato:*\n"
+        resposta += "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        resposta += "📞 *Suporte/Contato:*\n\n"
         email = suporte.get("Email", "")
         telefone = suporte.get("Telefone", "")
         if email and email != "N/A":
-            resposta += f"• *Email*: {email}\n"
+            resposta += f"📧 *Email*: {email}\n"
         if telefone and telefone != "N/A":
-            resposta += f"• *Telefone*: {telefone}\n"
+            resposta += f"📱 *Telefone*: {telefone}\n"
     
     return resposta
 
@@ -336,3 +379,52 @@ def formatar_json_para_contexto_gemini() -> str:
         contexto += "\n"
     
     return contexto
+
+def sugerir_integracoes_similares(query: str, limite: int = 3) -> List[str]:
+    """
+    Sugere integrações com nomes similares quando não encontra resultado exato
+    Útil para quando o usuário digita errado ou busca algo parecido
+    
+    Args:
+        query: Query original do usuário
+        limite: Número máximo de sugestões
+        
+    Returns:
+        Lista com nomes das integrações sugeridas
+    """
+    erps = carregar_integracoes_json()
+    
+    if not erps or not query:
+        return []
+    
+    query_lower = query.lower().strip()
+    palavras_remover = {"temos", "tenho", "integração", "integracao", "com", "a", "o", "da", "do", "de", "para", "em", 
+                        "qual", "quais", "sobre", "tem", "tem o", "tem a", "funcionalidades", "funcionalidade", "como", "funciona"}
+    palavras_query = set([p for p in query_lower.split() if p not in palavras_remover and len(p) > 2])
+    
+    if not palavras_query:
+        return []
+    
+    sugestoes_com_score = []
+    
+    for erp in erps:
+        nome_erp = erp.get("Nome", erp.get("ERP", "")).lower()
+        nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp)
+        palavras_nome = set(nome_limpo.split())
+        
+        # Calcular similaridade: contar palavras em comum
+        palavras_comuns = palavras_query.intersection(palavras_nome)
+        
+        if palavras_comuns:
+            # Score baseado em número de palavras comuns e tamanho do nome
+            score = len(palavras_comuns) / max(len(palavras_query), 1)
+            sugestoes_com_score.append({
+                'nome': erp.get("Nome", erp.get("ERP", "")),
+                'score': score
+            })
+    
+    # Ordenar por score (maior primeiro)
+    sugestoes_com_score.sort(key=lambda x: x['score'], reverse=True)
+    
+    # Retornar apenas os nomes, limitado
+    return [s['nome'] for s in sugestoes_com_score[:limite]]
