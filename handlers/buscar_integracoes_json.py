@@ -111,13 +111,33 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         logger.warning("Nenhum ERP carregado do JSON")
         return None
     
-    nome_lower = nome_erp.lower().strip()
+    # Limpar query: remover pontuação e normalizar
+    nome_limpo_query = re.sub(r'[?.,!;:]+', '', nome_erp.lower().strip())
     logger.info(f"🔍 Buscando ERP: '{nome_erp}'")
     
-    # Extrair palavras-chave da query (remover palavras comuns)
-    palavras_remover = {"temos", "tenho", "integração", "integracao", "com", "a", "o", "da", "do", "de", "para", "em", 
-                        "qual", "quais", "sobre", "tem", "tem o", "tem a", "funcionalidades", "funcionalidade", "como", "funciona"}
-    palavras_query = set([p for p in nome_lower.split() if p not in palavras_remover and len(p) > 2])
+    # Lista expandida de palavras comuns a remover (stopwords em português)
+    palavras_remover = {
+        # Artigos e preposições
+        "a", "o", "as", "os", "da", "do", "das", "dos", "de", "em", "na", "no", "nas", "nos", "para", "por", "com", "sem",
+        # Pronomes
+        "me", "te", "se", "nos", "vos", "lhe", "lhes", "que", "qual", "quais", "quem", "onde", "quando",
+        # Verbos comuns
+        "pode", "posso", "pode", "podem", "quer", "quero", "quer", "querem", "tem", "tenho", "tem", "têm",
+        "fazer", "faço", "faz", "fazem", "estar", "estou", "está", "estão", "ser", "sou", "é", "são",
+        "ter", "dar", "dá", "dão", "passar", "passa", "mostrar", "mostra", "ver", "vê", "conseguir", "consegue",
+        # Palavras relacionadas a integrações
+        "integração", "integracao", "integracoes", "integrações", "erp", "erps", "plataforma", "ferramenta",
+        # Perguntas e pedidos
+        "sobre", "acerca", "dados", "dado", "informações", "informacao", "info", "contato", "contatos", "contato",
+        "como", "qual", "quais", "quando", "onde", "porque", "por que", "funciona", "funcionalidades", "funcionalidade",
+        "preciso", "precisamos", "gostaria", "gostaríamos", "quero", "queremos"
+    }
+    
+    # Extrair palavras-chave da query (remover palavras comuns e pontuação)
+    palavras_query = set([p.strip('?.,!;:') for p in nome_limpo_query.split() 
+                          if p.strip('?.,!;:') not in palavras_remover and len(p.strip('?.,!;:')) > 2])
+    
+    logger.debug(f"📝 Palavras extraídas da query: {palavras_query}")
     
     # Buscar por match: verificar se nome do ERP está na query OU se palavras-chave estão no nome do ERP
     matches = []
@@ -127,13 +147,28 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp_atual)
         palavras_nome = set(nome_limpo.split())
         
-        # Verificar se o nome do ERP está contido na query (busca invertida)
+        # ESTRATÉGIA 1: Verificar se o nome completo do ERP está contido na query (maior prioridade)
+        # Ex: query="dados de contato da bling" -> nome="bling" deve ser encontrado
+        if nome_limpo in nome_limpo_query:
+            matches.append(erp)
+            logger.debug(f"✅ Match por nome completo: '{nome_limpo}' encontrado na query")
+            continue
+        
+        # ESTRATÉGIA 2: Verificar se qualquer palavra significativa do nome está na query (busca invertida)
         # Ex: query="quais funcionalidades tem o eccosys" -> nome="eccosys" deve ser encontrado
-        if nome_limpo in nome_lower or any(palavra in nome_lower for palavra in palavras_nome if len(palavra) > 2):
+        palavras_significativas_nome = [p for p in palavras_nome if len(p) > 2 and p not in palavras_remover]
+        if palavras_significativas_nome:
+            for palavra_nome in palavras_significativas_nome:
+                if palavra_nome in nome_limpo_query:
+                    matches.append(erp)
+                    logger.debug(f"✅ Match por palavra do nome: '{palavra_nome}' encontrado na query")
+                    break
+        
+        # ESTRATÉGIA 3: Verificar se palavras-chave extraídas da query estão no nome do ERP
+        # Ex: query="contato bling" -> palavras_query={"bling"} -> nome="bling" deve ser encontrado
+        if palavras_query and palavras_query.intersection(palavras_nome):
             matches.append(erp)
-        # Verificar se palavras da query estão no nome do ERP
-        elif palavras_query and palavras_query.intersection(palavras_nome):
-            matches.append(erp)
+            logger.debug(f"✅ Match por interseção: palavras {palavras_query.intersection(palavras_nome)} encontradas no nome '{nome_limpo}'")
     
     if not matches:
         logger.info(f"❌ ERP '{nome_erp}' não encontrado")
@@ -280,13 +315,31 @@ def buscar_erp_generico(query: str) -> Optional[str]:
     if not erps:
         return None
     
-    query_lower = query.lower().strip()
+    # Limpar query: remover pontuação e normalizar
+    query_limpa = re.sub(r'[?.,!;:]+', '', query.lower().strip())
     logger.info(f"🔍 Busca genérica: '{query}'")
     
-    # Lista de palavras comuns a ignorar
-    palavras_ignorar = {"temos", "tenho", "integração", "integracao", "com", "a", "o", "da", "do", "de", "para", "em", 
-                        "qual", "quais", "sobre", "tem", "tem o", "tem a", "funcionalidades", "funcionalidade", "como", "funciona"}
-    palavras_query = set([p for p in query_lower.split() if p not in palavras_ignorar and len(p) > 2])
+    # Lista expandida de palavras comuns a ignorar (stopwords em português)
+    palavras_ignorar = {
+        # Artigos e preposições
+        "a", "o", "as", "os", "da", "do", "das", "dos", "de", "em", "na", "no", "nas", "nos", "para", "por", "com", "sem",
+        # Pronomes
+        "me", "te", "se", "nos", "vos", "lhe", "lhes", "que", "qual", "quais", "quem", "onde", "quando",
+        # Verbos comuns
+        "pode", "posso", "pode", "podem", "quer", "quero", "quer", "querem", "tem", "tenho", "tem", "têm",
+        "fazer", "faço", "faz", "fazem", "estar", "estou", "está", "estão", "ser", "sou", "é", "são",
+        "ter", "dar", "dá", "dão", "passar", "passa", "mostrar", "mostra", "ver", "vê", "conseguir", "consegue",
+        # Palavras relacionadas a integrações
+        "integração", "integracao", "integracoes", "integrações", "erp", "erps", "plataforma", "ferramenta",
+        # Perguntas e pedidos
+        "sobre", "acerca", "dados", "dado", "informações", "informacao", "info", "contato", "contatos", "contato",
+        "como", "qual", "quais", "quando", "onde", "porque", "por que", "funciona", "funcionalidades", "funcionalidade",
+        "preciso", "precisamos", "gostaria", "gostaríamos", "quero", "queremos"
+    }
+    palavras_query = set([p.strip('?.,!;:') for p in query_limpa.split() 
+                          if p.strip('?.,!;:') not in palavras_ignorar and len(p.strip('?.,!;:')) > 2])
+    
+    logger.debug(f"📝 Palavras extraídas da query genérica: {palavras_query}")
     
     matches = []
     scores = []
@@ -298,12 +351,21 @@ def buscar_erp_generico(query: str) -> Optional[str]:
         
         score = 0
         
-        # Busca invertida: verificar se o nome do ERP está na query (maior pontuação)
-        # Ex: query="quais funcionalidades tem o eccosys" -> nome="eccosys" deve ser encontrado
-        if nome_limpo in query_lower or any(palavra in query_lower for palavra in palavras_nome if len(palavra) > 2):
+        # ESTRATÉGIA 1: Verificar se o nome completo do ERP está contido na query (maior pontuação)
+        # Ex: query="dados de contato da bling" -> nome="bling" deve ser encontrado
+        if nome_limpo in query_limpa:
             score = 100
-        # Busca por palavras-chave: verificar se palavras da query estão no nome do ERP
-        elif palavras_query and palavras_query.intersection(palavras_nome):
+        # ESTRATÉGIA 2: Verificar se qualquer palavra significativa do nome está na query (busca invertida)
+        # Ex: query="quais funcionalidades tem o eccosys" -> nome="eccosys" deve ser encontrado
+        elif palavras_nome:
+            palavras_significativas_nome = [p for p in palavras_nome if len(p) > 2 and p not in palavras_ignorar]
+            if palavras_significativas_nome:
+                for palavra_nome in palavras_significativas_nome:
+                    if palavra_nome in query_limpa:
+                        score = 95  # Pouco menos que match completo, mas ainda muito alto
+                        break
+        # ESTRATÉGIA 3: Busca por palavras-chave: verificar se palavras da query estão no nome do ERP
+        if score == 0 and palavras_query and palavras_query.intersection(palavras_nome):
             score = 90
         
         # Buscar em funcionalidades
@@ -398,8 +460,23 @@ def sugerir_integracoes_similares(query: str, limite: int = 3) -> List[str]:
         return []
     
     query_lower = query.lower().strip()
-    palavras_remover = {"temos", "tenho", "integração", "integracao", "com", "a", "o", "da", "do", "de", "para", "em", 
-                        "qual", "quais", "sobre", "tem", "tem o", "tem a", "funcionalidades", "funcionalidade", "como", "funciona"}
+    # Lista expandida de palavras comuns a remover
+    palavras_remover = {
+        # Artigos e preposições
+        "a", "o", "as", "os", "da", "do", "das", "dos", "de", "em", "na", "no", "nas", "nos", "para", "por", "com", "sem",
+        # Pronomes
+        "me", "te", "se", "nos", "vos", "lhe", "lhes", "que", "qual", "quais", "quem", "onde", "quando",
+        # Verbos comuns
+        "pode", "posso", "pode", "podem", "quer", "quero", "quer", "querem", "tem", "tenho", "tem", "têm",
+        "fazer", "faço", "faz", "fazem", "estar", "estou", "está", "estão", "ser", "sou", "é", "são",
+        "ter", "dar", "dá", "dão", "passar", "passa", "mostrar", "mostra", "ver", "vê", "conseguir", "consegue",
+        # Palavras relacionadas a integrações
+        "integração", "integracao", "integracoes", "integrações", "erp", "erps", "plataforma", "ferramenta",
+        # Perguntas e pedidos
+        "sobre", "acerca", "dados", "dado", "informações", "informacao", "info", "contato", "contatos", "contato",
+        "como", "qual", "quais", "quando", "onde", "porque", "por que", "funciona", "funcionalidades", "funcionalidade",
+        "preciso", "precisamos", "gostaria", "gostaríamos", "quero", "queremos"
+    }
     palavras_query = set([p for p in query_lower.split() if p not in palavras_remover and len(p) > 2])
     
     if not palavras_query:
