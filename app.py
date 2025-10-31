@@ -425,24 +425,105 @@ def slack_events():
                 if user_intent == 'specific_integration':
                     logger.info(f"🔍 Intent: specific_integration - buscando: {user_query}")
                     
-                    # Para busca específica, usar a query diretamente (a busca vai extrair o nome do ERP)
-                    # A função buscar_erp_generico vai encontrar o ERP na query
-                    logger.info(f"🔍 Buscando ERP na query: '{user_query}'")
+                    # 🧠 ESTILO NINA: Interpretar intenção com Gemini antes de buscar
+                    logger.info("🧠 Interpretando intenção com Gemini...")
+                    interpretacao = interpretar_intencao_e_extrair_erp(user_query)
                     
-                    resultado_integracao = knowledge_manager.search_integration_specific(user_query)
+                    # Usar query otimizada se disponível
+                    query_busca = interpretacao.get('query_busca') or interpretacao.get('nome_erp') or user_query
+                    intencao = interpretacao.get('intencao', 'detalhes')
+                    resposta_esperada = interpretacao.get('resposta_esperada', 'detalhada')
+                    
+                    logger.info(f"🎯 Intenção: {intencao} | Query busca: {query_busca} | Resposta esperada: {resposta_esperada}")
+                    
+                    # Buscar integração específica
+                    logger.info(f"🔍 Buscando ERP na query: '{query_busca}'")
+                    
+                    resultado_integracao = knowledge_manager.search_integration_specific(query_busca)
                     
                     if resultado_integracao:
-                        resultado_mrkdwn = str(resultado_integracao['content']).replace("**", "*")
-                        slack_client.chat_postMessage(
-                            channel=channel,
-                            thread_ts=thread_ts,
-                            text=f"Resultados para: {user_query}",
-                            blocks=[{
+                        # Usar formatação inteligente também para specific_integration
+                        resultado_json = resultado_integracao['content']
+                        
+                        resultado_formatado = formatar_resultados_encontrados(
+                            resultado_json,
+                            user_query,
+                            intencao=intencao,
+                            resposta_esperada=resposta_esperada
+                        )
+                        
+                        if resultado_formatado:
+                            resultado_mrkdwn = resultado_formatado.replace("**", "*")
+                            
+                            # Criar blocos com a resposta
+                            blocks_resposta = [{
                                 "type": "section",
                                 "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
                             }]
-                        )
-                        return jsonify({"ok": True})
+                            
+                            # Se a resposta for focada, adicionar botão para ver informações completas
+                            mostrar_botao_completo = (
+                                resposta_esperada != "detalhada" and 
+                                resultado_json and 
+                                intencao in ["verificar_existencia", "contato", "funcionalidades"]
+                            )
+                            
+                            if mostrar_botao_completo:
+                                nome_integracao = interpretacao.get('nome_erp')
+                                if nome_integracao:
+                                    blocks_resposta.append({
+                                        "type": "actions",
+                                        "elements": [{
+                                            "type": "button",
+                                            "text": {
+                                                "type": "plain_text",
+                                                "text": "📋 Ver Informações Completas"
+                                            },
+                                            "style": "primary",
+                                            "action_id": "ver_completo",
+                                            "value": json.dumps({
+                                                "nome_integracao": nome_integracao,
+                                                "query_original": user_query
+                                            })
+                                        }]
+                                    })
+                            
+                            slack_client.chat_postMessage(
+                                channel=channel,
+                                thread_ts=thread_ts,
+                                text=f"📊 Encontrei informações sobre: {user_query}",
+                                blocks=blocks_resposta
+                            )
+                            
+                            # Botões de interação
+                            slack_client.chat_postMessage(
+                                channel=channel,
+                                thread_ts=thread_ts,
+                                text="Essas informações ajudaram?",
+                                blocks=[{
+                                    "type": "section",
+                                    "text": {
+                                        "type": "mrkdwn",
+                                        "text": "💬 *Essas informações foram úteis?*\n"
+                                                "Se precisar de mais detalhes ou tiver outras dúvidas, estou aqui! 😊"
+                                    }
+                                }] + criar_botoes_interacao(user_query, {'integracoes_json': resultado_json})
+                            )
+                            return jsonify({"ok": True})
+                        else:
+                            # Fallback: usar resultado direto
+                            resultado_mrkdwn = str(resultado_json).replace("**", "*")
+                            slack_client.chat_postMessage(
+                                channel=channel,
+                                thread_ts=thread_ts,
+                                text=f"Resultados para: {user_query}",
+                                blocks=[{
+                                    "type": "section",
+                                    "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
+                                }]
+                            )
+                            return jsonify({"ok": True})
+                    
                     # Se não encontrou integração específica, continuar para busca geral
                     logger.info("⚠️ Integração específica não encontrada, fazendo busca geral...")
                 
