@@ -603,8 +603,13 @@
     "Tipo_Integracao": "Tabela de Frete",
     "Funcionalidades": {
       "Calculo_de_Frete": "Sim (Tabela de frete) (✔️)",
+      "Seguro_Incluido_Calculo_Frete": "Sim (via tabela de frete) (✔️)",
+      "Seguro_Configuravel_Calculo_Frete": "Sim (via tabela de frete) (✔️)",
+      "Nome_Transportador_Checkout_Personalizavel": "Sim (✔️)",
+      "Calcula_Peso_Cubado": "Sim (✔️)",
       "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
       "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Valor_Minimo_Seguro_Configuravel": "Sim (✔️)",
       "Multi_CD": "Não (❌)",
       "Impressao_Etiqueta": "Não (❌)",
       "Atualiza_Status_Rastreio": "Sim (✔️)"

@@ -197,8 +197,13 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         # Mapeamento de emojis por funcionalidade
         emoji_map = {
             "Calculo_de_Frete": "🚚",
+            "Seguro_Incluido_Calculo_Frete": "🛡️",
+            "Seguro_Configuravel_Calculo_Frete": "⚙️",
+            "Nome_Transportador_Checkout_Personalizavel": "✏️",
+            "Calcula_Peso_Cubado": "📏",
             "Multiplos_Volumes_Pedidos": "📦",
             "Configuracao_Seguro_Pedidos": "🛡️",
+            "Valor_Minimo_Seguro_Configuravel": "💰",
             "Multi_CD": "🏢",
             "Impressao_Etiqueta": "🏷️",
             "Atualiza_Status_Rastreio": "🔄"
