@@ -19,7 +19,7 @@ from handlers.aprendizado_automatico import registrar_pergunta
 from handlers.menu_topicos import criar_menu_boas_vindas
 from handlers.cache_respostas import buscar_cache, salvar_cache, obter_estatisticas_cache
 from handlers.tracking_perguntas import registrar_pergunta_sem_resposta, obter_estatisticas as obter_stats_tracking
-from handlers.contexto_thread import buscar_historico_thread, extrair_referencias_contexto
+from handlers.contexto_thread import buscar_historico_thread, extrair_referencias_contexto, bot_respondeu_na_thread
 # NOVA ESTRUTURA ESTILO NINA
 from core import KnowledgeManager, Recepcionista, FonteValidator
 # from handlers.filtrar_links_relevantes import filtrar_links_relevantes, gerar_resposta_sem_resultados
@@ -321,9 +321,37 @@ def slack_events():
 
     if "event" in data:
         event = data["event"]
-        if event.get("type") == "app_mention":
+        event_type = event.get("type")
+        
+        # 🧵 SUPORTE A THREADS: Processar mensagens em threads sem precisar mencionar
+        deve_processar = False
+        
+        if event_type == "app_mention":
+            # Sempre processar mentions
+            deve_processar = True
+        elif event_type == "message":
+            # Processar mensagens em threads onde o bot já respondeu
+            # Ignorar mensagens do próprio bot e mensagens de sistema
+            if event.get("subtype") or event.get("bot_id"):
+                return jsonify({"ok": True})
+            
+            # Se a mensagem está em uma thread
+            if event.get("thread_ts"):
+                # Verificar se o bot já respondeu nesta thread
+                channel = event.get("channel")
+                thread_ts = event.get("thread_ts")
+                if bot_respondeu_na_thread(slack_client, channel, thread_ts):
+                    logger.info("📬 Mensagem em thread onde bot já participou - processando sem mention")
+                    deve_processar = True
+                else:
+                    logger.debug("📭 Mensagem em thread onde bot não participou - ignorando")
+            else:
+                # Mensagem não está em thread - só processa se mencionar
+                logger.debug("📭 Mensagem no canal principal sem mention - ignorando")
+        
+        if deve_processar:
             user = event["user"]
-            text = event["text"]
+            text = event.get("text", "")
             channel = event["channel"]
             
             # 🧵 SUPORTE A THREADS: Se a mensagem já está em uma thread, usar o thread_ts

@@ -12,6 +12,62 @@ from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 
 
+def bot_respondeu_na_thread(
+    slack_client: WebClient,
+    channel: str,
+    thread_ts: str,
+    bot_user_id: Optional[str] = None
+) -> bool:
+    """
+    Verifica se o bot já respondeu nesta thread
+    
+    Args:
+        slack_client: Cliente do Slack
+        channel: ID do canal
+        thread_ts: Timestamp da thread
+        bot_user_id: ID do usuário do bot (opcional, busca automaticamente se não fornecido)
+        
+    Returns:
+        True se o bot já respondeu na thread, False caso contrário
+    """
+    try:
+        # Obter bot_user_id se não fornecido
+        if not bot_user_id:
+            try:
+                auth_response = slack_client.auth_test()
+                bot_user_id = auth_response.get('user_id')
+                logger.debug(f"Bot user ID: {bot_user_id}")
+            except Exception as e:
+                logger.warning(f"⚠️ Erro ao obter bot user ID: {e}")
+                return False
+        
+        # Buscar mensagens da thread
+        response = slack_client.conversations_replies(
+            channel=channel,
+            ts=thread_ts,
+            limit=50  # Verificar mais mensagens para ter certeza
+        )
+        
+        if not response.get('ok'):
+            return False
+        
+        mensagens = response.get('messages', [])
+        
+        # Verificar se alguma mensagem é do bot
+        for msg in mensagens:
+            # Verificar por bot_id ou user_id
+            if msg.get('bot_id') or msg.get('user') == bot_user_id:
+                logger.debug(f"✅ Bot encontrado na thread (TS: {msg.get('ts')})")
+                return True
+        
+        logger.debug("📭 Bot não encontrado na thread")
+        return False
+        
+    except Exception as e:
+        logger.error(f"❌ Erro ao verificar se bot respondeu na thread: {e}")
+        return False
+
+
 def buscar_historico_thread(
     slack_client: WebClient,
     channel: str,
