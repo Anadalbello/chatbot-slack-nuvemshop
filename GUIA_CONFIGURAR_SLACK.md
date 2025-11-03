@@ -45,18 +45,17 @@ Habilitar o evento `message` para que o bot possa responder em threads sem preci
 
 1. Role a página até a seção **"Subscribe to bot events"**
 2. Clique em **"Add Bot User Event"**
-3. Adicione os seguintes eventos (um por vez ou separados por vírgula):
+3. Digite ou selecione os seguintes eventos:
 
-   **Eventos obrigatórios:**
+   **Eventos necessários:**
    - `app_mention` - Para quando o bot é mencionado (já deve estar)
+   - `message` - Para mensagens em threads sem precisar mencionar
 
-   **Eventos para threads sem mention:**
-   - `message.channels` - Mensagens em canais públicos
-   - `message.groups` - Mensagens em canais privados
-   - `message.im` - Mensagens diretas (DM)
-   - `message.mpim` - Mensagens em grupos diretos
+   **💡 Dica:** O evento `message` é genérico e funciona para todos os tipos de canais (públicos, privados, DMs) baseado nas permissões (scopes) que você configurou no Passo 3.
 
-4. Após adicionar cada evento, clique em **"Save Changes"**
+4. Após adicionar, clique em **"Save Changes"**
+
+**⚠️ Nota:** Se você não encontrar `message` na lista, pode ser que apareça como "message" ou você precise digitar manualmente. O importante é que o evento seja apenas `message` (sem `.channels`, `.groups`, etc).
 
 ## 📍 Passo 5: Instalar/Reinstalar App (se necessário)
 
@@ -78,7 +77,7 @@ Após configurar, você deve ver:
 **Em Event Subscriptions:**
 - ✅ Enable Events: **On**
 - ✅ Request URL: **Verified** (com ✅ verde)
-- ✅ Bot Events: Lista com os eventos adicionados acima
+- ✅ Bot Events: Deve incluir `app_mention` e `message`
 
 ## 🧪 Testar
 
@@ -90,10 +89,11 @@ Após configurar, você deve ver:
 ## ⚠️ Troubleshooting
 
 ### Bot não responde sem mention
-- Verifique se os eventos `message.*` foram adicionados
-- Verifique se as permissões (scopes) foram adicionadas
+- Verifique se o evento `message` (genérico) foi adicionado
+- Verifique se as permissões (scopes) do Passo 3 foram adicionadas
 - Verifique se o app foi reinstalado após adicionar eventos e permissões
 - Verifique os logs do bot para ver se está recebendo os eventos
+- O evento deve ser apenas `message` (não precisa dos específicos como `message.channels`)
 
 ### Erro "missing_scope" nos logs
 - Adicione as permissões faltantes em "OAuth & Permissions" → "Bot Token Scopes"
