@@ -49,6 +49,11 @@ def bot_respondeu_na_thread(
         )
         
         if not response.get('ok'):
+            error = response.get('error', 'unknown')
+            # Se for erro de permissão, logar mas não quebrar (tratamento gracioso)
+            if error == 'missing_scope':
+                needed_scope = response.get('needed', 'unknown')
+                logger.debug(f"⚠️ Permissão faltando para verificar thread: {needed_scope}")
             return False
         
         mensagens = response.get('messages', [])
@@ -98,7 +103,13 @@ def buscar_historico_thread(
         )
         
         if not response.get('ok'):
-            logger.warning(f"⚠️ Erro ao buscar histórico: {response.get('error', 'unknown')}")
+            error = response.get('error', 'unknown')
+            # Tratar erros de permissão de forma mais elegante
+            if error == 'missing_scope':
+                needed_scope = response.get('needed', 'unknown')
+                logger.warning(f"⚠️ Permissão faltando: {needed_scope}. Configure no Slack App: https://api.slack.com/apps")
+            else:
+                logger.warning(f"⚠️ Erro ao buscar histórico: {error}")
             return None
         
         mensagens = response.get('messages', [])

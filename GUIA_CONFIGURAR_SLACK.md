@@ -18,7 +18,30 @@ Habilitar o evento `message` para que o bot possa responder em threads sem preci
    - Se estiver localmente com ngrok: `https://seu-subdomain.ngrok.io/slack/events`
 3. O Slack vai testar a URL - deve mostrar ✅ "Verified"
 
-## 📍 Passo 3: Adicionar Eventos do Bot
+## 📍 Passo 3: Adicionar Permissões (Scopes) do Bot
+
+**IMPORTANTE:** Antes de adicionar eventos, configure as permissões necessárias!
+
+1. No menu lateral esquerdo, clique em **"OAuth & Permissions"**
+2. Role até **"Scopes"** → **"Bot Token Scopes"**
+3. Adicione as seguintes permissões (clique em "Add an OAuth Scope"):
+
+   **Permissões obrigatórias (já devem estar):**
+   - ✅ `channels:history` - Ler histórico de canais públicos
+   - ✅ `channels:read` - Ver canais públicos
+   - ✅ `chat:write` - Enviar mensagens
+   - ✅ `app_mentions:read` - Ler menções ao bot
+
+   **Permissões para threads em canais privados:**
+   - ➕ `groups:history` - Ler histórico de canais privados (grupos)
+   - ➕ `groups:read` - Ver canais privados
+   - ➕ `im:history` - Ler histórico de mensagens diretas (DM)
+   - ➕ `mpim:history` - Ler histórico de grupos diretos
+
+3. Após adicionar, role até o topo e clique em **"Reinstall to Workspace"**
+4. Autorize todas as permissões e confirme
+
+## 📍 Passo 4: Adicionar Eventos do Bot
 
 1. Role a página até a seção **"Subscribe to bot events"**
 2. Clique em **"Add Bot User Event"**
@@ -35,7 +58,7 @@ Habilitar o evento `message` para que o bot possa responder em threads sem preci
 
 4. Após adicionar cada evento, clique em **"Save Changes"**
 
-## 📍 Passo 4: Instalar/Reinstalar App (se necessário)
+## 📍 Passo 5: Instalar/Reinstalar App (se necessário)
 
 Se aparecer um banner amarelo pedindo para reinstalar o app:
 
@@ -48,7 +71,12 @@ Se aparecer um banner amarelo pedindo para reinstalar o app:
 
 Após configurar, você deve ver:
 
-- ✅ Event Subscriptions: **On**
+**Em OAuth & Permissions:**
+- ✅ Bot Token Scopes inclui: `channels:history`, `groups:history`, `im:history`, `mpim:history`
+- ✅ Status: **Installed** (verde)
+
+**Em Event Subscriptions:**
+- ✅ Enable Events: **On**
 - ✅ Request URL: **Verified** (com ✅ verde)
 - ✅ Bot Events: Lista com os eventos adicionados acima
 
@@ -63,8 +91,15 @@ Após configurar, você deve ver:
 
 ### Bot não responde sem mention
 - Verifique se os eventos `message.*` foram adicionados
-- Verifique se o app foi reinstalado após adicionar os eventos
+- Verifique se as permissões (scopes) foram adicionadas
+- Verifique se o app foi reinstalado após adicionar eventos e permissões
 - Verifique os logs do bot para ver se está recebendo os eventos
+
+### Erro "missing_scope" nos logs
+- Adicione as permissões faltantes em "OAuth & Permissions" → "Bot Token Scopes"
+- Permissões necessárias: `groups:history`, `groups:read`, `im:history`, `mpim:history`
+- Após adicionar, **reinstale o app** no workspace
+- Verifique se o erro desapareceu dos logs
 
 ### Event Subscriptions não salva
 - Certifique-se de que a Request URL está verificada (✅ verde)
