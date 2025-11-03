@@ -104,12 +104,14 @@ def buscar_historico_thread(
         
         if not response.get('ok'):
             error = response.get('error', 'unknown')
-            # Tratar erros de permissão de forma mais elegante
+            # Tratar erros de permissão de forma mais elegante (não crítico)
             if error == 'missing_scope':
                 needed_scope = response.get('needed', 'unknown')
-                logger.warning(f"⚠️ Permissão faltando: {needed_scope}. Configure no Slack App: https://api.slack.com/apps")
+                # Log mais suave - não é erro crítico, apenas aviso
+                logger.debug(f"📝 Contexto de thread não disponível: falta permissão '{needed_scope}'. "
+                           f"Configure em OAuth & Permissions → Bot Token Scopes e reinstale o app.")
             else:
-                logger.warning(f"⚠️ Erro ao buscar histórico: {error}")
+                logger.debug(f"⚠️ Erro ao buscar histórico: {error}")
             return None
         
         mensagens = response.get('messages', [])

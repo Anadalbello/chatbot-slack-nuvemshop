@@ -372,6 +372,7 @@ def slack_events():
             try:
                 # 🧠 ESTILO NINA: Usar Recepcionista para analisar a pergunta primeiro
                 # 📚 Buscar contexto da thread (histórico de mensagens anteriores)
+                # NOTA: Isso é opcional - se falhar por falta de permissão, continua sem contexto
                 contexto_thread = None
                 try:
                     contexto_thread = buscar_historico_thread(
@@ -390,7 +391,12 @@ def slack_events():
                     else:
                         logger.debug("📭 Sem contexto anterior na thread")
                 except Exception as e:
-                    logger.debug(f"⚠️ Erro ao buscar contexto da thread: {e}")
+                    # Erro não é crítico - bot continua funcionando sem contexto
+                    error_msg = str(e)
+                    if 'missing_scope' in error_msg or 'groups:history' in error_msg:
+                        logger.debug("⚠️ Contexto de thread não disponível (falta permissão groups:history). Bot continua funcionando normalmente.")
+                    else:
+                        logger.debug(f"⚠️ Erro ao buscar contexto da thread: {e}")
                     contexto_thread = None
                 
                 logger.info("🧠 Recepcionista: Analisando pergunta...")

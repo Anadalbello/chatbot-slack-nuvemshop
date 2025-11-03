@@ -38,8 +38,11 @@ Habilitar o evento `message` para que o bot possa responder em threads sem preci
    - ➕ `im:history` - Ler histórico de mensagens diretas (DM)
    - ➕ `mpim:history` - Ler histórico de grupos diretos
 
-3. Após adicionar, role até o topo e clique em **"Reinstall to Workspace"**
+3. Após adicionar TODAS as permissões, **IMPORTANTE:** role até o topo da página e clique em **"Reinstall to Workspace"**
 4. Autorize todas as permissões e confirme
+5. **⚠️ CRÍTICO:** Após reinstalar, aguarde alguns segundos e verifique se as permissões aparecem como "Installed" (verde)
+
+**💡 Dica:** Se você não reinstalar o app após adicionar permissões, elas não serão aplicadas! O erro `missing_scope` continuará aparecendo nos logs.
 
 ## 📍 Passo 4: Adicionar Eventos do Bot
 
