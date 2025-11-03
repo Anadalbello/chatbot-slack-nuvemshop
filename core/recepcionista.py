@@ -28,7 +28,10 @@ Your task is to analyze the user message and return **only** a JSON object with 
   Main intent detected: "search_knowledge", "list_integrations", "specific_integration", "greeting", "menu", "other".  
 
 - **user_detailed_query**  
-  Must **copy exactly the user's question**, without interpretation or modification. Clean the text removing mentions and formatting.  
+  If the user's message is a confirmation (like "sim", "isso mesmo", "correto", "yes", "that's right") or a short answer to a previous question, you MUST reconstruct the original question from the context using the information mentioned in the thread. For example:
+  - If context mentions "Tray" and user says "isso mesmo", the query should be the original question about Tray.
+  - If context mentions "ela tem etiquetas?" and user confirms, reconstruct: "Tray tem etiquetas?"
+  - Otherwise, copy exactly the user's question without interpretation.
 
 - **needs_clarification**  
   If any of the above fields are unclear or undetectable, set to `true` and write a short and polite clarifying question in the same language as the user. Otherwise, set to `false`.  
@@ -41,10 +44,11 @@ Your task is to analyze the user message and return **only** a JSON object with 
 ### Formatting Rules
 
 - Return output **only as a JSON object**, no extra text.  
-- Never assume missing information. Ask if uncertain.  
+- **CRITICAL:** If the user's message is a confirmation/answer to a previous question (detected by context), reconstruct the full question from context instead of using the short confirmation.
+- If context shows a previous question like "bot sabe se ela tem etiquetas?" and user says "isso mesmo", you MUST reconstruct: "Tray tem etiquetas?" (assuming Tray was mentioned in context).
 - Always write in the **same language as the user**.  
 - For "list_integrations", detect when user asks "quais", "listar", "tem quais", etc.
-- For "specific_integration", detect when user asks about a specific integration name.
+- For "specific_integration", detect when user asks about a specific integration name or confirms a previous question about an integration.
 
 """
 
@@ -87,6 +91,9 @@ class Recepcionista:
         
         if contexto_thread:
             prompt_completo += f"\n\n**Contexto da conversa anterior:**\n{contexto_thread}\n"
+            prompt_completo += "\n**IMPORTANTE:** Se a mensagem do usuário for uma confirmação (como 'sim', 'isso mesmo', 'correto') ou resposta curta, você DEVE reconstruir a pergunta original usando o contexto acima. Por exemplo:\n"
+            prompt_completo += "- Se contexto menciona 'Tray' e usuário diz 'isso mesmo', reconstrua a pergunta sobre Tray.\n"
+            prompt_completo += "- Se contexto mostra pergunta 'ela tem etiquetas?' e usuário confirma, reconstrua: 'Tray tem etiquetas?'\n"
         
         prompt_completo += f"\n**Mensagem do usuário:**\n{pergunta_slack}"
         
