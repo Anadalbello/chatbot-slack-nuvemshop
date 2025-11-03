@@ -19,6 +19,7 @@ from handlers.aprendizado_automatico import registrar_pergunta
 from handlers.menu_topicos import criar_menu_boas_vindas
 from handlers.cache_respostas import buscar_cache, salvar_cache, obter_estatisticas_cache
 from handlers.tracking_perguntas import registrar_pergunta_sem_resposta, obter_estatisticas as obter_stats_tracking
+from handlers.contexto_thread import buscar_historico_thread, extrair_referencias_contexto
 # NOVA ESTRUTURA ESTILO NINA
 from core import KnowledgeManager, Recepcionista, FonteValidator
 # from handlers.filtrar_links_relevantes import filtrar_links_relevantes, gerar_resposta_sem_resultados
@@ -242,7 +243,7 @@ def criar_botoes_interacao(pergunta_limpa, resultados_encontrados):
         }
     ]
 
-def formatar_resultados_encontrados(resultados_json, pergunta_limpa, intencao="outro", resposta_esperada="detalhada"):
+def formatar_resultados_encontrados(resultados_json, pergunta_limpa, intencao="outro", resposta_esperada="detalhada", contexto_thread=None):
     """
     Formata resultados do JSON usando Gemini para gerar resposta inteligente e focada
     Responde diretamente à pergunta do usuário, não apenas lista tudo
@@ -252,6 +253,7 @@ def formatar_resultados_encontrados(resultados_json, pergunta_limpa, intencao="o
         pergunta_limpa: Pergunta original do usuário
         intencao: Tipo de intenção detectada (verificar_existencia, detalhes, funcionalidades, contato, etc)
         resposta_esperada: Tipo de resposta esperada (sim_nao, lista, detalhada, especifica)
+        contexto_thread: Histórico da thread (opcional)
     """
     
     logger.info(f"🎨 Formatando resultados do JSON (intenção: {intencao}, resposta: {resposta_esperada})")
@@ -269,11 +271,12 @@ def formatar_resultados_encontrados(resultados_json, pergunta_limpa, intencao="o
             elif intencao == "funcionalidades":
                 prompt_com_contexto = f"{pergunta_limpa} (foque apenas nas funcionalidades)"
             
-            # Tentar gerar resposta com Gemini
+            # Tentar gerar resposta com Gemini (passando contexto da thread)
             resposta_gemini = gerar_resposta_inteligente(
                 prompt_com_contexto, 
                 resultados_json, 
-                "base de conhecimento de integrações (JSON)"
+                "base de conhecimento de integrações (JSON)",
+                contexto_thread=contexto_thread
             )
             
             if resposta_gemini:
@@ -340,9 +343,27 @@ def slack_events():
             
             try:
                 # 🧠 ESTILO NINA: Usar Recepcionista para analisar a pergunta primeiro
-                # Buscar contexto da thread (se existir)
+                # 📚 Buscar contexto da thread (histórico de mensagens anteriores)
                 contexto_thread = None
-                # TODO: Implementar busca de contexto da thread se necessário
+                try:
+                    contexto_thread = buscar_historico_thread(
+                        slack_client=slack_client,
+                        channel=channel,
+                        thread_ts=thread_ts,
+                        limite=10  # Últimas 10 mensagens
+                    )
+                    
+                    if contexto_thread:
+                        logger.info(f"📚 Contexto da thread carregado ({len(contexto_thread)} caracteres)")
+                        # Extrair referências úteis do contexto
+                        referencias = extrair_referencias_contexto(contexto_thread, pergunta_limpa)
+                        if referencias.get('integracoes_mencionadas'):
+                            logger.info(f"🔍 Integrações mencionadas anteriormente: {referencias['integracoes_mencionadas']}")
+                    else:
+                        logger.debug("📭 Sem contexto anterior na thread")
+                except Exception as e:
+                    logger.debug(f"⚠️ Erro ao buscar contexto da thread: {e}")
+                    contexto_thread = None
                 
                 logger.info("🧠 Recepcionista: Analisando pergunta...")
                 analise_recepcionista = recepcionista.analisar_pergunta(pergunta_limpa, contexto_thread)
@@ -459,7 +480,8 @@ def slack_events():
                                 resultado_json,
                                 user_query,
                                 intencao=intencao,
-                                resposta_esperada=resposta_esperada
+                                resposta_esperada=resposta_esperada,
+                                contexto_thread=contexto_thread
                             )
                             
                             # Salvar no cache se gerou resposta com sucesso
@@ -614,12 +636,13 @@ def slack_events():
                     logger.info("⚡ Usando resposta do cache!")
                     resultado_formatado = resposta_cache
                 else:
-                    # Passar informações de intenção para formatação inteligente
+                    # Passar informações de intenção para formatação inteligente (com contexto)
                     resultado_formatado = formatar_resultados_encontrados(
                         resultado_json,
                         user_query,
                         intencao=intencao,
-                        resposta_esperada=resposta_esperada
+                        resposta_esperada=resposta_esperada,
+                        contexto_thread=contexto_thread
                     )
                     
                     # Salvar no cache se gerou resposta com sucesso

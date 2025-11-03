@@ -119,7 +119,7 @@ def extrair_conteudo_bruto(resultado_formatado):
     return re.sub(r'\n\s*\n+', '\n', resultado_formatado).strip()
 
 
-def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de conhecimento"):
+def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de conhecimento", contexto_thread=None):
     """
     Usa Gemini para gerar uma resposta natural e resumida baseada no conteúdo encontrado
     
@@ -130,6 +130,7 @@ def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de con
         pergunta (str): Pergunta original do usuário
         conteudo_encontrado (str): Conteúdo formatado encontrado nas buscas
         fonte (str): Nome da fonte (Confluence, Zendesk, etc)
+        contexto_thread (str): Histórico da thread para contexto adicional (opcional)
         
     Returns:
         str: Resposta natural gerada pelo Gemini (ou None se falhar)
@@ -152,13 +153,21 @@ def gerar_resposta_inteligente(pergunta, conteudo_encontrado, fonte="base de con
         parceiros_mencionados = re.findall(r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*|[A-Z]{2,})\b', conteudo_bruto)
         parceiros_unicos = list(set([p for p in parceiros_mencionados if p not in ['Espaco', 'Base', 'Manual', 'Documento']]))[:10]
         
+        # Montar contexto completo
+        contexto_completo = ""
+        if contexto_thread:
+            contexto_completo = f"\nCONTEXTO DA CONVERSA ANTERIOR:\n{contexto_thread}\n\n"
+            contexto_completo += "IMPORTANTE: Use o contexto acima para entender referências. "
+            contexto_completo += "Se o usuário usar pronomes como 'ela', 'ele', 'essa integração', "
+            contexto_completo += "refira-se ao contexto da conversa anterior.\n\n"
+        
         prompt = f"""Você é um assistente especializado em integrações da Nuvem Envio/Nuvemshop.
 
 CONTEXTO IMPORTANTE:
 - Nuvemshop, Nuvem Envio e Mandaê são empresas do mesmo grupo (NÃO são parceiros)
 - Todas as outras empresas são PARCEIROS que se integram
 - Exemplos de parceiros/ERPs: Notazz, Bling, Eccosys, Tiny, Omie, etc.
-
+{contexto_completo}
 PERGUNTA ORIGINAL: {pergunta}
 
 DADOS DA INTEGRAÇÃO ENCONTRADA:
