@@ -7,6 +7,7 @@ import os
 import logging
 import json
 import re
+import time
 from dotenv import load_dotenv
 import google.generativeai as genai
 
@@ -125,7 +126,6 @@ JSON:"""
             except Exception as e:
                 if tentativa < max_retries - 1:
                     logger.warning(f"⚠️ Erro na tentativa {tentativa + 1}/{max_retries}: {e}. Tentando novamente...")
-                    import time
                     time.sleep(retry_delay)
                 else:
                     logger.error(f"❌ Falha após {max_retries} tentativas: {e}")
