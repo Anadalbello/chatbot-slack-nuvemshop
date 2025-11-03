@@ -334,15 +334,6 @@ def slack_events():
                 return jsonify({"ok": True})
             
             logger.info(f"Mensagem recebida de {user}: {text}")
-            
-            # ⚡ FEEDBACK VISUAL: Enviar typing indicator para mostrar que está processando
-            try:
-                slack_client.conversations_mark(
-                    channel=channel,
-                    ts=thread_ts
-                )
-            except Exception as e:
-                logger.debug(f"Erro ao enviar typing indicator: {e}")
 
             # Limpar termo de busca
             pergunta_limpa = limpar_termo_busca(text)

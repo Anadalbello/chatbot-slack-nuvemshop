@@ -113,7 +113,26 @@ IMPORTANTE:
 
 JSON:"""
 
-        response = model.generate_content(prompt)
+        # Gerar resposta com retry
+        max_retries = 2
+        retry_delay = 1
+        
+        response = None
+        for tentativa in range(max_retries):
+            try:
+                response = model.generate_content(prompt)
+                break  # Sucesso, sair do loop
+            except Exception as e:
+                if tentativa < max_retries - 1:
+                    logger.warning(f"⚠️ Erro na tentativa {tentativa + 1}/{max_retries}: {e}. Tentando novamente...")
+                    import time
+                    time.sleep(retry_delay)
+                else:
+                    logger.error(f"❌ Falha após {max_retries} tentativas: {e}")
+                    raise
+        
+        if not response:
+            raise Exception("Falha ao gerar resposta do Gemini")
         
         # Extrair JSON da resposta
         resposta_texto = response.text.strip()
