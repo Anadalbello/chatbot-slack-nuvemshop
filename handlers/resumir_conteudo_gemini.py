@@ -7,6 +7,7 @@ Similar a como IAs respondem perguntas de forma natural
 import os
 import logging
 import re
+import time
 from dotenv import load_dotenv
 import google.generativeai as genai
 
@@ -179,9 +180,28 @@ FORMATO DA RESPOSTA:
 
 Sua resposta (focada e direta):"""
 
-        # Gerar resposta
+        # Gerar resposta com retry
         logger.info(f"📝 Tamanho do prompt: {len(prompt)} caracteres")
-        response = model.generate_content(prompt)
+        
+        max_retries = 3
+        retry_delay = 1  # segundos
+        
+        response = None
+        for tentativa in range(max_retries):
+            try:
+                response = model.generate_content(prompt)
+                break  # Sucesso, sair do loop
+            except Exception as e:
+                if tentativa < max_retries - 1:
+                    logger.warning(f"⚠️ Erro na tentativa {tentativa + 1}/{max_retries}: {e}. Tentando novamente em {retry_delay}s...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # Backoff exponencial
+                else:
+                    logger.error(f"❌ Falha após {max_retries} tentativas: {e}")
+                    raise
+        
+        if not response:
+            return None
         
         # Verificar prompt_feedback
         if hasattr(response, 'prompt_feedback'):

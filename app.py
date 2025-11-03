@@ -17,6 +17,8 @@ from handlers.interpretar_intencao_gemini import interpretar_intencao_e_extrair_
 from handlers.buscar_faq import buscar_faq, formatar_resposta_faq
 from handlers.aprendizado_automatico import registrar_pergunta
 from handlers.menu_topicos import criar_menu_boas_vindas
+from handlers.cache_respostas import buscar_cache, salvar_cache, obter_estatisticas_cache
+from handlers.tracking_perguntas import registrar_pergunta_sem_resposta, obter_estatisticas as obter_stats_tracking
 # NOVA ESTRUTURA ESTILO NINA
 from core import KnowledgeManager, Recepcionista, FonteValidator
 # from handlers.filtrar_links_relevantes import filtrar_links_relevantes, gerar_resposta_sem_resultados
@@ -332,6 +334,15 @@ def slack_events():
                 return jsonify({"ok": True})
             
             logger.info(f"Mensagem recebida de {user}: {text}")
+            
+            # ⚡ FEEDBACK VISUAL: Enviar typing indicator para mostrar que está processando
+            try:
+                slack_client.conversations_mark(
+                    channel=channel,
+                    ts=thread_ts
+                )
+            except Exception as e:
+                logger.debug(f"Erro ao enviar typing indicator: {e}")
 
             # Limpar termo de busca
             pergunta_limpa = limpar_termo_busca(text)
@@ -445,12 +456,24 @@ def slack_events():
                         # Usar formatação inteligente também para specific_integration
                         resultado_json = resultado_integracao['content']
                         
-                        resultado_formatado = formatar_resultados_encontrados(
-                            resultado_json,
-                            user_query,
-                            intencao=intencao,
-                            resposta_esperada=resposta_esperada
-                        )
+                        # 💾 CACHE: Verificar se já temos resposta em cache
+                        cache_key = f"{user_query}|{intencao}"
+                        resposta_cache = buscar_cache(cache_key)
+                        
+                        if resposta_cache:
+                            logger.info("⚡ Usando resposta do cache!")
+                            resultado_formatado = resposta_cache
+                        else:
+                            resultado_formatado = formatar_resultados_encontrados(
+                                resultado_json,
+                                user_query,
+                                intencao=intencao,
+                                resposta_esperada=resposta_esperada
+                            )
+                            
+                            # Salvar no cache se gerou resposta com sucesso
+                            if resultado_formatado:
+                                salvar_cache(cache_key, resultado_formatado)
                         
                         if resultado_formatado:
                             resultado_mrkdwn = resultado_formatado.replace("**", "*")
@@ -550,6 +573,14 @@ def slack_events():
                 if not validacao['tem_fonte_valida']:
                     # Estilo Nina: Só responder se tiver fonte válida
                     logger.warning("⚠️ Nenhuma fonte válida encontrada - não respondendo")
+                    
+                    # 📊 TRACKING: Registrar pergunta sem resposta
+                    registrar_pergunta_sem_resposta(
+                        pergunta=user_query,
+                        query_usada=query_busca,
+                        motivo="Nenhuma fonte válida encontrada"
+                    )
+                    
                     # Gerar mensagem melhorada com sugestões baseada na query
                     mensagem_sem_fonte = fonte_validator._gerar_mensagem_sem_resultado(user_query)
                     
@@ -584,13 +615,25 @@ def slack_events():
                 # Formatar resposta usando função existente
                 resultado_json = resultados_encontrados.get('integracoes_json')
                 
-                # Passar informações de intenção para formatação inteligente
-                resultado_formatado = formatar_resultados_encontrados(
-                    resultado_json,
-                    user_query,
-                    intencao=intencao,
-                    resposta_esperada=resposta_esperada
-                )
+                # 💾 CACHE: Verificar se já temos resposta em cache
+                cache_key = f"{user_query}|{intencao}"
+                resposta_cache = buscar_cache(cache_key)
+                
+                if resposta_cache:
+                    logger.info("⚡ Usando resposta do cache!")
+                    resultado_formatado = resposta_cache
+                else:
+                    # Passar informações de intenção para formatação inteligente
+                    resultado_formatado = formatar_resultados_encontrados(
+                        resultado_json,
+                        user_query,
+                        intencao=intencao,
+                        resposta_esperada=resposta_esperada
+                    )
+                    
+                    # Salvar no cache se gerou resposta com sucesso
+                    if resultado_formatado:
+                        salvar_cache(cache_key, resultado_formatado)
                 
                 if resultado_formatado:
                     resultado_mrkdwn = resultado_formatado.replace("**", "*")
@@ -936,7 +979,9 @@ def health_check():
         "status": "healthy",
         "configurations": configs,
         "ready_for_slack": all(v == "✅" for k, v in configs.items() if k.startswith("slack")),
-        "eventos_cache": len(eventos_processados)
+        "eventos_cache": len(eventos_processados),
+        "cache_respostas": obter_estatisticas_cache(),
+        "perguntas_sem_resposta": obter_stats_tracking()
     })
 
 @app.errorhandler(404)
