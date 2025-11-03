@@ -610,16 +610,16 @@
       "Atualiza_Status_Rastreio": "Sim (✔️)"
     },
     "Outras_Informacoes": {
-      "Complexidade": "Alta",
+      "Complexidade": "Baixa",
       "Responsavel_Configuracao": "Mandaê",
       "Responsavel_Testes": "Mandaê",
-      "Desenvolvedor_Integracao": "Mandaê",
-      "Limitacoes_Ausencia": "Integração via tabela de frete por um provedor externo.",
-      "Site": "VTEX Commerce Cloud",
-      "Manual": "VTEX Developer Docs"
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Limitacoes_Ausencia": "Importação de múltiplos volumes não funciona de forma automática. Devolução de rastreio e atualização de status só ocorrem se a integração for 100% pela plataforma.",
+      "Site": "https://vtex.com/pt-br/",
+      "Manual": "VTEX - Manual de Integração"
     },
     "Suporte_Contato": {
-      "Email": "N/A",
+      "Email": "integracao@nuvenshop.com.br",
       "Telefone": "N/A"
     }
   },
