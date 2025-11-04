@@ -135,17 +135,20 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
     
     # Extrair palavras-chave da query (remover palavras comuns e pontuação)
     palavras_query = set([p.strip('?.,!;:') for p in nome_limpo_query.split() 
-                          if p.strip('?.,!;:') not in palavras_remover and len(p.strip('?.,!;:')) > 2])
+                          if p.strip('?.,!;:') not in palavras_remover and len(p.strip('?.,!;:')) > 1])
     
     logger.debug(f"📝 Palavras extraídas da query: {palavras_query}")
+    logger.debug(f"📝 Query limpa: '{nome_limpo_query}'")
     
     # Buscar por match: verificar se nome do ERP está na query OU se palavras-chave estão no nome do ERP
     matches = []
     for erp in erps:
         nome_erp_atual = erp.get("Nome", erp.get("ERP", "")).lower()
-        # Busca parcial e também remove parênteses para busca mais flexível
+        # Busca parcial: remove parênteses E pontuação para busca mais flexível
         nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp_atual)
-        palavras_nome = set(nome_limpo.split())
+        nome_limpo = re.sub(r'[?.,!;:]+', '', nome_limpo)  # Remove pontuação para comparação
+        palavras_nome_raw = nome_limpo.split()
+        palavras_nome = set([p.strip('?.,!;:') for p in palavras_nome_raw])
         
         # ESTRATÉGIA 1: Verificar se o nome completo do ERP está contido na query (maior prioridade)
         # Ex: query="dados de contato da bling" -> nome="bling" deve ser encontrado
@@ -154,21 +157,32 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
             logger.debug(f"✅ Match por nome completo: '{nome_limpo}' encontrado na query")
             continue
         
+        # ESTRATÉGIA 1.5: Verificar se o nome sem pontuação está contido na query ou vice-versa
+        # Ex: query="base" -> nome="base." deve ser encontrado
+        nome_sem_pontuacao = nome_limpo.strip()
+        if nome_sem_pontuacao and (nome_sem_pontuacao in nome_limpo_query or nome_limpo_query in nome_sem_pontuacao):
+            matches.append(erp)
+            logger.debug(f"✅ Match por nome sem pontuação: '{nome_sem_pontuacao}' encontrado")
+            continue
+        
         # ESTRATÉGIA 2: Verificar se qualquer palavra significativa do nome está na query (busca invertida)
         # Ex: query="quais funcionalidades tem o eccosys" -> nome="eccosys" deve ser encontrado
-        palavras_significativas_nome = [p for p in palavras_nome if len(p) > 2 and p not in palavras_remover]
+        palavras_significativas_nome = [p.strip('?.,!;:') for p in palavras_nome_raw 
+                                       if len(p.strip('?.,!;:')) > 1 and p.strip('?.,!;:') not in palavras_remover]
         if palavras_significativas_nome:
             for palavra_nome in palavras_significativas_nome:
-                if palavra_nome in nome_limpo_query:
+                palavra_nome_limpa = palavra_nome.strip('?.,!;:').lower()
+                if palavra_nome_limpa in nome_limpo_query or palavra_nome_limpa in palavras_query:
                     matches.append(erp)
-                    logger.debug(f"✅ Match por palavra do nome: '{palavra_nome}' encontrado na query")
+                    logger.debug(f"✅ Match por palavra do nome: '{palavra_nome_limpa}' encontrado na query")
                     break
         
         # ESTRATÉGIA 3: Verificar se palavras-chave extraídas da query estão no nome do ERP
         # Ex: query="contato bling" -> palavras_query={"bling"} -> nome="bling" deve ser encontrado
-        if palavras_query and palavras_query.intersection(palavras_nome):
+        palavras_nome_normalizadas = set([p.strip('?.,!;:').lower() for p in palavras_nome_raw])
+        if palavras_query and palavras_query.intersection(palavras_nome_normalizadas):
             matches.append(erp)
-            logger.debug(f"✅ Match por interseção: palavras {palavras_query.intersection(palavras_nome)} encontradas no nome '{nome_limpo}'")
+            logger.debug(f"✅ Match por interseção: palavras {palavras_query.intersection(palavras_nome_normalizadas)} encontradas no nome '{nome_limpo}'")
     
     if not matches:
         logger.info(f"❌ ERP '{nome_erp}' não encontrado")
