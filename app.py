@@ -453,6 +453,50 @@ def slack_events():
                 if user_intent == 'list_integrations':
                     logger.info("📋 Intent: list_integrations")
                     
+                    # 🎯 VERIFICAR SE É BUSCA POR TIPO DE INTEGRAÇÃO ANTES DE LISTAR TODAS
+                    query_lower = user_query.lower()
+                    tipos_integracao_patterns = {
+                        "tabela de frete": ["tabela de frete", "via tabela de frete", "tabela frete", "por tabela", "tipo tabela", "via tabela"],
+                        "api": ["tipo api", "integração api", "via api", "por api"],
+                        "apenas rastreio": ["apenas rastreio", "tipo rastreio", "só rastreio"]
+                    }
+                    
+                    tipo_detectado = None
+                    for tipo, patterns in tipos_integracao_patterns.items():
+                        patterns_sorted = sorted(patterns, key=len, reverse=True)
+                        for pattern in patterns_sorted:
+                            if pattern in query_lower:
+                                tipo_detectado = tipo
+                                logger.info(f"🔍 Tipo de integração detectado em list_integrations: '{tipo}' (padrão: '{pattern}')")
+                                break
+                        if tipo_detectado:
+                            break
+                    
+                    # Se detectou tipo de integração, buscar por tipo ao invés de listar todas
+                    if tipo_detectado:
+                        from handlers.buscar_integracoes_json import buscar_por_tipo_integracao
+                        resultado_tipo = buscar_por_tipo_integracao(tipo_detectado)
+                        
+                        if resultado_tipo:
+                            resultado_mrkdwn = resultado_tipo.replace("**", "*")
+                            slack_client.chat_postMessage(
+                                channel=channel,
+                                thread_ts=thread_ts,
+                                text=f"Integrações do tipo: {tipo_detectado.title()}",
+                                blocks=[{
+                                    "type": "section",
+                                    "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
+                                }]
+                            )
+                            return jsonify({"ok": True})
+                        else:
+                            slack_client.chat_postMessage(
+                                channel=channel,
+                                thread_ts=thread_ts,
+                                text=f"❌ Nenhuma integração encontrada para o tipo '{tipo_detectado.title()}'."
+                            )
+                            return jsonify({"ok": True})
+                    
                     # PRIORIDADE 1: JSON (estilo Nina)
                     from handlers.buscar_integracoes_json import buscar_integracoes_json
                     lista_integracoes = buscar_integracoes_json()
@@ -486,7 +530,7 @@ def slack_events():
                     query_lower = user_query.lower()
                     # Padrões para detectar busca por tipo de integração
                     tipos_integracao_patterns = {
-                        "tabela de frete": ["tabela de frete", "tabela frete", "por tabela", "tipo tabela"],
+                        "tabela de frete": ["tabela de frete", "via tabela de frete", "tabela frete", "por tabela", "tipo tabela", "via tabela"],
                         "api": ["tipo api", "integração api", "via api", "por api"],
                         "apenas rastreio": ["apenas rastreio", "tipo rastreio", "só rastreio"]
                     }
