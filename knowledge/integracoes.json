@@ -24,7 +24,7 @@
       "Custos_Envolvidos": "Sem custo",
       "Critério_Valor_Declarado": "N/A",
       "Limitacoes_Ausencia": "N/A (Apenas atualização de status de rastreio)",
-      "Site": "rastreiozap.com.br",
+      "Site": "https://rastreiozap.com",
       "Manual": "Não forneceu."
     },
     "Suporte_Contato": {
@@ -83,15 +83,15 @@
       "Atualiza_Status_Rastreio": "Não (❌)"
     },
     "Outras_Informacoes": {
-      "Complexidade": "Baixa",
+      "Complexidade": "Simples",
       "Responsavel_Configuracao": "Parceiro",
-      "Responsavel_Testes": "Interno",
-      "Desenvolvedor_Integracao": "Parceiro",
+      "Responsavel_Testes": "Vericode",
+      "Desenvolvedor_Integracao": "Vericode",
       "Custos_Envolvidos": "Sem custo",
       "Critério_Valor_Declarado": "N/A",
       "Limitacoes_Ausencia": "N/A",
       "Site": "Ciashop",
-      "Manual": "Ciashop"
+      "Manual": "Documentação Ciashop"
     },
     "Suporte_Contato": {
       "Email": "N/A",
@@ -122,7 +122,7 @@
       "Desenvolvedor_Integracao": "Kerece",
       "Custos_Envolvidos": "N/A",
       "Critério_Valor_Declarado": "N/A",
-      "Limitacoes_Ausencia": "Possui somente integração do cálculo do frete por Taxa",
+      "Limitacoes_Ausencia": "Possui somente integração do cálculo do frete por Taxa.",
       "Site": "https://pluggy.to/",
       "Manual": "N/A"
     },
@@ -1100,9 +1100,9 @@
     },
     "Outras_Informacoes": {
       "Complexidade": "Baixa",
-      "Responsavel_Configuracao": "Cliente/Parceiro",
+      "Responsavel_Configuracao": "Cliente | Parceiro",
       "Responsavel_Testes": "Mandaê",
-      "Desenvolvedor_Integracao": "Mandaê",
+      "Desenvolvedor_Integracao": "Kerece",
       "Custos_Envolvidos": "N/A",
       "Critério_Valor_Declarado": "N/A",
       "Limitacoes_Ausencia": "Possui somente a linguagem de layout de frete por API. Não é possível configurar o nome da transportadora no checkout.",
@@ -1132,7 +1132,7 @@
       "Atualiza_Status_Rastreio": "Não (❌)"
     },
     "Outras_Informacoes": {
-      "Complexidade": "Baixa",
+      "Complexidade": "Média",
       "Responsavel_Configuracao": "Parceiro",
       "Responsavel_Testes": "Mandaê",
       "Desenvolvedor_Integracao": "Frenet",
@@ -1161,13 +1161,13 @@
       "Configuracao_Seguro_Pedidos": "Sim (✔️)",
       "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
       "Multi_CD": "Não (❌)",
-      "Impressao_Etiqueta": "Sim (✔️)",
+      "Impressao_Etiqueta": "Sim (na plataforma) (✔️)",
       "Atualiza_Status_Rastreio": "Sim (✔️)"
     },
     "Outras_Informacoes": {
-      "Complexidade": "Média",
-      "Responsavel_Configuracao": "Mandaê/Parceiro",
-      "Responsavel_Testes": "Mandaê",
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Cliente/Parceiro",
+      "Responsavel_Testes": "Cliente",
       "Desenvolvedor_Integracao": "Parceiro",
       "Custos_Envolvidos": "Não há custos adicionais para habilitar a integração entre a Magis5 e a Nuvemshop, desde que o cliente possua uma conta ativa na Magis5.",
       "Critério_Valor_Declarado": "N/A",
@@ -1194,7 +1194,7 @@
       "Configuracao_Seguro_Pedidos": "Sim (✔️)",
       "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
       "Multi_CD": "Não (❌)",
-      "Impressao_Etiqueta": "Sim (✔️)",
+      "Impressao_Etiqueta": "Sim (na plataforma) (✔️)",
       "Atualiza_Status_Rastreio": "Sim (✔️)"
     },
     "Outras_Informacoes": {
@@ -1227,18 +1227,18 @@
       "Configuracao_Seguro_Pedidos": "Não (❌)",
       "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
       "Multi_CD": "Não (❌)",
-      "Impressao_Etiqueta": "Sim (✔️)",
+      "Impressao_Etiqueta": "Sim (na plataforma) (✔️)",
       "Atualiza_Status_Rastreio": "Sim (✔️)"
     },
     "Outras_Informacoes": {
       "Complexidade": "Simples",
       "Responsavel_Configuracao": "Cliente",
       "Responsavel_Testes": "Cliente",
-      "Desenvolvedor_Integracao": "Parceiro",
+      "Desenvolvedor_Integracao": "Nuvemshop",
       "Custos_Envolvidos": "Não possui",
       "Critério_Valor_Declarado": "N/A",
-      "Limitacoes_Ausencia": "Não possui cálculo de frete. Não possui seguro.",
-      "Site": "track32.com.br",
+      "Limitacoes_Ausencia": "Não possui cálculo de frete. Não possui seguro. Não possui integração de múltiplos volumes. Não possui integração de Multi-CD. Não possui devolução do código de rastreamento. Não possui configuração de valor mínimo de seguro. Não possui nome do transportador no checkout personalizável.",
+      "Site": "https://track32.com.br/",
       "Manual": "Não possui"
     },
     "Suporte_Contato": {
@@ -1267,7 +1267,7 @@
       "Complexidade": "Média",
       "Responsavel_Configuracao": "Nuvemshop",
       "Responsavel_Testes": "Nuvemshop",
-      "Desenvolvedor_Integracao": "Parceiro",
+      "Desenvolvedor_Integracao": "Kerece",
       "Custos_Envolvidos": "Sem custos",
       "Critério_Valor_Declarado": "O cálculo do frete é porcentado com seguro e o valor é fixo com ou sem seguro",
       "Limitacoes_Ausencia": "Não é possível retirar o seguro da cotação.",
@@ -1359,7 +1359,7 @@
       "Configuracao_Seguro_Pedidos": "Sim (✔️)",
       "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
       "Multi_CD": "Não (❌)",
-      "Impressao_Etiqueta": "Sim (✔️)",
+      "Impressao_Etiqueta": "Sim (na plataforma) (✔️)",
       "Atualiza_Status_Rastreio": "Sim (✔️)"
     },
     "Outras_Informacoes": {
@@ -1402,8 +1402,9 @@
       "Desenvolvedor_Integracao": "Mandaê (ou outro desenvolvedor)",
       "Custos_Envolvidos": "Sim (custo para o cliente ou equipe de vendas)",
       "Limitacoes_Ausencia": "Nenhuma",
-      "Site": "https://www.totvs.com/integracoes-de-erp/",
-      "Manual": "[Placeholder para manual link]"
+      "Site": "https://blog.totvs.com/erp/integracoes-com-mandae",
+      "Manual": "Não forneceu.",
+      "Critério_Valor_Declarado": "N/A"
     },
     "Suporte_Contato": {
       "Email": "integracao@nuvenshop.com.br",
