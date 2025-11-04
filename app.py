@@ -531,32 +531,33 @@ def slack_events():
                                 "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
                             }]
                             
-                            # Se a resposta for focada, adicionar botão para ver informações completas
+                            # Se a resposta for focada em uma integração específica, adicionar botão para ver informações completas
+                            nome_integracao = interpretacao.get('nome_erp')
+                            # Mostrar botão sempre que temos uma integração específica identificada
+                            # e a resposta não foi detalhada (ou seja, foi focada em uma parte específica)
                             mostrar_botao_completo = (
-                                resposta_esperada != "detalhada" and 
+                                nome_integracao and 
                                 resultado_json and 
-                                intencao in ["verificar_existencia", "contato", "funcionalidades"]
+                                resposta_esperada != "detalhada"
                             )
                             
                             if mostrar_botao_completo:
-                                nome_integracao = interpretacao.get('nome_erp')
-                                if nome_integracao:
-                                    blocks_resposta.append({
-                                        "type": "actions",
-                                        "elements": [{
-                                            "type": "button",
-                                            "text": {
-                                                "type": "plain_text",
-                                                "text": "📋 Ver Informações Completas"
-                                            },
-                                            "style": "primary",
-                                            "action_id": "ver_completo",
-                                            "value": json.dumps({
-                                                "nome_integracao": nome_integracao,
-                                                "query_original": user_query
-                                            })
-                                        }]
-                                    })
+                                blocks_resposta.append({
+                                    "type": "actions",
+                                    "elements": [{
+                                        "type": "button",
+                                        "text": {
+                                            "type": "plain_text",
+                                            "text": "📋 Ver Informações Completas"
+                                        },
+                                        "style": "primary",
+                                        "action_id": "ver_completo",
+                                        "value": json.dumps({
+                                            "nome_integracao": nome_integracao,
+                                            "query_original": user_query
+                                        })
+                                    }]
+                                })
                             
                             slack_client.chat_postMessage(
                                 channel=channel,
@@ -692,52 +693,52 @@ def slack_events():
                         "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
                     }]
                     
-                    # Se a resposta for focada (não detalhada), adicionar botão para ver informações completas
+                    # Se a resposta for focada em uma integração específica, adicionar botão para ver informações completas
+                    # Extrair nome da integração do resultado JSON
+                    nome_integracao = None
+                    try:
+                        from handlers.buscar_integracoes_json import carregar_integracoes_json, buscar_integracao_especifica_json
+                        # Tentar extrair nome da query ou usar a query diretamente
+                        if interpretacao.get('nome_erp'):
+                            nome_integracao = interpretacao.get('nome_erp')
+                        elif query_busca:
+                            # Buscar para garantir que temos o nome correto
+                            erps = carregar_integracoes_json()
+                            if erps:
+                                for erp in erps:
+                                    nome_erp_atual = erp.get("Nome", erp.get("ERP", "")).lower()
+                                    if query_busca.lower() in nome_erp_atual or nome_erp_atual in query_busca.lower():
+                                        nome_integracao = erp.get("Nome", erp.get("ERP", ""))
+                                        break
+                    except Exception as e:
+                        logger.debug(f"Erro ao extrair nome da integração: {e}")
+                    
+                    # Mostrar botão sempre que temos uma integração específica identificada
+                    # e a resposta não foi detalhada (ou seja, foi focada em uma parte específica)
                     mostrar_botao_completo = (
-                        resposta_esperada != "detalhada" and 
+                        nome_integracao and 
                         resultado_json and 
-                        intencao in ["verificar_existencia", "contato", "funcionalidades"]
+                        resposta_esperada != "detalhada"
                     )
                     
                     if mostrar_botao_completo:
-                        # Extrair nome da integração do resultado JSON
-                        # Buscar no resultado formatado ou tentar extrair do JSON original
-                        nome_integracao = None
-                        try:
-                            from handlers.buscar_integracoes_json import carregar_integracoes_json, buscar_integracao_especifica_json
-                            # Tentar extrair nome da query ou usar a query diretamente
-                            if interpretacao.get('nome_erp'):
-                                nome_integracao = interpretacao.get('nome_erp')
-                            elif query_busca:
-                                # Buscar para garantir que temos o nome correto
-                                erps = carregar_integracoes_json()
-                                if erps:
-                                    for erp in erps:
-                                        nome_erp_atual = erp.get("Nome", erp.get("ERP", "")).lower()
-                                        if query_busca.lower() in nome_erp_atual or nome_erp_atual in query_busca.lower():
-                                            nome_integracao = erp.get("Nome", erp.get("ERP", ""))
-                                            break
-                        except Exception as e:
-                            logger.debug(f"Erro ao extrair nome da integração: {e}")
-                        
-                        if nome_integracao:
-                            # Adicionar botão para ver informações completas
-                            blocks_resposta.append({
-                                "type": "actions",
-                                "elements": [{
-                                    "type": "button",
-                                    "text": {
-                                        "type": "plain_text",
-                                        "text": "📋 Ver Informações Completas"
-                                    },
-                                    "style": "primary",
-                                    "action_id": "ver_completo",
-                                    "value": json.dumps({
-                                        "nome_integracao": nome_integracao,
-                                        "query_original": user_query
-                                    })
-                                }]
-                            })
+                        # Adicionar botão para ver informações completas
+                        blocks_resposta.append({
+                            "type": "actions",
+                            "elements": [{
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "📋 Ver Informações Completas"
+                                },
+                                "style": "primary",
+                                "action_id": "ver_completo",
+                                "value": json.dumps({
+                                    "nome_integracao": nome_integracao,
+                                    "query_original": user_query
+                                })
+                            }]
+                        })
                     
                     response = slack_client.chat_postMessage(
                         channel=channel,
