@@ -54,3 +54,4 @@ Veja `README_JSON_NINA.md` para opções de automatização (cron, CI/CD, etc.)
 
 
 
+
