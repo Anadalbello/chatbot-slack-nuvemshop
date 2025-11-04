@@ -461,6 +461,94 @@ def formatar_json_para_contexto_gemini() -> str:
     
     return contexto
 
+def buscar_por_tipo_integracao(tipo: str) -> Optional[str]:
+    """
+    Busca integrações por tipo de integração (ex: "Tabela de Frete", "API", "Apenas Rastreio")
+    
+    Args:
+        tipo: Tipo de integração a buscar
+        
+    Returns:
+        String formatada com lista de integrações ou None se não encontrar
+    """
+    erps = carregar_integracoes_json()
+    
+    if not erps:
+        return None
+    
+    # Normalizar tipo de busca
+    tipo_busca = tipo.lower().strip()
+    
+    # Mapeamento de variações comuns
+    tipo_map = {
+        "tabela de frete": "tabela de frete",
+        "tabela frete": "tabela de frete",
+        "frete tabela": "tabela de frete",
+        "api": "api",
+        "apenas rastreio": "apenas rastreio",
+        "rastreio": "apenas rastreio",
+        "rastreamento": "apenas rastreio"
+    }
+    
+    # Normalizar tipo usando mapa
+    tipo_normalizado = tipo_map.get(tipo_busca, tipo_busca)
+    
+    logger.info(f"🔍 Buscando integrações do tipo: '{tipo}' (normalizado: '{tipo_normalizado}')")
+    
+    # Filtrar integrações por tipo
+    integracoes_filtradas = []
+    for erp in erps:
+        tipo_integracao = erp.get("Tipo_Integracao", "").strip()
+        
+        # Pular se não tiver tipo definido
+        if not tipo_integracao:
+            continue
+        
+        tipo_integracao_lower = tipo_integracao.lower()
+        
+        # Verificar match exato primeiro (mais preciso)
+        if tipo_normalizado == tipo_integracao_lower:
+            integracoes_filtradas.append(erp)
+            logger.debug(f"✅ Match exato: '{tipo_integracao}'")
+        # Verificar match parcial apenas se não foi match exato
+        elif tipo_normalizado in tipo_integracao_lower:
+            integracoes_filtradas.append(erp)
+            logger.debug(f"✅ Match parcial: '{tipo_integracao}' contém '{tipo_normalizado}'")
+        # Verificar se o tipo da integração está contido no tipo buscado (caso raro)
+        elif tipo_integracao_lower in tipo_normalizado and len(tipo_integracao_lower) > 3:
+            integracoes_filtradas.append(erp)
+            logger.debug(f"✅ Match reverso: '{tipo_normalizado}' contém '{tipo_integracao}'")
+    
+    if not integracoes_filtradas:
+        logger.info(f"❌ Nenhuma integração encontrada para o tipo '{tipo}'")
+        return None
+    
+    logger.info(f"✅ Encontradas {len(integracoes_filtradas)} integrações do tipo '{tipo}'")
+    
+    # Formatar resposta
+    resposta = f"📋 *Integrações do tipo: {tipo.title()}*\n\n"
+    
+    for i, erp in enumerate(integracoes_filtradas, 1):
+        nome = erp.get("Nome", "Nome não informado")
+        categoria = erp.get("Categoria", "")
+        
+        resposta += f"*{i}. {nome}*"
+        if categoria:
+            resposta += f" | 📂 {categoria}"
+        resposta += "\n"
+        
+        # Adicionar informação sobre complexidade se disponível
+        outras_info = erp.get("Outras_Informacoes", {})
+        complexidade = outras_info.get("Complexidade", "")
+        if complexidade:
+            resposta += f"   ⚙️ Complexidade: {complexidade}\n"
+        
+        resposta += "\n"
+    
+    resposta += f"\n📊 *Total: {len(integracoes_filtradas)} integrações*"
+    
+    return resposta
+
 def sugerir_integracoes_similares(query: str, limite: int = 3) -> List[str]:
     """
     Sugere integrações com nomes similares quando não encontra resultado exato

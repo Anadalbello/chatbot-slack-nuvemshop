@@ -482,6 +482,53 @@ def slack_events():
                 if user_intent == 'specific_integration':
                     logger.info(f"🔍 Intent: specific_integration - buscando: {user_query}")
                     
+                    # 🎯 VERIFICAR SE É BUSCA POR TIPO DE INTEGRAÇÃO
+                    query_lower = user_query.lower()
+                    # Padrões para detectar busca por tipo de integração
+                    tipos_integracao_patterns = {
+                        "tabela de frete": ["tabela de frete", "tabela frete", "por tabela", "tipo tabela"],
+                        "api": ["tipo api", "integração api", "via api", "por api"],
+                        "apenas rastreio": ["apenas rastreio", "tipo rastreio", "só rastreio"]
+                    }
+                    
+                    tipo_detectado = None
+                    # Verificar padrões mais específicos primeiro (mais longo primeiro)
+                    for tipo, patterns in tipos_integracao_patterns.items():
+                        # Ordenar padrões por tamanho (mais longo primeiro) para evitar falsos positivos
+                        patterns_sorted = sorted(patterns, key=len, reverse=True)
+                        for pattern in patterns_sorted:
+                            if pattern in query_lower:
+                                tipo_detectado = tipo
+                                logger.info(f"🔍 Tipo de integração detectado: '{tipo}' (padrão: '{pattern}')")
+                                break
+                        if tipo_detectado:
+                            break
+                    
+                    # Se detectou tipo de integração, buscar por tipo
+                    if tipo_detectado:
+                        from handlers.buscar_integracoes_json import buscar_por_tipo_integracao
+                        resultado_tipo = buscar_por_tipo_integracao(tipo_detectado)
+                        
+                        if resultado_tipo:
+                            resultado_mrkdwn = resultado_tipo.replace("**", "*")
+                            slack_client.chat_postMessage(
+                                channel=channel,
+                                thread_ts=thread_ts,
+                                text=f"Integrações do tipo: {tipo_detectado.title()}",
+                                blocks=[{
+                                    "type": "section",
+                                    "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
+                                }]
+                            )
+                            return jsonify({"ok": True})
+                        else:
+                            slack_client.chat_postMessage(
+                                channel=channel,
+                                thread_ts=thread_ts,
+                                text=f"❌ Nenhuma integração encontrada para o tipo '{tipo_detectado.title()}'."
+                            )
+                            return jsonify({"ok": True})
+                    
                     # 🧠 ESTILO NINA: Interpretar intenção com Gemini antes de buscar
                     logger.info("🧠 Interpretando intenção com Gemini...")
                     interpretacao = interpretar_intencao_e_extrair_erp(user_query)
@@ -599,6 +646,53 @@ def slack_events():
                 
                 # 5. SEARCH_KNOWLEDGE (ou fallback) - Buscar em todas as fontes
                 logger.info("🔍 Intent: search_knowledge - buscando em múltiplas fontes")
+                
+                # 🎯 VERIFICAR SE É BUSCA POR TIPO DE INTEGRAÇÃO
+                query_lower = user_query.lower()
+                # Padrões para detectar busca por tipo de integração
+                tipos_integracao_patterns = {
+                    "tabela de frete": ["tabela de frete", "tabela frete", "por tabela", "tipo tabela"],
+                    "api": ["tipo api", "integração api", "via api", "por api"],
+                    "apenas rastreio": ["apenas rastreio", "tipo rastreio", "só rastreio"]
+                }
+                
+                tipo_detectado = None
+                # Verificar padrões mais específicos primeiro (mais longo primeiro)
+                for tipo, patterns in tipos_integracao_patterns.items():
+                    # Ordenar padrões por tamanho (mais longo primeiro) para evitar falsos positivos
+                    patterns_sorted = sorted(patterns, key=len, reverse=True)
+                    for pattern in patterns_sorted:
+                        if pattern in query_lower:
+                            tipo_detectado = tipo
+                            logger.info(f"🔍 Tipo de integração detectado na busca geral: '{tipo}' (padrão: '{pattern}')")
+                            break
+                    if tipo_detectado:
+                        break
+                
+                # Se detectou tipo de integração, buscar por tipo
+                if tipo_detectado:
+                    from handlers.buscar_integracoes_json import buscar_por_tipo_integracao
+                    resultado_tipo = buscar_por_tipo_integracao(tipo_detectado)
+                    
+                    if resultado_tipo:
+                        resultado_mrkdwn = resultado_tipo.replace("**", "*")
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text=f"Integrações do tipo: {tipo_detectado.title()}",
+                            blocks=[{
+                                "type": "section",
+                                "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
+                            }]
+                        )
+                        return jsonify({"ok": True})
+                    else:
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text=f"❌ Nenhuma integração encontrada para o tipo '{tipo_detectado.title()}'."
+                        )
+                        return jsonify({"ok": True})
                 
                 # 🧠 ESTILO NINA: Interpretar intenção com Gemini antes de buscar
                 logger.info("🧠 Interpretando intenção com Gemini...")
