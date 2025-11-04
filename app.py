@@ -474,26 +474,38 @@ def slack_events():
                     
                     # Se detectou tipo de integração, buscar por tipo ao invés de listar todas
                     if tipo_detectado:
-                        from handlers.buscar_integracoes_json import buscar_por_tipo_integracao
-                        resultado_tipo = buscar_por_tipo_integracao(tipo_detectado)
-                        
-                        if resultado_tipo:
-                            resultado_mrkdwn = resultado_tipo.replace("**", "*")
+                        logger.info(f"🎯 Buscando integrações do tipo '{tipo_detectado}'")
+                        try:
+                            from handlers.buscar_integracoes_json import buscar_por_tipo_integracao
+                            resultado_tipo = buscar_por_tipo_integracao(tipo_detectado)
+                            
+                            if resultado_tipo:
+                                logger.info(f"✅ Encontradas integrações do tipo '{tipo_detectado}'")
+                                resultado_mrkdwn = resultado_tipo.replace("**", "*")
+                                slack_client.chat_postMessage(
+                                    channel=channel,
+                                    thread_ts=thread_ts,
+                                    text=f"Integrações do tipo: {tipo_detectado.title()}",
+                                    blocks=[{
+                                        "type": "section",
+                                        "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
+                                    }]
+                                )
+                                return jsonify({"ok": True})
+                            else:
+                                logger.warning(f"⚠️ Nenhuma integração encontrada para o tipo '{tipo_detectado}'")
+                                slack_client.chat_postMessage(
+                                    channel=channel,
+                                    thread_ts=thread_ts,
+                                    text=f"❌ Nenhuma integração encontrada para o tipo '{tipo_detectado.title()}'."
+                                )
+                                return jsonify({"ok": True})
+                        except Exception as e:
+                            logger.error(f"❌ Erro ao buscar por tipo '{tipo_detectado}': {e}", exc_info=True)
                             slack_client.chat_postMessage(
                                 channel=channel,
                                 thread_ts=thread_ts,
-                                text=f"Integrações do tipo: {tipo_detectado.title()}",
-                                blocks=[{
-                                    "type": "section",
-                                    "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
-                                }]
-                            )
-                            return jsonify({"ok": True})
-                        else:
-                            slack_client.chat_postMessage(
-                                channel=channel,
-                                thread_ts=thread_ts,
-                                text=f"❌ Nenhuma integração encontrada para o tipo '{tipo_detectado.title()}'."
+                                text=f"❌ Erro ao buscar integrações do tipo '{tipo_detectado.title()}'. Tente novamente."
                             )
                             return jsonify({"ok": True})
                     
@@ -550,26 +562,38 @@ def slack_events():
                     
                     # Se detectou tipo de integração, buscar por tipo
                     if tipo_detectado:
-                        from handlers.buscar_integracoes_json import buscar_por_tipo_integracao
-                        resultado_tipo = buscar_por_tipo_integracao(tipo_detectado)
-                        
-                        if resultado_tipo:
-                            resultado_mrkdwn = resultado_tipo.replace("**", "*")
+                        logger.info(f"🎯 Buscando integrações do tipo '{tipo_detectado}' (specific_integration)")
+                        try:
+                            from handlers.buscar_integracoes_json import buscar_por_tipo_integracao
+                            resultado_tipo = buscar_por_tipo_integracao(tipo_detectado)
+                            
+                            if resultado_tipo:
+                                logger.info(f"✅ Encontradas integrações do tipo '{tipo_detectado}'")
+                                resultado_mrkdwn = resultado_tipo.replace("**", "*")
+                                slack_client.chat_postMessage(
+                                    channel=channel,
+                                    thread_ts=thread_ts,
+                                    text=f"Integrações do tipo: {tipo_detectado.title()}",
+                                    blocks=[{
+                                        "type": "section",
+                                        "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
+                                    }]
+                                )
+                                return jsonify({"ok": True})
+                            else:
+                                logger.warning(f"⚠️ Nenhuma integração encontrada para o tipo '{tipo_detectado}'")
+                                slack_client.chat_postMessage(
+                                    channel=channel,
+                                    thread_ts=thread_ts,
+                                    text=f"❌ Nenhuma integração encontrada para o tipo '{tipo_detectado.title()}'."
+                                )
+                                return jsonify({"ok": True})
+                        except Exception as e:
+                            logger.error(f"❌ Erro ao buscar por tipo '{tipo_detectado}' (specific_integration): {e}", exc_info=True)
                             slack_client.chat_postMessage(
                                 channel=channel,
                                 thread_ts=thread_ts,
-                                text=f"Integrações do tipo: {tipo_detectado.title()}",
-                                blocks=[{
-                                    "type": "section",
-                                    "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
-                                }]
-                            )
-                            return jsonify({"ok": True})
-                        else:
-                            slack_client.chat_postMessage(
-                                channel=channel,
-                                thread_ts=thread_ts,
-                                text=f"❌ Nenhuma integração encontrada para o tipo '{tipo_detectado.title()}'."
+                                text=f"❌ Erro ao buscar integrações do tipo '{tipo_detectado.title()}'. Tente novamente."
                             )
                             return jsonify({"ok": True})
                     
