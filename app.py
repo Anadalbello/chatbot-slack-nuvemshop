@@ -534,11 +534,10 @@ def slack_events():
                             # Se a resposta for focada em uma integração específica, adicionar botão para ver informações completas
                             nome_integracao = interpretacao.get('nome_erp')
                             # Mostrar botão sempre que temos uma integração específica identificada
-                            # e a resposta não foi detalhada (ou seja, foi focada em uma parte específica)
+                            # Independentemente de ser detalhada ou não, sempre permitir ver informações completas
                             mostrar_botao_completo = (
                                 nome_integracao and 
-                                resultado_json and 
-                                resposta_esperada != "detalhada"
+                                resultado_json
                             )
                             
                             if mostrar_botao_completo:
@@ -714,11 +713,10 @@ def slack_events():
                         logger.debug(f"Erro ao extrair nome da integração: {e}")
                     
                     # Mostrar botão sempre que temos uma integração específica identificada
-                    # e a resposta não foi detalhada (ou seja, foi focada em uma parte específica)
+                    # Independentemente de ser detalhada ou não, sempre permitir ver informações completas
                     mostrar_botao_completo = (
                         nome_integracao and 
-                        resultado_json and 
-                        resposta_esperada != "detalhada"
+                        resultado_json
                     )
                     
                     if mostrar_botao_completo:

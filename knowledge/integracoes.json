@@ -1257,9 +1257,14 @@
     "Nome": "Omie",
     "Tipo_Integracao": "API",
     "Funcionalidades": {
-      "Calculo_de_Frete": "Via API (✔️)",
-      "Multiplos_Volumes_Pedidos": "Sim (✔️)",
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Seguro_Incluido_Calculo_Frete": "Sim (seguro fixo pela API) (✔️)",
+      "Seguro_Configuravel_Calculo_Frete": "Sim (✔️)",
+      "Nome_Transportador_Checkout_Personalizavel": "N/A",
+      "Calcula_Peso_Cubado": "Sim (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
       "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
       "Multi_CD": "Não (❌)",
       "Impressao_Etiqueta": "Sim (na plataforma) (✔️)",
       "Atualiza_Status_Rastreio": "Sim (✔️)"
@@ -1269,9 +1274,11 @@
       "Responsavel_Configuracao": "Mandaê / Parceiro",
       "Responsavel_Testes": "Mandaê",
       "Desenvolvedor_Integracao": "Parceiro",
-      "Limitacoes_Ausencia": "Envios somente com nota fiscal. Não comporta Multi-CD.",
+      "Custos_Envolvidos": "Sem custos",
+      "Critério_Valor_Declarado": "N/A",
+      "Limitacoes_Ausencia": "Envios somente com nota fiscal. Não comporta Multi-CD. Ao habilitar o seguro o mesmo será habilitado tanto para o frete quanto para importação de pedidos.",
       "Site": "https://www.omie.com.br/",
-      "Manual": "Possui manual exclusivo."
+      "Manual": "Integração Mandaê"
     },
     "Suporte_Contato": {
       "Email": "N/A",
