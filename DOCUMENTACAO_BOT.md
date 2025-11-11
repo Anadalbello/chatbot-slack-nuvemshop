@@ -15,7 +15,7 @@
 
 ## 🎯 Visão Geral
 
-O **Chatbot de Integrações** é um assistente virtual desenvolvido para a Nuvemshop que ajuda usuários a encontrar informações sobre integrações disponíveis na plataforma. O bot opera dentro do Slack e utiliza inteligência artificial (IA) para interpretar perguntas, buscar informações em múltiplas fontes de conhecimento e fornecer respostas precisas e contextualizadas.
+O **Chatbot de Integrações** é um assistente virtual desenvolvido para a Nuvemshop que ajuda usuários a encontrar informações sobre integrações disponíveis na plataforma. O bot opera dentro do Slack e utiliza inteligência artificial (IA) para interpretar perguntas, buscar informações em uma base de conhecimento JSON e fornecer respostas precisas e contextualizadas.
 
 ### Objetivos Principais
 
@@ -59,15 +59,14 @@ O **Chatbot de Integrações** é um assistente virtual desenvolvido para a Nuve
   - Modelo utilizado: `gemini-2.0-flash`
   - Interpretação de intenções do usuário
   - Geração de respostas contextualizadas
-  - Resumo de conteúdo de múltiplas fontes
+   - Resumo de conteúdo quando necessário
 
 #### Processamento de Dados
 - **requests 2.32.4** - Cliente HTTP para APIs externas
-  - Integração com Confluence, Zendesk, Google Sheets
-  - Busca em múltiplas fontes de conhecimento
+  - Utilizado para sincronização de dados do Google Sheets (quando necessário)
 
 - **beautifulsoup4 4.13.4** - Parsing de HTML
-  - Extração de conteúdo de páginas web
+  - Extração de conteúdo de páginas web (se necessário no futuro)
   - Limpeza e formatação de texto
 
 #### Autenticação e Segurança
@@ -82,18 +81,11 @@ O **Chatbot de Integrações** é um assistente virtual desenvolvido para a Nuve
 
 ### Ferramentas e Serviços Externos
 
-#### Plataformas de Conhecimento
-- **Confluence (Atlassian)** - Base de conhecimento corporativa
-  - Busca de artigos e documentação
-  - Integração via API REST
-
-- **Zendesk Help Center** - Centro de ajuda
-  - Busca de artigos de suporte
-  - API para consulta de conteúdo
-
-- **Google Sheets** - Planilha de integrações
-  - Fonte de dados sobre integrações disponíveis
-  - Sincronização para JSON local
+#### Fonte de Dados
+- **Google Sheets** - Planilha de integrações (fonte primária de dados)
+  - Utilizado para manter dados atualizados
+  - Sincronização periódica para JSON local
+  - Não acessado diretamente em produção (apenas para sincronização)
 
 #### Plataforma de Deploy
 - **Render** - Hospedagem em nuvem
@@ -132,15 +124,15 @@ O sistema segue uma arquitetura modular e extensível, inspirada no padrão "Nin
 ┌─────────────────────────────────────────┐
 │      Core (Núcleo do Sistema)          │
 │  - Recepcionista: Análise de intenções  │
-│  - KnowledgeManager: Gerenciamento de    │
-│    múltiplas fontes                     │
-│  - FonteValidator: Validação de fontes  │
+│  - KnowledgeManager: Gerenciamento de   │
+│    fonte JSON                           │
+│  - FonteValidator: Validação de dados  │
 └──────────────┬──────────────────────────┘
                │
                ▼
 ┌─────────────────────────────────────────┐
 │      Handlers (Processadores)           │
-│  - Busca em JSON, Sheets, Confluence   │
+│  - Busca em JSON local                  │
 │  - Cache de respostas                   │
 │  - Interpretação com Gemini             │
 │  - Resumo de conteúdo                   │
@@ -148,11 +140,9 @@ O sistema segue uma arquitetura modular e extensível, inspirada no padrão "Nin
                │
                ▼
 ┌─────────────────────────────────────────┐
-│      Fontes de Conhecimento             │
+│      Fonte de Conhecimento               │
 │  - integracoes.json (JSON estático)     │
-│  - Google Sheets                        │
-│  - Confluence                           │
-│  - Zendesk                              │
+│    Dados locais, rápidos e confiáveis   │
 └─────────────────────────────────────────┘
 ```
 
@@ -168,15 +158,15 @@ O sistema segue uma arquitetura modular e extensível, inspirada no padrão "Nin
   - Solicitar esclarecimentos quando necessário
 
 #### 2. **KnowledgeManager** (`core/knowledge_manager.py`)
-- **Função**: Gerencia múltiplas fontes de conhecimento de forma unificada
+- **Função**: Gerencia a fonte de conhecimento JSON de forma unificada
 - **Características**:
-  - Sistema de prioridades para fontes
-  - Busca paralela em múltiplas fontes
-  - Agregação e validação de resultados
+  - Busca otimizada em arquivo JSON local
+  - Validação e formatação de resultados
   - Configuração via JSON (`sources_config.json`)
+  - Arquitetura preparada para extensão futura (se necessário)
 
 #### 3. **FonteValidator** (`core/fonte_validator.py`)
-- **Função**: Valida e filtra resultados das fontes
+- **Função**: Valida e filtra resultados da busca
 - **Responsabilidades**:
   - Verificar relevância dos resultados
   - Filtrar conteúdo duplicado
@@ -185,7 +175,7 @@ O sistema segue uma arquitetura modular e extensível, inspirada no padrão "Nin
 #### 4. **Handlers** (`handlers/`)
 Módulos especializados para diferentes funcionalidades:
 
-- **`buscar_integracoes_json.py`**: Busca em arquivo JSON local
+- **`buscar_integracoes_json.py`**: Busca em arquivo JSON local (fonte principal)
 - **`gemini_handler.py`**: Interface com Google Gemini
 - **`cache_respostas.py`**: Sistema de cache para melhorar performance
 - **`contexto_thread.py`**: Análise de histórico de conversas
@@ -220,13 +210,13 @@ Módulos especializados para diferentes funcionalidades:
 2. **Implementação Core**
    - Desenvolvimento do handler principal (`app.py`)
    - Integração com Google Gemini
-   - Sistema básico de busca em fontes
+   - Sistema básico de busca em JSON
 
 ### Fase 3: Evolução e Refatoração
 
 1. **Implementação do Sistema "Nina"**
    - Criação do módulo `core/` com arquitetura modular
-   - Implementação do `KnowledgeManager` para múltiplas fontes
+   - Implementação do `KnowledgeManager` para gerenciar fonte JSON
    - Desenvolvimento do `Recepcionista` para análise de intenções
 
 2. **Otimizações**
@@ -285,24 +275,19 @@ O sistema utiliza Google Gemini para:
 - Reconstruir contexto de conversas anteriores
 - Solicitar esclarecimentos quando necessário
 
-### 3. Múltiplas Fontes de Conhecimento
+### 3. Base de Conhecimento JSON
 
-O bot busca informações em:
-1. **JSON Estático** (`knowledge/integracoes.json`) - Prioridade 1
-   - Dados locais, rápidos e confiáveis
-   - Sincronizado periodicamente do Google Sheets
+O bot utiliza uma base de conhecimento estática em formato JSON:
 
-2. **Google Sheets** - Prioridade 2 (opcional)
-   - Fonte dinâmica de dados
-   - Pode ser desabilitada em produção
-
-3. **Confluence** - Prioridade 3 (opcional)
-   - Base de conhecimento corporativa
-   - Busca em artigos e documentação
-
-4. **Zendesk** - Prioridade 4 (opcional)
-   - Centro de ajuda
-   - Artigos de suporte
+- **JSON Estático** (`knowledge/integracoes.json`)
+  - Dados locais, rápidos e confiáveis
+  - Acesso instantâneo sem dependência de APIs externas
+  - Sincronizado periodicamente do Google Sheets
+  - Contém informações completas sobre todas as integrações:
+    - Nome, categoria, tipo de integração
+    - Funcionalidades disponíveis
+    - Informações de contato e suporte
+    - Detalhes técnicos e configurações
 
 ### 4. Sistema de Cache
 
@@ -355,8 +340,7 @@ chatbot_gemini/
 │   └── fonte_validator.py          # Validador de fontes
 │
 ├── handlers/                       # Processadores especializados
-│   ├── buscar_integracoes_json.py  # Busca em JSON local
-│   ├── buscar_integracoes_sheets.py # Busca em Google Sheets
+│   ├── buscar_integracoes_json.py  # Busca em JSON local (principal)
 │   ├── gemini_handler.py           # Interface com Gemini
 │   ├── cache_respostas.py          # Sistema de cache
 │   ├── contexto_thread.py          # Análise de contexto
@@ -364,9 +348,7 @@ chatbot_gemini/
 │   ├── resumir_conteudo_gemini.py  # Resumo de conteúdo
 │   ├── menu_topicos.py             # Menu interativo
 │   ├── tracking_perguntas.py       # Rastreamento de perguntas
-│   ├── jira.py                     # Integração com Jira
-│   ├── zendesk_api.py              # Integração com Zendesk
-│   └── ...                         # Outros handlers
+│   └── ...                         # Outros handlers auxiliares
 │
 ├── knowledge/                      # Base de conhecimento
 │   ├── integracoes.json            # Dados de integrações (JSON)
@@ -410,14 +392,12 @@ chatbot_gemini/
    - search_knowledge → Busca geral
    │
    ▼
-7. KnowledgeManager busca em fontes (por prioridade):
-   - JSON estático (prioridade 1)
-   - Google Sheets (prioridade 2, se habilitado)
-   - Confluence (prioridade 3, se habilitado)
-   - Zendesk (prioridade 4, se habilitado)
+7. Sistema busca no JSON estático:
+   - Acesso direto ao arquivo `knowledge/integracoes.json`
+   - Busca otimizada por nome, tipo ou funcionalidade
    │
    ▼
-8. FonteValidator valida e filtra resultados
+8. Sistema valida e formata resultados
    │
    ▼
 9. Sistema formata resposta:
@@ -504,14 +484,8 @@ services:
 - `SLACK_SIGNING_SECRET` - Secret para validar requisições
 - `GEMINI_API_KEY` - Chave da API do Google Gemini
 
-#### Opcionais (dependendo das fontes habilitadas):
-- `ATLASSIAN_EMAIL` - Email para Confluence
-- `ATLASSIAN_TOKEN` - Token do Atlassian
-- `ATLASSIAN_BASE_URL` - URL base do Atlassian
-- `ZENDESK_EMAIL` - Email do Zendesk
-- `ZENDESK_API_TOKEN` - Token do Zendesk
-- `ZENDESK_SUBDOMAIN` - Subdomínio do Zendesk
-- `GOOGLE_SHEETS_CREDENTIALS` - Credenciais do Google Sheets
+#### Opcionais (apenas para sincronização de dados):
+- `GOOGLE_SHEETS_CREDENTIALS` - Credenciais do Google Sheets (usado apenas no script de sincronização, não em produção)
 
 ### Processo de Deploy
 
@@ -533,17 +507,22 @@ services:
 
 ### Sincronização de Dados
 
-O arquivo `knowledge/integracoes.json` é sincronizado periodicamente do Google Sheets usando o script:
+O arquivo `knowledge/integracoes.json` é a única fonte de dados utilizada em produção. Ele é sincronizado periodicamente do Google Sheets usando o script:
 
 ```bash
 python scripts/sincronizar_sheets_para_json.py
 ```
 
 Este script:
-- Conecta ao Google Sheets
-- Baixa dados atualizados
-- Converte para formato JSON
+- Conecta ao Google Sheets (fonte primária de dados)
+- Baixa dados atualizados de integrações
+- Converte para formato JSON otimizado
 - Salva em `knowledge/integracoes.json`
+
+**Importante**: O Google Sheets é usado apenas como fonte de dados para sincronização. Em produção, o bot utiliza exclusivamente o arquivo JSON local, garantindo:
+- ✅ Performance: acesso instantâneo sem chamadas de API
+- ✅ Confiabilidade: funciona mesmo se o Google Sheets estiver offline
+- ✅ Consistência: dados sincronizados uma vez, usados sempre
 
 ---
 
@@ -593,15 +572,15 @@ O sistema gera logs detalhados para:
 O **Chatbot de Integrações** é uma solução completa e robusta que combina:
 
 - ✅ **Inteligência Artificial** (Google Gemini) para interpretação natural
-- ✅ **Múltiplas Fontes de Conhecimento** para informações abrangentes
+- ✅ **Base de Conhecimento JSON** para informações rápidas e confiáveis
 - ✅ **Arquitetura Modular** para fácil manutenção e extensão
-- ✅ **Performance Otimizada** com cache e busca eficiente
+- ✅ **Performance Otimizada** com cache e busca eficiente em JSON local
 - ✅ **Experiência do Usuário** com interface interativa no Slack
 
 O sistema foi desenvolvido com foco em:
-- **Confiabilidade**: Sistema anti-duplicação, tratamento de erros robusto
-- **Performance**: Cache, busca otimizada, JSON estático
-- **Extensibilidade**: Arquitetura modular, fácil adicionar novas fontes
+- **Confiabilidade**: Sistema anti-duplicação, tratamento de erros robusto, dados locais
+- **Performance**: Cache, busca otimizada em JSON estático, sem dependência de APIs externas
+- **Simplicidade**: Fonte única de dados (JSON), fácil manutenção e atualização
 - **Usabilidade**: Interface intuitiva, respostas claras, contexto mantido
 
 ---
