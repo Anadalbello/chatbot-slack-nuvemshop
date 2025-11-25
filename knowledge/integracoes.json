@@ -691,30 +691,32 @@
     "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Sim (Via API) (✔️)",
-      "Multiplos_Volumes_Pedidos": "Não (❌)",
-      "Configuracao_Seguro_Pedidos": "Não (❌)",
-      "Multi_CD": "Não (❌)",
-      "Impressao_Etiqueta": "Não (❌)",
-      "Atualiza_Status_Rastreio": "Não (❌)",
       "Seguro_Incluido_Calculo_Frete": "Sim (✔️)",
       "Seguro_Configuravel_Calculo_Frete": "Não (padrão com seguro) (❌)",
       "Nome_Transportador_Checkout_Personalizavel": "Não (❌)",
       "Calcula_Peso_Cubado": "Sim (✔️)",
-      "Valor_Minimo_Seguro_Configuravel": "Não (❌)"
+      "Integracao_Pedidos": "Sim (API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Devolucao_Codigo_Rastreamento": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
     },
     "Outras_Informacoes": {
       "Complexidade": "Média",
       "Responsavel_Configuracao": "Mandaê",
       "Responsavel_Testes": "Mandaê",
-      "Desenvolvedor_Integracao": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "$16 dólares mensais para utilização do aplicativo da Mandaê na plataforma e $20 dólares mensais do cálculo de frete por terceiros. Necessário possuir plano Grow ou superior.",
+      "Critério_Valor_Declarado": "Valor dos produtos.",
       "Limitacoes_Ausencia": "Não tem integração de múltiplos volumes. Importação de pedidos precisa ser feita um a um na plataforma. A importação de pedidos só funciona se o cálculo de frete também for feito na plataforma.",
       "Site": "https://www.shopify.com/br",
-      "Manual": "Não possui",
-      "Custos_Envolvidos": "$16 dólares mensais para utilização do aplicativo da Mandaê na plataforma.",
-      "Critério_Valor_Declarado": "Valor dos produtos."
+      "Manual": "Não possui"
     },
     "Suporte_Contato": {
-      "Email": "N/A",
+      "Email": "E-mail",
       "Telefone": "N/A"
     }
   },
