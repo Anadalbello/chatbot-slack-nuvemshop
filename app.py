@@ -1214,7 +1214,19 @@ def slack_actions():
                     text="⏸️ *Bot pausado nesta thread*\n\n"
                          "Agora eu não vou responder automaticamente às mensagens aqui.\n\n"
                          "💡 *Nota:* Se alguém me mencionar explicitamente (@Tina), eu ainda vou responder mesmo com o bot pausado.\n\n"
-                         "Use o botão \"▶️ Retomar Bot\" quando quiser que eu volte a responder automaticamente."
+                         "Use o botão \"▶️ Retomar Bot\" quando quiser que eu volte a responder automaticamente.",
+                    blocks=[
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "⏸️ *Bot pausado nesta thread*\n\n"
+                                        "Agora eu não vou responder automaticamente às mensagens aqui.\n\n"
+                                        "💡 *Nota:* Se alguém me mencionar explicitamente (@Tina), eu ainda vou responder mesmo com o bot pausado.\n\n"
+                                        "Use o botão \"▶️ Retomar Bot\" quando quiser que eu volte a responder automaticamente."
+                            }
+                        }
+                    ] + criar_botoes_interacao("", {}, channel=channel_id, thread_ts=thread_id)
                 )
             else:
                 slack_client.chat_postMessage(
@@ -1234,7 +1246,17 @@ def slack_actions():
                     channel=channel,
                     thread_ts=thread_ts,
                     text="▶️ *Bot retomado!*\n\n"
-                         "Agora eu voltarei a responder automaticamente às mensagens nesta thread. 😊"
+                         "Agora eu voltarei a responder automaticamente às mensagens nesta thread. 😊",
+                    blocks=[
+                        {
+                            "type": "section",
+                            "text": {
+                                "type": "mrkdwn",
+                                "text": "▶️ *Bot retomado!*\n\n"
+                                        "Agora eu voltarei a responder automaticamente às mensagens nesta thread. 😊"
+                            }
+                        }
+                    ] + criar_botoes_interacao("", {}, channel=channel_id, thread_ts=thread_id)
                 )
             else:
                 slack_client.chat_postMessage(
