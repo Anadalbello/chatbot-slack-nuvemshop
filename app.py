@@ -20,6 +20,7 @@ from handlers.menu_topicos import criar_menu_boas_vindas
 from handlers.cache_respostas import buscar_cache, salvar_cache, obter_estatisticas_cache
 from handlers.tracking_perguntas import registrar_pergunta_sem_resposta, obter_estatisticas as obter_stats_tracking
 from handlers.contexto_thread import buscar_historico_thread, extrair_referencias_contexto, bot_respondeu_na_thread
+from handlers.pausa_thread import thread_esta_pausada, pausar_thread, retomar_thread
 # NOVA ESTRUTURA ESTILO NINA
 from core import KnowledgeManager, Recepcionista, FonteValidator
 # from handlers.filtrar_links_relevantes import filtrar_links_relevantes, gerar_resposta_sem_resultados
@@ -195,53 +196,93 @@ def eh_resultado_util(resultado):
     logger.info("Resultado considerado útil")
     return True
 
-def criar_botoes_interacao(pergunta_limpa, resultados_encontrados):
+def criar_botoes_interacao(pergunta_limpa, resultados_encontrados, channel=None, thread_ts=None):
     """Cria os botões para interação com o usuário"""
     
-    return [
+    # Verificar se thread está pausada para mostrar botão correto
+    botao_pausa = None
+    if channel and thread_ts:
+        if thread_esta_pausada(channel, thread_ts):
+            # Thread está pausada - mostrar botão "Retomar"
+            botao_pausa = {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "▶️ Retomar Bot"
+                },
+                "value": json.dumps({
+                    "action": "retomar_bot",
+                    "channel": channel,
+                    "thread_ts": thread_ts
+                }),
+                "action_id": "retomar_bot",
+                "style": "primary"
+            }
+        else:
+            # Thread não está pausada - mostrar botão "Pausar"
+            botao_pausa = {
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": "⏸️ Pausar Bot"
+                },
+                "value": json.dumps({
+                    "action": "pausar_bot",
+                    "channel": channel,
+                    "thread_ts": thread_ts
+                }),
+                "action_id": "pausar_bot",
+                "style": "danger"
+            }
+    
+    elementos = [
         {
-            "type": "actions",
-            "elements": [
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "✅ Sim, me ajudou!"
-                    },
-                    "value": json.dumps({
-                        "action": "resolvido",
-                        "pergunta": pergunta_limpa
-                    }),
-                    "action_id": "resolvido",
-                    "style": "primary"
-                },
-                {
-                    "type": "button", 
-                    "text": {
-                        "type": "plain_text",
-                        "text": "📋 Ver portal completo"
-                    },
-                    "value": json.dumps({
-                        "action": "portal",
-                        "pergunta": pergunta_limpa
-                    }),
-                    "action_id": "portal"
-                },
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "text": "🎫 Abrir chamado"
-                    },
-                    "value": json.dumps({
-                        "action": "chamado",
-                        "pergunta": pergunta_limpa
-                    }),
-                    "action_id": "chamado"
-                }
-            ]
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "text": "✅ Sim, me ajudou!"
+            },
+            "value": json.dumps({
+                "action": "resolvido",
+                "pergunta": pergunta_limpa
+            }),
+            "action_id": "resolvido",
+            "style": "primary"
+        },
+        {
+            "type": "button", 
+            "text": {
+                "type": "plain_text",
+                "text": "📋 Ver portal completo"
+            },
+            "value": json.dumps({
+                "action": "portal",
+                "pergunta": pergunta_limpa
+            }),
+            "action_id": "portal"
+        },
+        {
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "text": "🎫 Abrir chamado"
+            },
+            "value": json.dumps({
+                "action": "chamado",
+                "pergunta": pergunta_limpa
+            }),
+            "action_id": "chamado"
         }
     ]
+    
+    # Adicionar botão de pausa se disponível
+    if botao_pausa:
+        elementos.append(botao_pausa)
+    
+    return [{
+        "type": "actions",
+        "elements": elementos
+    }]
 
 def formatar_resultados_encontrados(resultados_json, pergunta_limpa, intencao="outro", resposta_esperada="detalhada", contexto_thread=None):
     """
@@ -341,6 +382,12 @@ def slack_events():
                 channel = event.get("channel")
                 thread_ts = event.get("thread_ts")
                 if bot_respondeu_na_thread(slack_client, channel, thread_ts):
+                    # 🛡️ VERIFICAR SE THREAD ESTÁ PAUSADA
+                    # Mas sempre processar se for menção explícita (app_mention)
+                    if event_type != "app_mention" and thread_esta_pausada(channel, thread_ts):
+                        logger.info("⏸️ Thread está pausada - ignorando mensagem (menção explícita sempre responde)")
+                        return jsonify({"ok": True})
+                    
                     logger.info("📬 Mensagem em thread onde bot já participou - processando sem mention")
                     deve_processar = True
                 else:
@@ -692,7 +739,7 @@ def slack_events():
                                         "text": "💬 *Essas informações foram úteis?*\n"
                                                 "Se precisar de mais detalhes ou tiver outras dúvidas, estou aqui! 😊"
                                     }
-                                }] + criar_botoes_interacao(user_query, {'integracoes_json': resultado_json})
+                                }] + criar_botoes_interacao(user_query, {'integracoes_json': resultado_json}, channel=channel, thread_ts=thread_ts)
                             )
                             return jsonify({"ok": True})
                         else:
@@ -800,7 +847,7 @@ def slack_events():
                         blocks=[{
                             "type": "section",
                             "text": {"type": "mrkdwn", "text": mensagem_sem_fonte}
-                        }] + criar_botoes_interacao(user_query, {})
+                        }] + criar_botoes_interacao(user_query, {}, channel=channel, thread_ts=thread_ts)
                     )
                     return jsonify({"ok": True})
                 
@@ -919,7 +966,7 @@ def slack_events():
                                 "text": "💬 *Essas informações foram úteis?*\n"
                                         "Se precisar de mais detalhes ou tiver outras dúvidas, estou aqui! 😊"
                             }
-                        }] + criar_botoes_interacao(user_query, resultados_encontrados)
+                        }] + criar_botoes_interacao(user_query, resultados_encontrados, channel=channel, thread_ts=thread_ts)
                     )
                     return jsonify({"ok": True})
                 
@@ -1153,6 +1200,48 @@ def slack_actions():
                 text="Menu Principal",
                 blocks=criar_menu_boas_vindas()["blocks"]
             )
+            
+        elif acao == "pausar_bot":
+            logger.info("⏸️ Usuário pausou o bot na thread")
+            
+            channel_id = action_data.get("channel") or channel
+            thread_id = action_data.get("thread_ts") or thread_ts
+            
+            if pausar_thread(channel_id, thread_id):
+                slack_client.chat_postMessage(
+                    channel=channel,
+                    thread_ts=thread_ts,
+                    text="⏸️ *Bot pausado nesta thread*\n\n"
+                         "Agora eu não vou responder automaticamente às mensagens aqui.\n\n"
+                         "💡 *Nota:* Se alguém me mencionar explicitamente (@Tina), eu ainda vou responder mesmo com o bot pausado.\n\n"
+                         "Use o botão \"▶️ Retomar Bot\" quando quiser que eu volte a responder automaticamente."
+                )
+            else:
+                slack_client.chat_postMessage(
+                    channel=channel,
+                    thread_ts=thread_ts,
+                    text="😅 Ops! Não consegui pausar o bot. Tente novamente."
+                )
+
+        elif acao == "retomar_bot":
+            logger.info("▶️ Usuário retomou o bot na thread")
+            
+            channel_id = action_data.get("channel") or channel
+            thread_id = action_data.get("thread_ts") or thread_ts
+            
+            if retomar_thread(channel_id, thread_id):
+                slack_client.chat_postMessage(
+                    channel=channel,
+                    thread_ts=thread_ts,
+                    text="▶️ *Bot retomado!*\n\n"
+                         "Agora eu voltarei a responder automaticamente às mensagens nesta thread. 😊"
+                )
+            else:
+                slack_client.chat_postMessage(
+                    channel=channel,
+                    thread_ts=thread_ts,
+                    text="😅 Ops! Não consegui retomar o bot. Tente novamente."
+                )
             
         return jsonify({"ok": True})
         
