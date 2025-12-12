@@ -1226,7 +1226,7 @@ def slack_actions():
                                         "Use o botão \"▶️ Retomar Bot\" quando quiser que eu volte a responder automaticamente."
                             }
                         }
-                    ] + criar_botoes_interacao("", {}, channel=channel_id, thread_ts=thread_id)
+                    ] + criar_botoes_interacao("", {}, channel=channel, thread_ts=thread_ts)
                 )
             else:
                 slack_client.chat_postMessage(
@@ -1256,7 +1256,7 @@ def slack_actions():
                                         "Agora eu voltarei a responder automaticamente às mensagens nesta thread. 😊"
                             }
                         }
-                    ] + criar_botoes_interacao("", {}, channel=channel_id, thread_ts=thread_id)
+                    ] + criar_botoes_interacao("", {}, channel=channel, thread_ts=thread_ts)
                 )
             else:
                 slack_client.chat_postMessage(
