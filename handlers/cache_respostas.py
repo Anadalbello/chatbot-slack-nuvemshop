@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 # Cache em memória (persiste enquanto o servidor está rodando)
 _cache_respostas = {}
 _cache_max_size = 100  # Máximo de itens no cache
-_cache_ttl = 1800  # 30 minutos em segundos
+_cache_ttl = 120  # 2 minutos em segundos - reduzido para priorizar novas buscas
+_cache_similar_enabled = False  # Desabilitado - sempre buscar novas respostas
 
 
 def _normalizar_pergunta(pergunta: str) -> str:
@@ -88,11 +89,13 @@ def buscar_cache(pergunta: str) -> Optional[str]:
                 del _cache_respostas[hash_pergunta]
         
         # Tentar busca similar (para perguntas reescritas mas com mesmo sentido)
-        cache_similar = _encontrar_cache_similar(pergunta)
-        if cache_similar:
-            resposta, similaridade = cache_similar
-            logger.info(f"✅ Cache HIT (similar {similaridade:.0%}): '{pergunta[:50]}...'")
-            return resposta
+        # DESABILITADO: Sempre buscar novas respostas para garantir informações atualizadas
+        if _cache_similar_enabled:
+            cache_similar = _encontrar_cache_similar(pergunta)
+            if cache_similar:
+                resposta, similaridade = cache_similar
+                logger.info(f"✅ Cache HIT (similar {similaridade:.0%}): '{pergunta[:50]}...'")
+                return resposta
         
         logger.debug(f"❌ Cache MISS: '{pergunta[:50]}...'")
         return None
