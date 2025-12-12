@@ -140,8 +140,8 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
     logger.debug(f"📝 Palavras extraídas da query: {palavras_query}")
     logger.debug(f"📝 Query limpa: '{nome_limpo_query}'")
     
-    # Buscar por match: verificar se nome do ERP está na query OU se palavras-chave estão no nome do ERP
-    matches = []
+    # Buscar por match com sistema de scoring para priorizar matches melhores
+    matches_com_score = []
     for erp in erps:
         nome_erp_atual = erp.get("Nome", erp.get("ERP", "")).lower()
         # Busca parcial: remove parênteses E pontuação para busca mais flexível
@@ -150,46 +150,59 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         palavras_nome_raw = nome_limpo.split()
         palavras_nome = set([p.strip('?.,!;:') for p in palavras_nome_raw])
         
-        # ESTRATÉGIA 1: Verificar se o nome completo do ERP está contido na query (maior prioridade)
+        score = 0
+        
+        # ESTRATÉGIA 1: Verificar se o nome completo do ERP está contido na query (maior prioridade - score 100)
         # Ex: query="dados de contato da bling" -> nome="bling" deve ser encontrado
         if nome_limpo in nome_limpo_query:
-            matches.append(erp)
-            logger.debug(f"✅ Match por nome completo: '{nome_limpo}' encontrado na query")
-            continue
+            score = 100
+            logger.debug(f"✅ Match por nome completo: '{nome_limpo}' encontrado na query (score: {score})")
+        # ESTRATÉGIA 1.5: Verificar se o nome sem pontuação está contido na query ou vice-versa (score 95)
+        elif nome_limpo.strip() and (nome_limpo.strip() in nome_limpo_query or nome_limpo_query in nome_limpo.strip()):
+            score = 95
+            logger.debug(f"✅ Match por nome sem pontuação: '{nome_limpo.strip()}' encontrado (score: {score})")
+        # ESTRATÉGIA 2: Verificar se a query começa com o nome do ERP (score 90)
+        elif nome_limpo_query.startswith(nome_limpo) or nome_limpo.startswith(nome_limpo_query):
+            score = 90
+            logger.debug(f"✅ Match por início: '{nome_limpo}' (score: {score})")
+        else:
+            # ESTRATÉGIA 3: Verificar se palavras significativas do nome estão na query (score baseado em similaridade)
+            palavras_significativas_nome = [p.strip('?.,!;:') for p in palavras_nome_raw 
+                                           if len(p.strip('?.,!;:')) > 1 and p.strip('?.,!;:') not in palavras_remover]
+            if palavras_significativas_nome:
+                palavras_match = []
+                for palavra_nome in palavras_significativas_nome:
+                    palavra_nome_limpa = palavra_nome.strip('?.,!;:').lower()
+                    # Verificar se palavra do nome está na query
+                    if palavra_nome_limpa in nome_limpo_query:
+                        palavras_match.append(palavra_nome_limpa)
+                
+                if palavras_match:
+                    # Score baseado em quantas palavras e tamanho das palavras (priorizar palavras maiores)
+                    score = min(85, 50 + (len(palavras_match) * 10) + (sum(len(p) for p in palavras_match) // 2))
+                    logger.debug(f"✅ Match por palavras do nome: {palavras_match} (score: {score})")
+            
+            # ESTRATÉGIA 4: Verificar se palavras-chave extraídas da query estão no nome do ERP (score menor)
+            if score == 0:
+                palavras_nome_normalizadas = set([p.strip('?.,!;:').lower() for p in palavras_nome_raw])
+                palavras_comuns = palavras_query.intersection(palavras_nome_normalizadas) if palavras_query else set()
+                if palavras_comuns:
+                    # Score menor para matches parciais - priorizar palavras maiores
+                    palavras_comuns_list = list(palavras_comuns)
+                    score = min(70, 30 + (len(palavras_comuns_list) * 10) + (sum(len(p) for p in palavras_comuns_list) // 3))
+                    logger.debug(f"✅ Match por interseção: palavras {palavras_comuns} encontradas no nome '{nome_limpo}' (score: {score})")
         
-        # ESTRATÉGIA 1.5: Verificar se o nome sem pontuação está contido na query ou vice-versa
-        # Ex: query="base" -> nome="base." deve ser encontrado
-        nome_sem_pontuacao = nome_limpo.strip()
-        if nome_sem_pontuacao and (nome_sem_pontuacao in nome_limpo_query or nome_limpo_query in nome_sem_pontuacao):
-            matches.append(erp)
-            logger.debug(f"✅ Match por nome sem pontuação: '{nome_sem_pontuacao}' encontrado")
-            continue
-        
-        # ESTRATÉGIA 2: Verificar se qualquer palavra significativa do nome está na query (busca invertida)
-        # Ex: query="quais funcionalidades tem o eccosys" -> nome="eccosys" deve ser encontrado
-        palavras_significativas_nome = [p.strip('?.,!;:') for p in palavras_nome_raw 
-                                       if len(p.strip('?.,!;:')) > 1 and p.strip('?.,!;:') not in palavras_remover]
-        if palavras_significativas_nome:
-            for palavra_nome in palavras_significativas_nome:
-                palavra_nome_limpa = palavra_nome.strip('?.,!;:').lower()
-                if palavra_nome_limpa in nome_limpo_query or palavra_nome_limpa in palavras_query:
-                    matches.append(erp)
-                    logger.debug(f"✅ Match por palavra do nome: '{palavra_nome_limpa}' encontrado na query")
-                    break
-        
-        # ESTRATÉGIA 3: Verificar se palavras-chave extraídas da query estão no nome do ERP
-        # Ex: query="contato bling" -> palavras_query={"bling"} -> nome="bling" deve ser encontrado
-        palavras_nome_normalizadas = set([p.strip('?.,!;:').lower() for p in palavras_nome_raw])
-        if palavras_query and palavras_query.intersection(palavras_nome_normalizadas):
-            matches.append(erp)
-            logger.debug(f"✅ Match por interseção: palavras {palavras_query.intersection(palavras_nome_normalizadas)} encontradas no nome '{nome_limpo}'")
+        if score > 0:
+            matches_com_score.append((score, erp))
     
-    if not matches:
+    if not matches_com_score:
         logger.info(f"❌ ERP '{nome_erp}' não encontrado")
         return None
     
-    # Usar o primeiro match (melhor match seria implementar scoring)
-    erp = matches[0]
+    # Ordenar por score (maior primeiro) e pegar o melhor match
+    matches_com_score.sort(key=lambda x: x[0], reverse=True)
+    melhor_score, erp = matches_com_score[0]
+    logger.info(f"✅ Melhor match encontrado com score {melhor_score}: {erp.get('Nome', erp.get('ERP', ''))}")
     nome_erp_encontrado = erp.get("Nome", erp.get("ERP", "Nome não informado"))
     
     logger.info(f"✅ ERP encontrado: {nome_erp_encontrado}")
