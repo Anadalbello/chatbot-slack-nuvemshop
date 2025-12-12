@@ -70,39 +70,9 @@ def buscar_cache(pergunta: str) -> Optional[str]:
     Returns:
         Resposta em cache (se existir e não expirada) ou None
     """
-    try:
-        # Limpar cache expirado primeiro
-        _limpar_cache_expirado()
-        
-        # Tentar busca exata primeiro
-        hash_pergunta = _calcular_hash(pergunta)
-        if hash_pergunta in _cache_respostas:
-            item = _cache_respostas[hash_pergunta]
-            agora = time.time()
-            
-            # Verificar se não expirou
-            if agora - item['timestamp'] <= _cache_ttl:
-                logger.info(f"✅ Cache HIT (exato): '{pergunta[:50]}...'")
-                return item['resposta']
-            else:
-                # Remover expirado
-                del _cache_respostas[hash_pergunta]
-        
-        # Tentar busca similar (para perguntas reescritas mas com mesmo sentido)
-        # DESABILITADO: Sempre buscar novas respostas para garantir informações atualizadas
-        if _cache_similar_enabled:
-            cache_similar = _encontrar_cache_similar(pergunta)
-            if cache_similar:
-                resposta, similaridade = cache_similar
-                logger.info(f"✅ Cache HIT (similar {similaridade:.0%}): '{pergunta[:50]}...'")
-                return resposta
-        
-        logger.debug(f"❌ Cache MISS: '{pergunta[:50]}...'")
-        return None
-        
-    except Exception as e:
-        logger.error(f"❌ Erro ao buscar cache: {e}")
-        return None
+    # CACHE COMPLETAMENTE DESABILITADO: Sempre retornar None para forçar novas buscas
+    logger.debug(f"🚫 Cache desabilitado - sempre buscar nova resposta para: '{pergunta[:50]}...'")
+    return None
 
 
 def salvar_cache(pergunta: str, resposta: str):

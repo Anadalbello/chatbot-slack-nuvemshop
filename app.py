@@ -664,25 +664,14 @@ def slack_events():
                         # Usar formatação inteligente também para specific_integration
                         resultado_json = resultado_integracao['content']
                         
-                        # 💾 CACHE: Verificar se já temos resposta em cache
-                        cache_key = f"{user_query}|{intencao}"
-                        resposta_cache = buscar_cache(cache_key)
-                        
-                        if resposta_cache:
-                            logger.info("⚡ Usando resposta do cache!")
-                            resultado_formatado = resposta_cache
-                        else:
-                            resultado_formatado = formatar_resultados_encontrados(
-                                resultado_json,
-                                user_query,
-                                intencao=intencao,
-                                resposta_esperada=resposta_esperada,
-                                contexto_thread=contexto_thread
-                            )
-                            
-                            # Salvar no cache se gerou resposta com sucesso
-                            if resultado_formatado:
-                                salvar_cache(cache_key, resultado_formatado)
+                        # 💾 CACHE DESABILITADO: Sempre gerar nova resposta
+                        resultado_formatado = formatar_resultados_encontrados(
+                            resultado_json,
+                            user_query,
+                            intencao=intencao,
+                            resposta_esperada=resposta_esperada,
+                            contexto_thread=contexto_thread
+                        )
                         
                         if resultado_formatado:
                             resultado_mrkdwn = resultado_formatado.replace("**", "*")
@@ -871,26 +860,15 @@ def slack_events():
                 # Formatar resposta usando função existente
                 resultado_json = resultados_encontrados.get('integracoes_json')
                 
-                # 💾 CACHE: Verificar se já temos resposta em cache
-                cache_key = f"{user_query}|{intencao}"
-                resposta_cache = buscar_cache(cache_key)
-                
-                if resposta_cache:
-                    logger.info("⚡ Usando resposta do cache!")
-                    resultado_formatado = resposta_cache
-                else:
-                    # Passar informações de intenção para formatação inteligente (com contexto)
-                    resultado_formatado = formatar_resultados_encontrados(
-                        resultado_json,
-                        user_query,
-                        intencao=intencao,
-                        resposta_esperada=resposta_esperada,
-                        contexto_thread=contexto_thread
-                    )
-                    
-                    # Salvar no cache se gerou resposta com sucesso
-                    if resultado_formatado:
-                        salvar_cache(cache_key, resultado_formatado)
+                # 💾 CACHE DESABILITADO: Sempre gerar nova resposta
+                # Passar informações de intenção para formatação inteligente (com contexto)
+                resultado_formatado = formatar_resultados_encontrados(
+                    resultado_json,
+                    user_query,
+                    intencao=intencao,
+                    resposta_esperada=resposta_esperada,
+                    contexto_thread=contexto_thread
+                )
                 
                 if resultado_formatado:
                     resultado_mrkdwn = resultado_formatado.replace("**", "*")
