@@ -21,6 +21,10 @@ from handlers.cache_respostas import buscar_cache, salvar_cache, obter_estatisti
 from handlers.tracking_perguntas import registrar_pergunta_sem_resposta, obter_estatisticas as obter_stats_tracking
 from handlers.contexto_thread import buscar_historico_thread, extrair_referencias_contexto, bot_respondeu_na_thread
 from handlers.pausa_thread import thread_esta_pausada, pausar_thread, retomar_thread
+from handlers.conversas_pendentes import (
+    salvar_conversa_pendente, obter_conversa_pendente, remover_conversa_pendente,
+    processar_resposta_pais
+)
 # NOVA ESTRUTURA ESTILO NINA
 from core import KnowledgeManager, Recepcionista, FonteValidator
 # from handlers.filtrar_links_relevantes import filtrar_links_relevantes, gerar_resposta_sem_resultados
@@ -446,20 +450,73 @@ def slack_events():
                         logger.debug(f"⚠️ Erro ao buscar contexto da thread: {e}")
                     contexto_thread = None
                 
-                logger.info("🧠 Recepcionista: Analisando pergunta...")
-                analise_recepcionista = recepcionista.analisar_pergunta(pergunta_limpa, contexto_thread)
-                
-                # Se precisa esclarecimento, enviar mensagem e retornar
-                if analise_recepcionista.get('needs_clarification'):
-                    logger.info("❓ Recepcionista: Precisa esclarecimento")
-                    mensagem_esclarecimento = analise_recepcionista.get('clarification_message', '')
-                    if mensagem_esclarecimento:
+                # 🧠 VERIFICAR SE HÁ CONVERSA PENDENTE (resposta a follow-up question)
+                conversa_pendente = obter_conversa_pendente(thread_ts)
+                if conversa_pendente:
+                    logger.info("💬 Processando resposta de conversa pendente")
+                    # Processar resposta do país
+                    detected_country = processar_resposta_pais(pergunta_limpa, conversa_pendente)
+                    
+                    if detected_country:
+                        # Remover conversa pendente e processar com país detectado
+                        remover_conversa_pendente(thread_ts)
+                        
+                        # Usar query original da conversa pendente
+                        user_query = conversa_pendente["user_query"]
+                        query_type = conversa_pendente.get("query_type", "apps")
+                        detected_language = conversa_pendente.get("detected_language", "pt")
+                        
+                        logger.info(f"🌍 País detectado: {detected_country} | Query: {user_query[:50]}...")
+                        
+                        # Processar pergunta com país detectado
+                        # Criar análise da recepcionista com dados da conversa pendente
+                        analise_recepcionista = {
+                            'user_detailed_query': user_query,
+                            'query_detected_country': detected_country,
+                            'user_detected_language': detected_language,
+                            'query_type': query_type,
+                            'user_intent': 'search_knowledge',  # Sempre search_knowledge para conversas pendentes
+                            'needs_clarification': False
+                        }
+                        # Usar user_query como pergunta_limpa para continuar o fluxo
+                        pergunta_limpa = user_query
+                    else:
+                        # País não detectado - pedir novamente
+                        logger.warning("⚠️ País não detectado na resposta, pedindo novamente")
+                        mensagem_esclarecimento = "Por favor, informe o país (Brasil, Argentina, México, Colômbia ou Chile)"
                         slack_client.chat_postMessage(
                             channel=channel,
                             thread_ts=thread_ts,
                             text=mensagem_esclarecimento
                         )
-                    return jsonify({"ok": True})
+                        return jsonify({"ok": True})
+                
+                # Se não havia conversa pendente, processar normalmente com recepcionista
+                if 'analise_recepcionista' not in locals():
+                    logger.info("🧠 Recepcionista: Analisando pergunta...")
+                    analise_recepcionista = recepcionista.analisar_pergunta(pergunta_limpa, contexto_thread)
+                    
+                    # Se precisa esclarecimento, salvar conversa pendente e enviar mensagem
+                    if analise_recepcionista.get('needs_clarification'):
+                        logger.info("❓ Recepcionista: Precisa esclarecimento")
+                        mensagem_esclarecimento = analise_recepcionista.get('follow_up_message') or analise_recepcionista.get('clarification_message', '')
+                        if mensagem_esclarecimento:
+                            slack_client.chat_postMessage(
+                                channel=channel,
+                                thread_ts=thread_ts,
+                                text=mensagem_esclarecimento
+                            )
+                            
+                            # Salvar conversa pendente para processar resposta
+                            salvar_conversa_pendente(
+                                thread_ts=thread_ts,
+                                user_query=analise_recepcionista.get('user_detailed_query', pergunta_limpa),
+                                query_type=analise_recepcionista.get('query_type', 'apps'),
+                                detected_language=analise_recepcionista.get('user_detected_language', 'pt'),
+                                detected_country=analise_recepcionista.get('query_detected_country', ''),
+                                channel=channel
+                            )
+                        return jsonify({"ok": True})
                 
                 # Extrair intent e query processada
                 user_intent = analise_recepcionista.get('user_intent', 'search_knowledge')
