@@ -658,7 +658,14 @@ def slack_events():
                     # Buscar integração específica
                     logger.info(f"🔍 Buscando ERP na query: '{query_busca}'")
                     
-                    resultado_integracao = knowledge_manager.search_integration_specific(query_busca)
+                    # Usar locale detectado pelo recepcionista (padrão: pt_BR)
+                    locale = analise_recepcionista.get('user_detected_language', 'pt')
+                    if locale == 'pt':
+                        locale = 'pt_BR'
+                    elif locale == 'es':
+                        locale = 'es_ES'
+                    
+                    resultado_integracao = knowledge_manager.search_integration_specific(query_busca, locale=locale)
                     
                     if resultado_integracao:
                         # Usar formatação inteligente também para specific_integration
@@ -810,7 +817,14 @@ def slack_events():
                 logger.info(f"🎯 Intenção: {intencao} | Query busca: {query_busca} | Resposta esperada: {resposta_esperada}")
                 
                 # 🧠 ESTILO NINA: Usar KnowledgeManager para buscar em todas as fontes (ordem de prioridade)
-                resultados_busca = knowledge_manager.search(query_busca)
+                # Usar locale detectado pelo recepcionista (padrão: pt_BR)
+                locale = analise_recepcionista.get('user_detected_language', 'pt')
+                if locale == 'pt':
+                    locale = 'pt_BR'
+                elif locale == 'es':
+                    locale = 'es_ES'
+                
+                resultados_busca = knowledge_manager.search(query_busca, locale=locale)
                 
                 # 🧠 ESTILO NINA: Validar se tem fonte válida antes de responder
                 validacao = fonte_validator.validar_resultados(resultados_busca)
@@ -1270,7 +1284,11 @@ def health_check():
         "atlassian_url": "✅" if os.getenv("ATLASSIAN_BASE_URL") else "❌",
         "zendesk_email": "✅" if os.getenv("ZENDESK_EMAIL") else "❌",
         "zendesk_token": "✅" if os.getenv("ZENDESK_API_TOKEN") else "❌",
-        "zendesk_subdomain": "✅" if os.getenv("ZENDESK_SUBDOMAIN") else "❌ (usando padrão)"
+        "zendesk_subdomain": "✅" if os.getenv("ZENDESK_SUBDOMAIN") else "❌ (usando padrão)",
+        "gemini_api_key": "✅" if os.getenv("GEMINI_API_KEY") else "❌",
+        "pinecone_api_key": "✅" if os.getenv("PINECONE_API_KEY") else "❌",
+        "pinecone_index_name": "✅" if os.getenv("PINECONE_INDEX_NAME") else "❌",
+        "embedding_provider": os.getenv("EMBEDDING_PROVIDER", "gemini")
     }
     
     return jsonify({
@@ -1281,6 +1299,149 @@ def health_check():
         "cache_respostas": obter_estatisticas_cache(),
         "perguntas_sem_resposta": obter_stats_tracking()
     })
+
+@app.route("/test-pinecone", methods=["GET"])
+def test_pinecone():
+    """
+    Endpoint para testar conexão com Pinecone e verificar status
+    """
+    try:
+        from core.pinecone_manager import create_manager_from_env
+        
+        manager = create_manager_from_env()
+        
+        # Testar conexão
+        connection_ok = manager.test_connection()
+        
+        if connection_ok:
+            # Obter estatísticas
+            stats = manager.get_stats()
+            
+            return jsonify({
+                "status": "success",
+                "message": "Pinecone conectado com sucesso",
+                "provider": manager.embedding_provider,
+                "dimension": manager.embedding_dimension,
+                "index_name": manager.index_name,
+                "stats": {
+                    "total_vectors": stats.get("total_vector_count", 0),
+                    "dimension": stats.get("dimension", 0),
+                    "namespaces": stats.get("namespaces", {})
+                }
+            })
+        else:
+            return jsonify({
+                "status": "failed",
+                "message": "Falha no teste de conexão com Pinecone"
+            }), 500
+            
+    except ValueError as e:
+        # Variáveis de ambiente faltando
+        return jsonify({
+            "status": "error",
+            "message": "Configuração incompleta",
+            "error": str(e),
+            "hint": "Verifique se PINECONE_API_KEY, PINECONE_INDEX_NAME e GEMINI_API_KEY estão configuradas"
+        }), 400
+    except Exception as e:
+        logger.error(f"❌ Erro ao testar Pinecone: {e}", exc_info=True)
+        return jsonify({
+            "status": "error",
+            "message": "Erro ao conectar com Pinecone",
+            "error": str(e)
+        }), 500
+
+@app.route("/pinecone-stats", methods=["GET"])
+def pinecone_stats():
+    """
+    Endpoint para obter estatísticas detalhadas do Pinecone
+    """
+    try:
+        from core.pinecone_manager import create_manager_from_env
+        
+        manager = create_manager_from_env()
+        stats = manager.get_stats()
+        
+        # Formatar estatísticas de forma mais legível
+        namespaces_info = {}
+        for ns, ns_stats in stats.get("namespaces", {}).items():
+            namespaces_info[ns] = {
+                "vector_count": ns_stats.get("vector_count", 0),
+                "status": "✅ Ativo" if ns_stats.get("vector_count", 0) > 0 else "⚠️ Vazio"
+            }
+        
+        return jsonify({
+            "status": "success",
+            "provider": manager.embedding_provider,
+            "dimension": manager.embedding_dimension,
+            "index_name": manager.index_name,
+            "total_vectors": stats.get("total_vector_count", 0),
+            "namespaces": namespaces_info,
+            "summary": {
+                "total_namespaces": len(namespaces_info),
+                "namespaces_with_data": sum(1 for ns in namespaces_info.values() if ns["vector_count"] > 0),
+                "total_vectors_all_namespaces": stats.get("total_vector_count", 0)
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Erro ao obter estatísticas do Pinecone: {e}", exc_info=True)
+        return jsonify({
+            "status": "error",
+            "message": "Erro ao obter estatísticas",
+            "error": str(e)
+        }), 500
+
+@app.route("/test-vector-search", methods=["GET"])
+def test_vector_search():
+    """
+    Endpoint para testar busca vetorial com uma query de exemplo
+    """
+    try:
+        query = request.args.get("query", "Tiny ERP")
+        namespace = request.args.get("namespace", "br")
+        top_k = int(request.args.get("top_k", 5))
+        
+        from core.pinecone_manager import create_manager_from_env
+        
+        manager = create_manager_from_env()
+        
+        # Testar busca
+        results = manager.query_similar(
+            query_text=query,
+            top_k=top_k,
+            namespace=namespace
+        )
+        
+        # Formatar resultados
+        formatted_results = []
+        for result in results:
+            metadata = result.get("metadata", {})
+            formatted_results.append({
+                "id": result.get("id"),
+                "score": round(result.get("score", 0), 4),
+                "nome": metadata.get("nome", "N/A"),
+                "tipo": metadata.get("tipo", "N/A"),
+                "fonte": metadata.get("fonte", "N/A")
+            })
+        
+        return jsonify({
+            "status": "success",
+            "query": query,
+            "namespace": namespace,
+            "top_k": top_k,
+            "results_count": len(results),
+            "results": formatted_results,
+            "message": f"Encontrados {len(results)} resultados para '{query}'"
+        })
+        
+    except Exception as e:
+        logger.error(f"❌ Erro ao testar busca vetorial: {e}", exc_info=True)
+        return jsonify({
+            "status": "error",
+            "message": "Erro ao realizar busca vetorial",
+            "error": str(e)
+        }), 500
 
 @app.errorhandler(404)
 def not_found(error):
@@ -1297,7 +1458,11 @@ def not_found(error):
             "POST /slack/events",
             "POST /slack/actions", 
             "GET /test",
-            "GET /health"
+            "GET /health",
+            "GET /test-pinecone",
+            "GET /pinecone-stats",
+            "GET /test-vector-search?query=Tiny&namespace=br",
+            "GET /analytics"
         ]
     }), 404
 

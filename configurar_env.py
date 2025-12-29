@@ -45,6 +45,34 @@ ZENDESK_API_TOKEN=sua-chave-api-zendesk-aqui
 ZENDESK_SUBDOMAIN=mandaenuvemenvio
 
 # =================================
+# CONFIGURAÇÕES DO GEMINI AI
+# =================================
+
+# Chave API do Google Gemini (para geração de respostas e embeddings)
+GEMINI_API_KEY=sua-chave-gemini-aqui
+
+# =================================
+# CONFIGURAÇÕES DO PINECONE (Busca Vetorial)
+# =================================
+
+# Chave API do Pinecone
+PINECONE_API_KEY=sua-chave-pinecone-aqui
+
+# Nome do índice Pinecone
+PINECONE_INDEX_NAME=tina-chatbot-index
+
+# Provider de embeddings (gemini ou openai)
+# Recomendado: gemini (usa a mesma API key do Gemini)
+EMBEDDING_PROVIDER=gemini
+
+# Se usar OpenAI ao invés de Gemini (opcional)
+# OPENAI_API_KEY=sua-chave-openai-aqui
+
+# Configurações opcionais do Pinecone
+# PINECONE_CLOUD=aws
+# PINECONE_REGION=us-east-1
+
+# =================================
 # OUTRAS CONFIGURAÇÕES
 # =================================
 
@@ -95,7 +123,11 @@ def verificar_configuracao():
         "ATLASSIAN_BASE_URL": os.getenv("ATLASSIAN_BASE_URL"),
         "ZENDESK_EMAIL": os.getenv("ZENDESK_EMAIL"),
         "ZENDESK_API_TOKEN": os.getenv("ZENDESK_API_TOKEN"),
-        "ZENDESK_SUBDOMAIN": os.getenv("ZENDESK_SUBDOMAIN")
+        "ZENDESK_SUBDOMAIN": os.getenv("ZENDESK_SUBDOMAIN"),
+        "GEMINI_API_KEY": os.getenv("GEMINI_API_KEY"),
+        "PINECONE_API_KEY": os.getenv("PINECONE_API_KEY"),
+        "PINECONE_INDEX_NAME": os.getenv("PINECONE_INDEX_NAME"),
+        "EMBEDDING_PROVIDER": os.getenv("EMBEDDING_PROVIDER", "gemini")
     }
     
     for nome, valor in configs.items():
