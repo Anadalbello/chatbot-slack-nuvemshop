@@ -463,8 +463,15 @@ def slack_events():
                 
                 # Extrair intent e query processada
                 user_intent = analise_recepcionista.get('user_intent', 'search_knowledge')
-                user_query = analise_recepcionista.get('user_detailed_query', pergunta_limpa)
+                user_query_raw = analise_recepcionista.get('user_detailed_query', pergunta_limpa)
                 user_language = analise_recepcionista.get('user_detected_language', 'pt')
+                
+                # Garantir que user_query não seja uma mensagem de erro
+                if "Erro ao acessar Gemini" in user_query_raw or "error" in user_query_raw.lower()[:50]:
+                    logger.warning("⚠️ user_detailed_query contém erro, usando pergunta original")
+                    user_query = pergunta_limpa
+                else:
+                    user_query = user_query_raw
                 
                 logger.info(f"🎯 Intent detectado: {user_intent} | Query: {user_query[:50]}... | Idioma: {user_language}")
                 
@@ -823,6 +830,10 @@ def slack_events():
                     locale = 'pt_BR'
                 elif locale == 'es':
                     locale = 'es_ES'
+                
+                # Log para debug
+                logger.info(f"🔍 Iniciando busca com query: '{query_busca}' (locale: {locale})")
+                logger.info(f"📊 Pinecone habilitado: {knowledge_manager.pinecone_enabled}")
                 
                 resultados_busca = knowledge_manager.search(query_busca, locale=locale)
                 

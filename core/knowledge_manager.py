@@ -35,25 +35,72 @@ class KnowledgeManager:
         self.pinecone_enabled = False
         if PINECONE_AVAILABLE:
             try:
-                # Verificar se variáveis de ambiente estão configuradas
-                if (os.getenv("PINECONE_API_KEY") and 
-                    os.getenv("PINECONE_INDEX_NAME") and 
-                    os.getenv("OPENAI_API_KEY")):
-                    self.pinecone_manager = create_manager_from_env()
-                    # Testar conexão
-                    if self.pinecone_manager.test_connection():
-                        self.pinecone_enabled = True
-                        logger.info("✅ Pinecone inicializado e conectado - busca vetorial habilitada")
+                # Verificar provider de embeddings
+                embedding_provider = os.getenv("EMBEDDING_PROVIDER", "gemini").lower()
+                
+                # Verificar variáveis de ambiente necessárias
+                has_pinecone_key = bool(os.getenv("PINECONE_API_KEY"))
+                has_index_name = bool(os.getenv("PINECONE_INDEX_NAME"))
+                
+                if embedding_provider == "gemini":
+                    has_embedding_key = bool(os.getenv("GEMINI_API_KEY"))
+                    missing_vars = []
+                    if not has_pinecone_key:
+                        missing_vars.append("PINECONE_API_KEY")
+                    if not has_index_name:
+                        missing_vars.append("PINECONE_INDEX_NAME")
+                    if not has_embedding_key:
+                        missing_vars.append("GEMINI_API_KEY")
+                    
+                    if missing_vars:
+                        logger.debug(f"ℹ️ Pinecone não configurado (faltando: {', '.join(missing_vars)})")
                     else:
-                        logger.warning("⚠️ Pinecone configurado mas teste de conexão falhou")
+                        self.pinecone_manager = create_manager_from_env()
+                        # Testar conexão
+                        if self.pinecone_manager.test_connection():
+                            self.pinecone_enabled = True
+                            logger.info("✅ Pinecone inicializado e conectado - busca vetorial habilitada")
+                        else:
+                            logger.warning("⚠️ Pinecone configurado mas teste de conexão falhou")
+                elif embedding_provider == "openai":
+                    has_embedding_key = bool(os.getenv("OPENAI_API_KEY"))
+                    missing_vars = []
+                    if not has_pinecone_key:
+                        missing_vars.append("PINECONE_API_KEY")
+                    if not has_index_name:
+                        missing_vars.append("PINECONE_INDEX_NAME")
+                    if not has_embedding_key:
+                        missing_vars.append("OPENAI_API_KEY")
+                    
+                    if missing_vars:
+                        logger.debug(f"ℹ️ Pinecone não configurado (faltando: {', '.join(missing_vars)})")
+                    else:
+                        self.pinecone_manager = create_manager_from_env()
+                        # Testar conexão
+                        if self.pinecone_manager.test_connection():
+                            self.pinecone_enabled = True
+                            logger.info("✅ Pinecone inicializado e conectado - busca vetorial habilitada")
+                        else:
+                            logger.warning("⚠️ Pinecone configurado mas teste de conexão falhou")
                 else:
-                    logger.debug("ℹ️ Pinecone não configurado (variáveis de ambiente faltando)")
+                    logger.debug(f"ℹ️ Pinecone não configurado (EMBEDDING_PROVIDER inválido: {embedding_provider})")
             except Exception as e:
                 logger.warning(f"⚠️ Erro ao inicializar Pinecone: {e}")
+                import traceback
+                logger.debug(f"Traceback: {traceback.format_exc()}")
                 logger.debug("Busca vetorial desabilitada, usando apenas fontes tradicionais")
         
         logger.info(f"✅ Knowledge Manager inicializado: {len(self.sources)} fontes ativas" + 
                    (f" + Pinecone" if self.pinecone_enabled else ""))
+        
+        # Log detalhado sobre Pinecone para debug
+        if PINECONE_AVAILABLE:
+            if self.pinecone_enabled:
+                logger.info(f"🔍 Pinecone: HABILITADO (provider: {self.pinecone_manager.embedding_provider}, dimensão: {self.pinecone_manager.embedding_dimension})")
+            else:
+                logger.info("🔍 Pinecone: DESABILITADO (verifique variáveis de ambiente ou logs acima)")
+        else:
+            logger.info("🔍 Pinecone: NÃO DISPONÍVEL (biblioteca não instalada)")
     
     def _load_sources_config(self) -> Dict:
         """Carrega configuração das fontes"""
@@ -148,11 +195,16 @@ class KnowledgeManager:
                     namespace=namespace
                 )
                 
+                logger.info(f"📊 [Vetorial] Pinecone retornou {len(vector_results)} resultados")
+                
                 # Converter resultados do Pinecone para formato padrão
                 for match in vector_results:
-                    if match.get('score', 0) >= 0.7:  # Threshold de relevância
+                    score = match.get('score', 0)
+                    logger.debug(f"   - Score: {score:.3f}")
+                    
+                    if score >= 0.7:  # Threshold de relevância
                         metadata = match.get('metadata', {})
-                        content = self._format_pinecone_result(metadata, match.get('score', 0))
+                        content = self._format_pinecone_result(metadata, score)
                         
                         if content and self._is_valid_result(content):
                             results.append({
@@ -160,19 +212,29 @@ class KnowledgeManager:
                                 'source_name': 'Busca Vetorial (Pinecone)',
                                 'content': content,
                                 'priority': 0,  # Prioridade máxima
-                                'score': match.get('score', 0),
+                                'score': score,
                                 'metadata': metadata
                             })
-                            logger.info(f"✅ [Vetorial] Resultado encontrado (score: {match.get('score', 0):.3f})")
+                            logger.info(f"✅ [Vetorial] Resultado encontrado (score: {score:.3f})")
+                    else:
+                        logger.debug(f"   ⚠️ Resultado rejeitado (score {score:.3f} < 0.7)")
                 
                 # Se encontrou resultados vetoriais relevantes e stop_on_first, retornar
                 if results and stop_on_first:
                     logger.info(f"🛑 Parando busca após encontrar resultados vetoriais")
                     return results
+                elif results:
+                    logger.info(f"✅ [Vetorial] {len(results)} resultados vetoriais válidos encontrados")
+                else:
+                    logger.info(f"⚠️ [Vetorial] Nenhum resultado acima do threshold (0.7)")
                     
             except Exception as e:
                 logger.warning(f"⚠️ Erro na busca vetorial: {e}")
+                import traceback
+                logger.debug(f"Traceback: {traceback.format_exc()}")
                 logger.debug("Continuando com busca tradicional...")
+        elif not self.pinecone_enabled:
+            logger.debug("ℹ️ Busca vetorial desabilitada (Pinecone não disponível ou não configurado)")
         
         # PRIORIDADE 2: Busca tradicional nas outras fontes
         if sources is None:

@@ -106,8 +106,19 @@ class Recepcionista:
                 logger.warning("Resposta vazia da recepcionista, usando fallback")
                 return self._fallback_analysis(pergunta_limpa)
             
+            # Verificar se a resposta é uma mensagem de erro
+            if "Erro ao acessar Gemini" in response or "error" in response.lower()[:50]:
+                logger.warning("Resposta da recepcionista contém erro, usando fallback")
+                return self._fallback_analysis(pergunta_limpa)
+            
             # Processar resposta JSON
             analysis = self._parse_json_response(response)
+            
+            # Garantir que user_detailed_query não seja uma mensagem de erro
+            user_query = analysis.get('user_detailed_query', '')
+            if "Erro ao acessar Gemini" in user_query or "error" in user_query.lower()[:50]:
+                logger.warning("user_detailed_query contém erro, usando pergunta original")
+                analysis['user_detailed_query'] = pergunta_limpa
             
             logger.info(f"✅ Análise completa: intent={analysis.get('user_intent')}, language={analysis.get('user_detected_language')}")
             return analysis
@@ -125,6 +136,11 @@ class Recepcionista:
     def _parse_json_response(self, response: str) -> Dict:
         """Extrai e parseia JSON da resposta"""
         try:
+            # Verificar se a resposta é uma mensagem de erro antes de processar
+            if "Erro ao acessar Gemini" in response or response.strip().startswith("Erro"):
+                logger.warning("Resposta contém erro, não é JSON válido")
+                raise json.JSONDecodeError("Resposta contém erro", response, 0)
+            
             # Remover markdown code blocks se presente
             json_text = response.strip()
             
