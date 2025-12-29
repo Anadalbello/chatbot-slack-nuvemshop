@@ -236,3 +236,7 @@ Agora seu bot funciona estilo Nina, usando JSON estático como fonte primária d
 
 
 
+
+
+
+
