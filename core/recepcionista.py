@@ -145,21 +145,39 @@ class Recepcionista:
             response = get_gemini_response(prompt_completo)
             
             if not response:
-                logger.warning("Resposta vazia da recepcionista, usando fallback")
+                logger.warning("⚠️ Resposta vazia da recepcionista, usando fallback")
                 return self._fallback_analysis(pergunta_limpa)
             
             # Verificar se a resposta é uma mensagem de erro
-            if "Erro ao acessar Gemini" in response or "error" in response.lower()[:50]:
-                logger.warning("Resposta da recepcionista contém erro, usando fallback")
+            # Verificação mais específica para evitar falsos positivos
+            if response.startswith("Erro ao acessar Gemini"):
+                erro_detalhado = response.replace("Erro ao acessar Gemini: ", "")
+                logger.warning(f"⚠️ Resposta da recepcionista contém erro do Gemini: {erro_detalhado[:100]}")
+                logger.info("🔄 Usando análise fallback")
                 return self._fallback_analysis(pergunta_limpa)
             
+            # Verificar se começa com "error" (case insensitive) - mais específico
+            response_lower_start = response.strip()[:50].lower()
+            if response_lower_start.startswith("error") and "erro ao acessar" not in response_lower_start:
+                # Pode ser um JSON válido que começa com "error" em algum campo, verificar melhor
+                if not response.strip().startswith("{") and not response.strip().startswith("```"):
+                    logger.warning(f"⚠️ Resposta da recepcionista parece ser erro: {response[:100]}")
+                    logger.info("🔄 Usando análise fallback")
+                    return self._fallback_analysis(pergunta_limpa)
+            
             # Processar resposta JSON
-            analysis = self._parse_json_response(response, pergunta_limpa)
+            try:
+                analysis = self._parse_json_response(response, pergunta_limpa)
+            except Exception as parse_error:
+                logger.warning(f"⚠️ Erro ao parsear JSON da recepcionista: {parse_error}")
+                logger.debug(f"Resposta recebida: {response[:200]}...")
+                logger.info("🔄 Usando análise fallback")
+                return self._fallback_analysis(pergunta_limpa)
             
             # Garantir que user_detailed_query não seja uma mensagem de erro
             user_query = analysis.get('user_detailed_query', '')
-            if "Erro ao acessar Gemini" in user_query or "error" in user_query.lower()[:50]:
-                logger.warning("user_detailed_query contém erro, usando pergunta original")
+            if user_query.startswith("Erro ao acessar Gemini"):
+                logger.warning("⚠️ user_detailed_query contém erro, usando pergunta original")
                 analysis['user_detailed_query'] = pergunta_limpa
             
             # Inferir país baseado em idioma se não detectado
@@ -193,8 +211,8 @@ class Recepcionista:
         """Extrai e parseia JSON da resposta"""
         try:
             # Verificar se a resposta é uma mensagem de erro antes de processar
-            if "Erro ao acessar Gemini" in response or response.strip().startswith("Erro"):
-                logger.warning("Resposta contém erro, não é JSON válido")
+            if response.startswith("Erro ao acessar Gemini"):
+                logger.warning("⚠️ Resposta contém erro do Gemini, não é JSON válido")
                 raise json.JSONDecodeError("Resposta contém erro", response, 0)
             
             # Remover markdown code blocks se presente
