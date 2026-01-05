@@ -56,8 +56,11 @@ logger.info("✅ Sistema estilo Nina inicializado")
 eventos_processados = {}
 TEMPO_CACHE = 900  # 15 minutos - maior que o tempo de detecção de duplicatas
 
-def event_ja_processado(event_id, user, text):
-    """Verifica se o evento já foi processado recentemente - SISTEMA ANTI-DUPLICAÇÃO ROBUSTO"""
+def event_ja_processado(event_id, user, text, channel=None):
+    """
+    Verifica se o evento já foi processado recentemente - SISTEMA ANTI-DUPLICAÇÃO ROBUSTO
+    IMPORTANTE: Inclui canal nas chaves para permitir mesma mensagem em canais diferentes
+    """
     agora = time.time()
     
     # Limpar cache antigo
@@ -66,26 +69,35 @@ def event_ja_processado(event_id, user, text):
         del eventos_processados[k]
     
     # Múltiplas chaves para detectar duplicatas de forma robusta
+    # IMPORTANTE: Incluir canal para permitir mesma mensagem em canais diferentes
     chaves = []
     
-    # 1. Chave por event_ts (mais precisa)
+    # 1. Chave por event_ts (mais precisa) - já é único globalmente
     if event_id and event_id.strip():
         chaves.append(f"event_{event_id}")
     
-    # 2. Chave por usuário + texto
-    chaves.append(f"{user}:{text.strip()[:50]}")
-    
-    # 3. Chave por usuário + hash do texto completo
-    import hashlib
-    text_hash = hashlib.md5(text.strip().encode()).hexdigest()[:8]
-    chaves.append(f"{user}:hash_{text_hash}")
+    # 2. Chave por canal + usuário + texto (permite mesma mensagem em canais diferentes)
+    if channel:
+        chaves.append(f"{channel}:{user}:{text.strip()[:50]}")
+        
+        # 3. Chave por canal + usuário + hash do texto completo
+        import hashlib
+        text_hash = hashlib.md5(text.strip().encode()).hexdigest()[:8]
+        chaves.append(f"{channel}:{user}:hash_{text_hash}")
+    else:
+        # Fallback se canal não disponível (não ideal, mas melhor que quebrar)
+        logger.warning("⚠️ Canal não disponível no event_ja_processado - usando chave sem canal")
+        chaves.append(f"{user}:{text.strip()[:50]}")
+        import hashlib
+        text_hash = hashlib.md5(text.strip().encode()).hexdigest()[:8]
+        chaves.append(f"{user}:hash_{text_hash}")
     
     # Verificar se alguma chave já foi processada
     for chave in chaves:
         if chave in eventos_processados:
             tempo_desde_ultimo = agora - eventos_processados[chave]['timestamp']
             if tempo_desde_ultimo < 600:  # 10 minutos - detectar duplicatas por mais tempo
-                logger.warning(f"Evento duplicado detectado: {chave}")
+                logger.warning(f"⚠️ Evento duplicado detectado: {chave}")
                 return True
     
     # Marcar todas as chaves como processadas
@@ -411,8 +423,9 @@ def slack_events():
             logger.info(f"🧵 Thread TS: {thread_ts} | Original TS: {event.get('ts')}")
             
             # 🛡️ VERIFICAR SE É EVENTO DUPLICADO
-            if event_ja_processado(event.get("event_ts", ""), user, text):
-                logger.info("Evento duplicado ignorado")
+            # IMPORTANTE: Passar channel para permitir mesma mensagem em canais diferentes
+            if event_ja_processado(event.get("event_ts", ""), user, text, channel=channel):
+                logger.info("⚠️ Evento duplicado ignorado")
                 return jsonify({"ok": True})
             
             logger.info(f"Mensagem recebida de {user}: {text}")
