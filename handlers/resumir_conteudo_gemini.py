@@ -396,11 +396,13 @@ def _validar_resposta_contra_dados(resposta, dados_originais, pergunta):
                 problemas.append(f"Resposta menciona '{func_nome}' como disponível, mas dados indicam 'Não'")
     
     # Verificar se menciona "atualiza status" quando deveria ser apenas "devolve código"
+    # Se a resposta menciona "atualiza status" ou "atualiza automaticamente" de forma positiva
     if re.search(r'atualiza.*status.*rastreio|atualiza.*automaticamente', resposta_lower, re.IGNORECASE):
-        if 'atualiza.*status.*rastreio.*não' in dados_lower or 'atualiza.*status.*rastreio.*❌' in dados_lower:
-            # Verificar se menciona apenas "devolve código" (correto) ou também "atualiza" (incorreto)
-            if not re.search(r'devolu.*código|retorna.*código|devolu.*rastreamento', resposta_lower, re.IGNORECASE):
-                problemas.append("Resposta menciona atualização de status, mas dados indicam apenas devolução de código")
+        # Verificar se nos dados está marcado como "Não"
+        if re.search(r'atualiza.*status.*rastreio.*não|atualiza.*status.*rastreio.*❌', dados_lower, re.IGNORECASE):
+            # Se menciona de forma positiva (sem negativa), é um problema
+            if not re.search(r'não.*atualiza|não.*atualiza.*status', resposta_lower, re.IGNORECASE):
+                problemas.append("Resposta menciona atualização de status automaticamente, mas dados indicam 'Não (❌)'")
     
     if problemas:
         return {
