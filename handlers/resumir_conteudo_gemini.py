@@ -77,15 +77,26 @@ def extrair_conteudo_bruto(resultado_formatado):
     if nome_match:
         conteudo.append(f"Nome: {nome_match.group(1).strip()}")
     
-    # Extrair funcionalidades disponíveis
-    func_disponiveis = re.findall(r'✅[^\n]*Funcionalidades[^\n]*\n(.*?)(?=\n❌|\n━|$)', texto_limpo, re.DOTALL)
-    if func_disponiveis:
-        conteudo.append(f"Funcionalidades disponíveis: {func_disponiveis[0].strip()}")
+    # Extrair TODAS as funcionalidades (disponíveis e indisponíveis) - CRÍTICO para precisão
+    # Buscar seção de funcionalidades disponíveis
+    func_disponiveis_match = re.search(r'✅[^\n]*Funcionalidades Disponíveis[^\n]*\n(.*?)(?=\n❌|\n━|\n📋|$)', texto_limpo, re.DOTALL)
+    if func_disponiveis_match:
+        func_disponiveis_text = func_disponiveis_match.group(1).strip()
+        conteudo.append(f"Funcionalidades disponíveis:\n{func_disponiveis_text}")
     
-    # Extrair funcionalidades indisponíveis
-    func_indisponiveis = re.findall(r'❌[^\n]*Funcionalidades[^\n]*\n(.*?)(?=\n✅|\n━|$)', texto_limpo, re.DOTALL)
-    if func_indisponiveis:
-        conteudo.append(f"Funcionalidades indisponíveis: {func_indisponiveis[0].strip()}")
+    # Buscar seção de funcionalidades indisponíveis - IMPORTANTE para não inventar informações
+    func_indisponiveis_match = re.search(r'❌[^\n]*Funcionalidades Indisponíveis[^\n]*\n(.*?)(?=\n✅|\n━|\n📋|$)', texto_limpo, re.DOTALL)
+    if func_indisponiveis_match:
+        func_indisponiveis_text = func_indisponiveis_match.group(1).strip()
+        conteudo.append(f"Funcionalidades indisponíveis (NÃO disponíveis):\n{func_indisponiveis_text}")
+    
+    # Se não encontrou seções separadas, tentar extrair todas as funcionalidades de uma vez
+    if not func_disponiveis_match and not func_indisponiveis_match:
+        # Buscar todas as linhas que parecem ser funcionalidades (com emojis ou marcadores)
+        todas_func = re.findall(r'[🚚🛡️⚙️✏️📏📦💰🏢🏷️🔄•]\s*\*?([^:]+):\s*([^\n]+)', texto_limpo)
+        if todas_func:
+            func_text = "\n".join([f"  - {nome.strip()}: {valor.strip()}" for nome, valor in todas_func])
+            conteudo.append(f"Todas as funcionalidades:\n{func_text}")
     
     # Extrair outras informações (complexidade, responsáveis, etc)
     outras_info_match = re.search(r'📋[^\n]*Outras Informações[^\n]*\n(.*?)(?=\n📞|\n━|$)', texto_limpo, re.DOTALL)
@@ -173,21 +184,29 @@ PERGUNTA ORIGINAL: {pergunta}
 DADOS DA INTEGRAÇÃO ENCONTRADA:
 {conteudo_bruto}
 
-INSTRUÇÕES CRÍTICAS:
-1. RESPONDA DIRETAMENTE A PERGUNTA primeiro, depois forneça detalhes se necessário
-2. Se perguntarem "temos integração?" ou "existe integração?", responda: "Sim, temos integração com [nome]." ou "Não, não temos integração com [nome]."
-3. Se perguntarem sobre funcionalidades específicas, responda sobre essas funcionalidades primeiro
-4. Se perguntarem sobre contato/suporte, responda com os dados de contato primeiro
-5. Seja DIRETO e OBJETIVO - não liste tudo, foque no que foi perguntado
-6. Use formatação markdown para destacar informações importantes (*negrito*)
-7. Após responder diretamente, você pode adicionar informações complementares relevantes
+INSTRUÇÕES CRÍTICAS E OBRIGATÓRIAS:
+1. ⚠️ USE APENAS AS INFORMAÇÕES FORNECIDAS NOS DADOS ACIMA - NÃO INVENTE NADA
+2. ⚠️ Se uma funcionalidade está marcada como "Não (❌)" ou "Não", NÃO diga que ela está disponível
+3. ⚠️ Se uma funcionalidade está marcada como "Sim (✔️)" ou "Sim", você pode dizer que está disponível
+4. ⚠️ DIFERENÇA IMPORTANTE:
+   - "Devolucao_Codigo_Rastreamento" = retorna o código de rastreamento (pode ser Sim ou Não)
+   - "Atualiza_Status_Rastreio" = atualiza automaticamente o status do rastreamento na plataforma (pode ser Sim ou Não)
+   - São funcionalidades DIFERENTES - verifique cada uma separadamente nos dados
+5. RESPONDA DIRETAMENTE A PERGUNTA primeiro, depois forneça detalhes se necessário
+6. Se perguntarem "temos integração?" ou "existe integração?", responda: "Sim, temos integração com [nome]." ou "Não, não temos integração com [nome]."
+7. Se perguntarem sobre funcionalidades específicas, responda sobre essas funcionalidades PRIMEIRO e de forma PRECISA
+8. Se perguntarem sobre contato/suporte, responda com os dados de contato primeiro
+9. Seja DIRETO e OBJETIVO - não liste tudo, foque no que foi perguntado
+10. Use formatação markdown para destacar informações importantes (*negrito*)
+11. Se você não tiver certeza sobre uma informação, NÃO invente - diga que precisa verificar
 
 FORMATO DA RESPOSTA:
-- 1-2 frases respondendo diretamente a pergunta
+- 1-2 frases respondendo diretamente a pergunta com PRECISÃO
 - Depois, se necessário, 1-2 frases com informações complementares relevantes
 - NÃO liste tudo - apenas o que é relevante para a pergunta
+- NÃO invente informações que não estão nos dados fornecidos
 
-Sua resposta (focada e direta):"""
+Sua resposta (focada, direta e PRECISA baseada apenas nos dados fornecidos):"""
 
         # Gerar resposta com retry
         logger.info(f"📝 Tamanho do prompt: {len(prompt)} caracteres")
