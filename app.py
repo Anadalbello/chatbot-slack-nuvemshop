@@ -25,6 +25,12 @@ from handlers.conversas_pendentes import (
     salvar_conversa_pendente, obter_conversa_pendente, remover_conversa_pendente,
     processar_resposta_pais
 )
+from handlers.slack_formatting import (
+    converter_markdown_para_slack,
+    dividir_resposta_inteligente,
+    formatar_e_enviar_slack,
+    obter_mensagem_feedback
+)
 # NOVA ESTRUTURA ESTILO NINA
 from core import KnowledgeManager, Recepcionista, FonteValidator
 # from handlers.filtrar_links_relevantes import filtrar_links_relevantes, gerar_resposta_sem_resultados
@@ -758,12 +764,17 @@ def slack_events():
                         )
                         
                         if resultado_formatado:
-                            resultado_mrkdwn = resultado_formatado.replace("**", "*")
+                            # 🎨 NOVA FORMATAÇÃO: Converter markdown para Slack e dividir se necessário
+                            resultado_mrkdwn = converter_markdown_para_slack(resultado_formatado)
                             
-                            # Criar blocos com a resposta
+                            # Dividir resposta se muito longa (antes de criar blocks)
+                            max_length_block = 2900  # Limite para blocks do Slack
+                            partes_resposta = dividir_resposta_inteligente(resultado_mrkdwn, max_length_block)
+                            
+                            # Criar blocos com a primeira parte da resposta
                             blocks_resposta = [{
                                 "type": "section",
-                                "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
+                                "text": {"type": "mrkdwn", "text": partes_resposta[0]}
                             }]
                             
                             # Se a resposta for focada em uma integração específica, adicionar botão para ver informações completas
@@ -793,6 +804,7 @@ def slack_events():
                                     }]
                                 })
                             
+                            # Enviar primeira parte com blocks
                             slack_client.chat_postMessage(
                                 channel=channel,
                                 thread_ts=thread_ts,
@@ -800,7 +812,23 @@ def slack_events():
                                 blocks=blocks_resposta
                             )
                             
+                            # Enviar partes adicionais se houver (sem blocks, apenas texto)
+                            for parte in partes_resposta[1:]:
+                                slack_client.chat_postMessage(
+                                    channel=channel,
+                                    thread_ts=thread_ts,
+                                    text=parte
+                                )
+                            
                             # Botões de interação
+                            # Obter idioma para mensagem de feedback
+                            idioma_resposta = analise_recepcionista.get('user_detected_language', 'pt')
+                            mensagem_feedback = obter_mensagem_feedback(idioma_resposta, mostrar_feedback=True)
+                            
+                            texto_feedback = "💬 *Essas informações foram úteis?*\n" + \
+                                           "Se precisar de mais detalhes ou tiver outras dúvidas, estou aqui! 😊" + \
+                                           mensagem_feedback
+                            
                             slack_client.chat_postMessage(
                                 channel=channel,
                                 thread_ts=thread_ts,
@@ -809,8 +837,7 @@ def slack_events():
                                     "type": "section",
                                     "text": {
                                         "type": "mrkdwn",
-                                        "text": "💬 *Essas informações foram úteis?*\n"
-                                                "Se precisar de mais detalhes ou tiver outras dúvidas, estou aqui! 😊"
+                                        "text": texto_feedback
                                     }
                                 }] + criar_botoes_interacao(user_query, {'integracoes_json': resultado_json}, channel=channel, thread_ts=thread_ts)
                             )
@@ -966,12 +993,17 @@ def slack_events():
                 )
                 
                 if resultado_formatado:
-                    resultado_mrkdwn = resultado_formatado.replace("**", "*")
+                    # 🎨 NOVA FORMATAÇÃO: Converter markdown para Slack e dividir se necessário
+                    resultado_mrkdwn = converter_markdown_para_slack(resultado_formatado)
                     
-                    # Criar blocos com a resposta
+                    # Dividir resposta se muito longa (antes de criar blocks)
+                    max_length_block = 2900  # Limite para blocks do Slack
+                    partes_resposta = dividir_resposta_inteligente(resultado_mrkdwn, max_length_block)
+                    
+                    # Criar blocos com a primeira parte da resposta
                     blocks_resposta = [{
                         "type": "section",
-                        "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
+                        "text": {"type": "mrkdwn", "text": partes_resposta[0]}
                     }]
                     
                     # Se a resposta for focada em uma integração específica, adicionar botão para ver informações completas
@@ -1020,6 +1052,7 @@ def slack_events():
                             }]
                         })
                     
+                    # Enviar primeira parte com blocks
                     response = slack_client.chat_postMessage(
                         channel=channel,
                         thread_ts=thread_ts,
@@ -1027,7 +1060,23 @@ def slack_events():
                         blocks=blocks_resposta
                     )
                     
+                    # Enviar partes adicionais se houver (sem blocks, apenas texto)
+                    for parte in partes_resposta[1:]:
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text=parte
+                        )
+                    
                     # Botões em mensagem separada - mais contextual e acolhedora
+                    # Obter idioma para mensagem de feedback
+                    idioma_resposta = analise_recepcionista.get('user_detected_language', 'pt')
+                    mensagem_feedback = obter_mensagem_feedback(idioma_resposta, mostrar_feedback=True)
+                    
+                    texto_feedback = "💬 *Essas informações foram úteis?*\n" + \
+                                   "Se precisar de mais detalhes ou tiver outras dúvidas, estou aqui! 😊" + \
+                                   mensagem_feedback
+                    
                     slack_client.chat_postMessage(
                         channel=channel,
                         thread_ts=thread_ts,
@@ -1036,8 +1085,7 @@ def slack_events():
                             "type": "section",
                             "text": {
                                 "type": "mrkdwn",
-                                "text": "💬 *Essas informações foram úteis?*\n"
-                                        "Se precisar de mais detalhes ou tiver outras dúvidas, estou aqui! 😊"
+                                "text": texto_feedback
                             }
                         }] + criar_botoes_interacao(user_query, resultados_encontrados, channel=channel, thread_ts=thread_ts)
                     )
