@@ -184,29 +184,43 @@ PERGUNTA ORIGINAL: {pergunta}
 DADOS DA INTEGRAÇÃO ENCONTRADA:
 {conteudo_bruto}
 
-INSTRUÇÕES CRÍTICAS E OBRIGATÓRIAS:
-1. ⚠️ USE APENAS AS INFORMAÇÕES FORNECIDAS NOS DADOS ACIMA - NÃO INVENTE NADA
-2. ⚠️ Se uma funcionalidade está marcada como "Não (❌)" ou "Não", NÃO diga que ela está disponível
+INSTRUÇÕES CRÍTICAS E OBRIGATÓRIAS (LEIA COM ATENÇÃO):
+1. ⚠️⚠️⚠️ USE APENAS AS INFORMAÇÕES FORNECIDAS NOS DADOS ACIMA - NÃO INVENTE NADA ⚠️⚠️⚠️
+2. ⚠️ Se uma funcionalidade está marcada como "Não (❌)" ou "Não", NUNCA diga que ela está disponível
 3. ⚠️ Se uma funcionalidade está marcada como "Sim (✔️)" ou "Sim", você pode dizer que está disponível
-4. ⚠️ DIFERENÇA IMPORTANTE:
+4. ⚠️ DIFERENÇA CRÍTICA ENTRE FUNCIONALIDADES:
    - "Devolucao_Codigo_Rastreamento" = retorna o código de rastreamento (pode ser Sim ou Não)
    - "Atualiza_Status_Rastreio" = atualiza automaticamente o status do rastreamento na plataforma (pode ser Sim ou Não)
-   - São funcionalidades DIFERENTES - verifique cada uma separadamente nos dados
-5. RESPONDA DIRETAMENTE A PERGUNTA primeiro, depois forneça detalhes se necessário
-6. Se perguntarem "temos integração?" ou "existe integração?", responda: "Sim, temos integração com [nome]." ou "Não, não temos integração com [nome]."
-7. Se perguntarem sobre funcionalidades específicas, responda sobre essas funcionalidades PRIMEIRO e de forma PRECISA
-8. Se perguntarem sobre contato/suporte, responda com os dados de contato primeiro
-9. Seja DIRETO e OBJETIVO - não liste tudo, foque no que foi perguntado
-10. Use formatação markdown para destacar informações importantes (*negrito*)
-11. Se você não tiver certeza sobre uma informação, NÃO invente - diga que precisa verificar
+   - São funcionalidades COMPLETAMENTE DIFERENTES - verifique CADA UMA separadamente nos dados
+   - Se "Atualiza_Status_Rastreio" está como "Não (❌)", NÃO diga que atualiza status automaticamente
+   - Se "Devolucao_Codigo_Rastreamento" está como "Sim (✔️)", você pode dizer que retorna o código
+5. ⚠️ ANTES DE MENCIONAR QUALQUER FUNCIONALIDADE, VERIFIQUE NOS DADOS se ela está como "Sim" ou "Não"
+6. ⚠️ Se perguntarem "como funciona", mencione APENAS as funcionalidades que estão como "Sim (✔️)" nos dados
+7. ⚠️ Se perguntarem sobre funcionalidades específicas, verifique EXATAMENTE nos dados antes de responder
+8. RESPONDA DIRETAMENTE A PERGUNTA primeiro, depois forneça detalhes se necessário
+9. Se perguntarem "temos integração?" ou "existe integração?", responda: "Sim, temos integração com [nome]." ou "Não, não temos integração com [nome]."
+10. Seja DIRETO e OBJETIVO - não liste tudo, foque no que foi perguntado
+11. Use formatação markdown para destacar informações importantes (*negrito*)
+12. Se você não tiver certeza sobre uma informação, NÃO invente - diga que precisa verificar
+
+EXEMPLO DE RESPOSTA CORRETA:
+Se os dados mostram:
+- "Devolucao_Codigo_Rastreamento": "Sim (✔️)"
+- "Atualiza_Status_Rastreio": "Não (❌)"
+
+E perguntarem "como funciona a integração?", você DEVE dizer:
+"A integração funciona através de API, permitindo cálculo de frete e retorno do código de rastreamento. A integração NÃO atualiza automaticamente o status do rastreamento na plataforma."
+
+NÃO diga que atualiza status automaticamente se está marcado como "Não (❌)" nos dados!
 
 FORMATO DA RESPOSTA:
-- 1-2 frases respondendo diretamente a pergunta com PRECISÃO
+- 1-2 frases respondendo diretamente a pergunta com PRECISÃO ABSOLUTA
 - Depois, se necessário, 1-2 frases com informações complementares relevantes
 - NÃO liste tudo - apenas o que é relevante para a pergunta
 - NÃO invente informações que não estão nos dados fornecidos
+- VERIFIQUE CADA FUNCIONALIDADE NOS DADOS ANTES DE MENCIONÁ-LA
 
-Sua resposta (focada, direta e PRECISA baseada apenas nos dados fornecidos):"""
+Sua resposta (focada, direta e PRECISA baseada APENAS nos dados fornecidos - SEM INVENTAR NADA):"""
 
         # Gerar resposta com retry
         logger.info(f"📝 Tamanho do prompt: {len(prompt)} caracteres")
@@ -324,8 +338,17 @@ Sua resposta (focada, direta e PRECISA baseada apenas nos dados fornecidos):"""
             
             # Validar que a resposta não é muito genérica
             if resposta_gerada and len(resposta_gerada) > 30:
-                logger.info(f"✅ Resposta gerada com sucesso ({len(resposta_gerada)} caracteres)")
-                return resposta_gerada
+                # 🛡️ VALIDAÇÃO: Verificar se a resposta não contradiz os dados
+                resposta_validada = _validar_resposta_contra_dados(resposta_gerada, conteudo_bruto, pergunta)
+                
+                if resposta_validada['valida']:
+                    logger.info(f"✅ Resposta gerada e validada com sucesso ({len(resposta_gerada)} caracteres)")
+                    return resposta_gerada
+                else:
+                    logger.warning(f"⚠️ Resposta gerada contém informações que podem contradizer os dados: {resposta_validada['problema']}")
+                    logger.info("🔄 Tentando gerar resposta mais conservadora...")
+                    # Tentar uma vez mais com prompt mais restritivo
+                    return _gerar_resposta_conservadora(pergunta, conteudo_bruto, contexto_thread)
             else:
                 logger.warning(f"⚠️ Resposta inválida (len: {len(resposta_gerada) if resposta_gerada else 0}), usando fallback")
                 return None
@@ -335,6 +358,103 @@ Sua resposta (focada, direta e PRECISA baseada apenas nos dados fornecidos):"""
             
     except Exception as e:
         logger.error(f"❌ Erro ao gerar resposta com Gemini: {e}")
+        return None
+
+
+def _validar_resposta_contra_dados(resposta, dados_originais, pergunta):
+    """
+    Valida se a resposta do Gemini não contradiz os dados fornecidos.
+    
+    Args:
+        resposta: Resposta gerada pelo Gemini
+        dados_originais: Dados originais do JSON
+        pergunta: Pergunta original
+        
+    Returns:
+        dict: {'valida': bool, 'problema': str}
+    """
+    resposta_lower = resposta.lower()
+    dados_lower = dados_originais.lower()
+    
+    problemas = []
+    
+    # Verificar se menciona funcionalidades que estão como "Não" nos dados
+    # Padrões para detectar menções de funcionalidades que podem estar incorretas
+    funcionalidades_criticas = {
+        'atualiza.*status.*rastreio': r'atualiza.*status.*rastreio.*não|atualiza.*status.*rastreio.*❌',
+        'atualiza.*automaticamente': r'atualiza.*automaticamente.*não|atualiza.*automaticamente.*❌',
+        'múltiplos volumes': r'múltiplos volumes.*não|múltiplos volumes.*❌',
+        'multi.*cd': r'multi.*cd.*não|multi.*cd.*❌',
+        'impressão.*etiqueta': r'impressão.*etiqueta.*não|impressão.*etiqueta.*❌'
+    }
+    
+    for func_nome, padrao_negativo in funcionalidades_criticas.items():
+        # Se a resposta menciona a funcionalidade positivamente
+        if re.search(func_nome, resposta_lower, re.IGNORECASE):
+            # Verificar se nos dados está como "Não"
+            if re.search(padrao_negativo, dados_lower, re.IGNORECASE):
+                problemas.append(f"Resposta menciona '{func_nome}' como disponível, mas dados indicam 'Não'")
+    
+    # Verificar se menciona "atualiza status" quando deveria ser apenas "devolve código"
+    if re.search(r'atualiza.*status.*rastreio|atualiza.*automaticamente', resposta_lower, re.IGNORECASE):
+        if 'atualiza.*status.*rastreio.*não' in dados_lower or 'atualiza.*status.*rastreio.*❌' in dados_lower:
+            # Verificar se menciona apenas "devolve código" (correto) ou também "atualiza" (incorreto)
+            if not re.search(r'devolu.*código|retorna.*código|devolu.*rastreamento', resposta_lower, re.IGNORECASE):
+                problemas.append("Resposta menciona atualização de status, mas dados indicam apenas devolução de código")
+    
+    if problemas:
+        return {
+            'valida': False,
+            'problema': '; '.join(problemas)
+        }
+    
+    return {'valida': True, 'problema': None}
+
+
+def _gerar_resposta_conservadora(pergunta, conteudo_bruto, contexto_thread=None):
+    """
+    Gera uma resposta mais conservadora e restritiva quando a primeira tentativa falha na validação.
+    
+    Args:
+        pergunta: Pergunta original
+        conteudo_bruto: Conteúdo extraído do JSON
+        contexto_thread: Contexto da thread (opcional)
+        
+    Returns:
+        str: Resposta conservadora ou None
+    """
+    try:
+        prompt_conservador = f"""Você é um assistente especializado em integrações da Nuvem Envio/Nuvemshop.
+
+PERGUNTA: {pergunta}
+
+DADOS DA INTEGRAÇÃO:
+{conteudo_bruto}
+
+INSTRUÇÕES ULTRA-RESTRITIVAS:
+1. Mencione APENAS funcionalidades que estão explicitamente marcadas como "Sim (✔️)" nos dados
+2. Se uma funcionalidade está como "Não (❌)", NÃO mencione ela ou mencione que NÃO está disponível
+3. Se perguntarem "como funciona", liste APENAS o que está como "Sim" nos dados
+4. Seja EXTREMAMENTE CONSERVADOR - se não tiver certeza, não mencione
+5. DIFERENÇA CRÍTICA:
+   - "Devolucao_Codigo_Rastreamento" = retorna código (verifique se é Sim ou Não)
+   - "Atualiza_Status_Rastreio" = atualiza status automaticamente (verifique se é Sim ou Não)
+   - NÃO confunda as duas - verifique CADA UMA nos dados
+
+Responda de forma DIRETA e PRECISA, mencionando APENAS o que está confirmado como "Sim" nos dados:"""
+        
+        response = model.generate_content(prompt_conservador)
+        
+        if response and response.text:
+            resposta = response.text.strip()
+            if len(resposta) > 30:
+                logger.info("✅ Resposta conservadora gerada com sucesso")
+                return resposta
+        
+        return None
+        
+    except Exception as e:
+        logger.error(f"❌ Erro ao gerar resposta conservadora: {e}")
         return None
 
 
