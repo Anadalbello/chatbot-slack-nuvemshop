@@ -138,7 +138,7 @@ def buscar_historico_thread(
             
             # Limpar menções ao bot e formatação
             texto_limpo = texto.replace('<@', '').replace('>', '')
-            texto_limpo = texto_limpo.replace('@Perguntaê', '').replace('@Perguntae', '')
+            texto_limpo = texto_limpo.replace('@Perguntaê', '').replace('@Perguntae', '').replace('@Tina', '')
             texto_limpo = texto_limpo.strip()
             
             if texto_limpo and len(texto_limpo) > 2:

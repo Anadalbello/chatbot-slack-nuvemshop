@@ -84,7 +84,7 @@ Após configurar, você deve ver:
 
 ## 🧪 Testar
 
-1. Em um canal do Slack, mencione o bot: `@Perguntaê oi`
+1. Em um canal do Slack, mencione o bot: `@Tina oi`
 2. O bot deve responder na thread
 3. **Agora, sem mencionar**, responda na thread: `temos integração com Bling?`
 4. O bot deve responder automaticamente! ✅

@@ -83,7 +83,7 @@ def criar_menu_boas_vindas():
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "👋 *Olá! Sou o Perguntaê, seu assistente de integrações da Nuvem Envio*\n\n🎯 *O que posso fazer por você?*\n\n• 📋 Listar todas as integrações disponíveis\n• 🔍 Buscar informações específicas sobre qualquer ERP/Plataforma\n• 📊 Consultar funcionalidades, complexidade e responsáveis\n• 📞 Informar dados de suporte e contato\n\n*Como posso ajudá-lo hoje?*"
+                    "text": ":abanando: *Olá! Sou a Tina, seu assistente de integrações da Nuvem Envio*\n\n:dardo_no_alvo: *O que posso fazer por você?*\n\n• :prancheta: Listar todas as integrações disponíveis\n• :lupa: Buscar informações específicas sobre qualquer ERP/Plataforma\n• :gráfico_de_barras: Consultar funcionalidades, complexidade e responsáveis\n• :receptor_telefone: Informar dados de suporte e contato\n\n*Como posso ajudá-lo hoje?*"
                 }
             },
             {
