@@ -1776,5 +1776,40 @@
       "Email": "integracao@nuvemshop.com.br",
       "Telefone": "(54) 3771-7278"
     }
+  },
+  {
+    "Categoria": "ERP",
+    "Nome": "IDWorks",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Seguro_Incluido_Calculo_Frete": "Sim (✔️)",
+      "Seguro_Configuravel_Calculo_Frete": "Sim (✔️)",
+      "Nome_Transportador_Checkout_Personalizavel": "Não (❌)",
+      "Calcula_Peso_Cubado": "Sim (✔️)",
+      "Integracao_Pedidos": "Sim (API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Devolucao_Codigo_Rastreamento": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê / Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "Sem custos",
+      "Critério_Valor_Declarado": "N/A",
+      "Limitacoes_Ausencia": "Nada consta.",
+      "Site": "IDWorks",
+      "Manual": "Integração IDWorks - Configurações da Integração"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
   }
 ]
