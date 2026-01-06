@@ -111,9 +111,10 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         logger.warning("Nenhum ERP carregado do JSON")
         return None
     
-    # Limpar query: remover pontuação e normalizar
-    nome_limpo_query = re.sub(r'[?.,!;:]+', '', nome_erp.lower().strip())
-    logger.info(f"🔍 Buscando ERP: '{nome_erp}'")
+    # Limpar query: remover pontuação, espaços extras e normalizar
+    nome_limpo_query = re.sub(r'[?.,!;:\s]+', ' ', nome_erp.lower().strip())
+    nome_limpo_query = re.sub(r'\s+', ' ', nome_limpo_query).strip()  # Normalizar espaços múltiplos
+    logger.info(f"🔍 Buscando ERP: '{nome_erp}' (query limpa: '{nome_limpo_query}')")
     
     # Lista expandida de palavras comuns a remover (stopwords em português)
     palavras_remover = {
@@ -146,7 +147,8 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         nome_erp_atual = erp.get("Nome", erp.get("ERP", "")).lower()
         # Busca parcial: remove parênteses E pontuação para busca mais flexível
         nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp_atual)
-        nome_limpo = re.sub(r'[?.,!;:]+', '', nome_limpo)  # Remove pontuação para comparação
+        nome_limpo = re.sub(r'[?.,!;:\s]+', ' ', nome_limpo)  # Remove pontuação e normaliza espaços
+        nome_limpo = re.sub(r'\s+', ' ', nome_limpo).strip()  # Normalizar espaços múltiplos
         palavras_nome_raw = nome_limpo.split()
         palavras_nome = set([p.strip('?.,!;:') for p in palavras_nome_raw])
         
@@ -161,6 +163,10 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         elif nome_limpo.strip() and (nome_limpo.strip() in nome_limpo_query or nome_limpo_query in nome_limpo.strip()):
             score = 95
             logger.debug(f"✅ Match por nome sem pontuação: '{nome_limpo.strip()}' encontrado (score: {score})")
+        # ESTRATÉGIA 1.6: Busca sem espaços (para casos como "IDWorks" vs "ID Works")
+        elif nome_limpo.replace(' ', '') in nome_limpo_query.replace(' ', '') or nome_limpo_query.replace(' ', '') in nome_limpo.replace(' ', ''):
+            score = 94
+            logger.debug(f"✅ Match por nome sem espaços: '{nome_limpo}' (score: {score})")
         # ESTRATÉGIA 2: Verificar se a query começa com o nome do ERP (score 90)
         elif nome_limpo_query.startswith(nome_limpo) or nome_limpo.startswith(nome_limpo_query):
             score = 90
@@ -191,12 +197,33 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
                     palavras_comuns_list = list(palavras_comuns)
                     score = min(70, 30 + (len(palavras_comuns_list) * 10) + (sum(len(p) for p in palavras_comuns_list) // 3))
                     logger.debug(f"✅ Match por interseção: palavras {palavras_comuns} encontradas no nome '{nome_limpo}' (score: {score})")
+            
+            # ESTRATÉGIA 5: Busca por substring (para casos como "idworks" em "IDWorks" ou vice-versa)
+            if score == 0:
+                # Remover espaços e comparar substrings
+                nome_sem_espacos = nome_limpo.replace(' ', '').lower()
+                query_sem_espacos = nome_limpo_query.replace(' ', '').lower()
+                
+                # Verificar se há substring comum significativa (mínimo 3 caracteres)
+                if len(nome_sem_espacos) >= 3 and len(query_sem_espacos) >= 3:
+                    # Verificar se uma está contida na outra
+                    if nome_sem_espacos in query_sem_espacos or query_sem_espacos in nome_sem_espacos:
+                        # Calcular score baseado no tamanho da substring comum
+                        substring_comum = min(len(nome_sem_espacos), len(query_sem_espacos))
+                        score = min(75, 40 + (substring_comum * 2))
+                        logger.debug(f"✅ Match por substring: '{nome_limpo}' contém ou está contido em '{nome_limpo_query}' (score: {score})")
         
         if score > 0:
             matches_com_score.append((score, erp))
     
     if not matches_com_score:
         logger.info(f"❌ ERP '{nome_erp}' não encontrado")
+        
+        # Tentar buscar integrações similares para sugerir
+        sugestoes = sugerir_integracoes_similares(nome_erp, limite=5)
+        if sugestoes:
+            logger.info(f"💡 Sugestões de integrações similares: {', '.join(sugestoes[:3])}")
+        
         return None
     
     # Ordenar por score (maior primeiro) e pegar o melhor match
