@@ -448,11 +448,31 @@ class KnowledgeManager:
         
         # Se não encontrou com handler específico, tentar busca genérica
         logger.info(f"⚠️ Handler específico não encontrou, tentando busca genérica...")
-        generic_results = self.search(integration_name, limit=1, locale=locale)
+        generic_results = self.search(integration_name, limit=3, locale=locale)  # Buscar mais resultados para ter opções
+        
         if generic_results:
-            logger.info(f"✅ Integração encontrada via busca genérica")
+            # Verificar se algum resultado tem nome similar (busca mais flexível)
+            for resultado in generic_results:
+                content = resultado.get('content', '')
+                # Verificar se o nome da integração aparece no conteúdo
+                if integration_name.lower() in content.lower():
+                    logger.info(f"✅ Integração encontrada via busca genérica (match por conteúdo)")
+                    return resultado
+            
+            # Se não encontrou match exato, retornar o primeiro resultado mesmo assim
+            logger.info(f"✅ Integração encontrada via busca genérica (primeiro resultado)")
             return generic_results[0]
         
         logger.info(f"❌ Integração '{integration_name}' não encontrada em nenhuma fonte")
+        
+        # Tentar buscar sugestões similares
+        try:
+            from handlers.buscar_integracoes_json import sugerir_integracoes_similares
+            sugestoes = sugerir_integracoes_similares(integration_name, limite=5)
+            if sugestoes:
+                logger.info(f"💡 Sugestões de integrações similares para '{integration_name}': {', '.join(sugestoes[:3])}")
+        except Exception as e:
+            logger.debug(f"Erro ao buscar sugestões: {e}")
+        
         return None
 
