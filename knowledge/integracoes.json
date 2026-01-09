@@ -1404,7 +1404,7 @@
       "Desenvolvedor_Integracao": "Parceiro",
       "Limitacoes_Ausencia": "Multi-estoque (vários depósitos): existe no Tiny e atende ao conceito de Multi-CD de inventário. Roteamento por CD de origem (frete/região): depende da plataforma/canal e da transportadora (o ERP fornece os depósitos; quem decide 'de qual CD sai o pedido' normalmente é o hub/plataforma/regra de envio).",
       "Site": "http://www.tiny.com.br/",
-      "Manual": "Configurações | Utilização",
+      "Manual": "https://ajuda.olist.com/integracoes-de-transportadoras-e-parceiros/mandae-como-utilizar",
       "Custos_Envolvidos": "Sem custos",
       "Critério_Valor_Declarado": "N/A"
     },
