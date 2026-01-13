@@ -452,12 +452,15 @@ def slack_events():
                         limite=10  # Últimas 10 mensagens
                     )
                     
+                    referencias = {}
                     if contexto_thread:
                         logger.info(f"📚 Contexto da thread carregado ({len(contexto_thread)} caracteres)")
                         # Extrair referências úteis do contexto
                         referencias = extrair_referencias_contexto(contexto_thread, pergunta_limpa)
                         if referencias.get('integracoes_mencionadas'):
                             logger.info(f"🔍 Integrações mencionadas anteriormente: {referencias['integracoes_mencionadas']}")
+                        if referencias.get('integracao_principal'):
+                            logger.info(f"🎯 Integração principal identificada do contexto: {referencias['integracao_principal']}")
                     else:
                         logger.debug("📭 Sem contexto anterior na thread")
                 except Exception as e:
@@ -861,6 +864,33 @@ def slack_events():
                 
                 # 5. SEARCH_KNOWLEDGE (ou fallback) - Buscar em todas as fontes
                 logger.info("🔍 Intent: search_knowledge - buscando em múltiplas fontes")
+                
+                # 🧠 MELHORIA: Se a pergunta é genérica e há integração no contexto, usar essa integração
+                integracao_do_contexto = referencias.get('integracao_principal') if 'referencias' in locals() else None
+                pergunta_generica = False
+                
+                # Detectar perguntas genéricas sobre funcionalidades/limitações
+                perguntas_genericas_patterns = [
+                    'o que não suporta', 'o que ela não suporta', 'o que não suporta', 'não suporta',
+                    'quais limitações', 'quais são as limitações', 'limitações', 'limitação',
+                    'o que falta', 'o que ela não tem', 'não tem', 'não possui',
+                    'o que não funciona', 'não funciona', 'funcionalidades que não tem',
+                    'o que ela não faz', 'não faz', 'não pode fazer'
+                ]
+                
+                user_query_lower = user_query.lower()
+                for pattern in perguntas_genericas_patterns:
+                    if pattern in user_query_lower:
+                        pergunta_generica = True
+                        logger.info(f"🔍 Pergunta genérica detectada: '{pattern}'")
+                        break
+                
+                # Se é pergunta genérica e há integração no contexto, usar essa integração na busca
+                if pergunta_generica and integracao_do_contexto:
+                    logger.info(f"🎯 Usando integração do contexto para pergunta genérica: {integracao_do_contexto}")
+                    # Substituir query pela integração identificada
+                    user_query = f"{integracao_do_contexto} {user_query}"
+                    logger.info(f"📝 Query atualizada: '{user_query}'")
                 
                 # 🎯 VERIFICAR SE É BUSCA POR TIPO DE INTEGRAÇÃO
                 query_lower = user_query.lower()

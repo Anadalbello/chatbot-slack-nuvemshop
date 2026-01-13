@@ -5,6 +5,7 @@ Busca mensagens anteriores na thread para melhorar respostas sequenciais
 """
 
 import logging
+import re
 from typing import Optional, List, Dict
 from slack_sdk.web import WebClient
 from datetime import datetime, timedelta
@@ -181,11 +182,13 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
     Returns:
         Dict com referências extraídas:
         - integracoes_mencionadas: Lista de integrações mencionadas antes
+        - integracao_principal: Nome da integração mais provável mencionada (se houver)
         - termos_chave: Termos importantes mencionados
         - pergunta_anterior: Pergunta mais recente
     """
     referencias = {
         'integracoes_mencionadas': [],
+        'integracao_principal': None,
         'termos_chave': [],
         'pergunta_anterior': None
     }
@@ -199,21 +202,95 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
         if linhas:
             referencias['pergunta_anterior'] = linhas[-1]
         
-        # Tentar extrair nomes de integrações mencionadas (palavras com maiúsculas)
-        import re
-        # Padrão para encontrar possíveis nomes de ERPs (palavras começando com maiúscula)
-        erps_comuns = ['Bling', 'Notazz', 'Tiny', 'Omie', 'Eccosys', 'VTEX', 'Magento', 
-                      'Shopify', 'WooCommerce', 'Nuvemshop', 'Tray', 'Loja Integrada']
+        # Combinar contexto e mensagem atual para busca mais completa
+        texto_completo = f"{contexto}\n{mensagem_atual}".lower()
         
-        contexto_lower = contexto.lower()
-        for erp in erps_comuns:
-            if erp.lower() in contexto_lower:
-                referencias['integracoes_mencionadas'].append(erp)
+        # Carregar todas as integrações do JSON para busca mais precisa
+        try:
+            from handlers.buscar_integracoes_json import carregar_integracoes_json
+            integracoes = carregar_integracoes_json()
+            
+            if integracoes:
+                # Buscar integrações mencionadas no contexto
+                integracoes_encontradas = []
+                
+                for integracao in integracoes:
+                    nome_integracao = integracao.get('Nome', '')
+                    if not nome_integracao:
+                        continue
+                    
+                    # Normalizar nome para busca (remover parênteses e caracteres especiais)
+                    nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_integracao).strip()
+                    nome_normalizado = re.sub(r'[^\w\s]', '', nome_limpo.lower())
+                    
+                    # Buscar por nome completo ou palavras-chave do nome
+                    palavras_nome = nome_normalizado.split()
+                    
+                    # Verificar se o nome completo está no contexto
+                    if nome_normalizado in texto_completo:
+                        integracoes_encontradas.append({
+                            'nome': nome_integracao,
+                            'score': 100,  # Match completo = maior score
+                            'match_type': 'completo'
+                        })
+                    # Verificar se palavras-chave do nome estão no contexto
+                    elif len(palavras_nome) > 1:
+                        palavras_encontradas = sum(1 for palavra in palavras_nome if len(palavra) > 2 and palavra in texto_completo)
+                        if palavras_encontradas >= len(palavras_nome) * 0.6:  # Pelo menos 60% das palavras
+                            integracoes_encontradas.append({
+                                'nome': nome_integracao,
+                                'score': palavras_encontradas * 10,
+                                'match_type': 'parcial'
+                            })
+                    # Verificar match simples (uma palavra significativa)
+                    elif len(palavras_nome) == 1 and len(palavras_nome[0]) > 3:
+                        if palavras_nome[0] in texto_completo:
+                            integracoes_encontradas.append({
+                                'nome': nome_integracao,
+                                'score': 50,
+                                'match_type': 'simples'
+                            })
+                
+                # Ordenar por score e remover duplicatas
+                if integracoes_encontradas:
+                    # Remover duplicatas mantendo o maior score
+                    integracoes_unicas = {}
+                    for item in integracoes_encontradas:
+                        nome = item['nome']
+                        if nome not in integracoes_unicas or item['score'] > integracoes_unicas[nome]['score']:
+                            integracoes_unicas[nome] = item
+                    
+                    # Ordenar por score (maior primeiro)
+                    integracoes_ordenadas = sorted(
+                        integracoes_unicas.values(),
+                        key=lambda x: x['score'],
+                        reverse=True
+                    )
+                    
+                    referencias['integracoes_mencionadas'] = [item['nome'] for item in integracoes_ordenadas]
+                    
+                    # Definir integração principal (a de maior score)
+                    if integracoes_ordenadas:
+                        referencias['integracao_principal'] = integracoes_ordenadas[0]['nome']
+                        logger.info(f"🎯 Integração principal identificada do contexto: {referencias['integracao_principal']}")
+        
+        except Exception as e:
+            logger.debug(f"Erro ao carregar integrações para busca: {e}")
+            # Fallback para lista hardcoded se houver erro
+            erps_comuns = ['Bling', 'Notazz', 'Tiny', 'Omie', 'Eccosys', 'VTEX', 'Magento', 
+                          'Shopify', 'WooCommerce', 'Nuvemshop', 'Tray', 'Loja Integrada', 'Freterápido']
+            
+            contexto_lower = contexto.lower()
+            for erp in erps_comuns:
+                if erp.lower() in contexto_lower:
+                    referencias['integracoes_mencionadas'].append(erp)
+                    if not referencias['integracao_principal']:
+                        referencias['integracao_principal'] = erp
         
         # Remover duplicatas
         referencias['integracoes_mencionadas'] = list(set(referencias['integracoes_mencionadas']))
         
-        logger.debug(f"🔍 Referências extraídas: {referencias}")
+        logger.debug(f"🔍 Referências extraídas: {len(referencias['integracoes_mencionadas'])} integrações, principal: {referencias['integracao_principal']}")
         
     except Exception as e:
         logger.debug(f"Erro ao extrair referências: {e}")
