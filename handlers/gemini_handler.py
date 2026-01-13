@@ -41,8 +41,21 @@ def get_gemini_response(prompt):
         )
         
         if is_quota_error:
-            logger.warning(f"⚠️ Gemini: Erro de quota/rate limit: {erro_str}")
+            # Extrair tempo de retry se disponível
+            retry_seconds = None
+            if "retry_delay" in erro_str or "retry in" in erro_msg:
+                import re
+                retry_match = re.search(r'retry.*?(\d+\.?\d*)\s*[sS]', erro_str)
+                if retry_match:
+                    retry_seconds = float(retry_match.group(1))
+            
+            if retry_seconds:
+                logger.warning(f"⚠️ Gemini: Quota excedida. Retry em {retry_seconds:.0f}s. Usando fallback.")
+            else:
+                logger.warning(f"⚠️ Gemini: Quota excedida. Usando fallback.")
         else:
-            logger.error(f"❌ Gemini: Erro ao gerar resposta: {erro_str}", exc_info=True)
+            # Para outros erros, logar de forma mais concisa
+            erro_resumido = erro_str.split('\n')[0][:150]  # Primeira linha, máximo 150 chars
+            logger.error(f"❌ Gemini: {erro_resumido}")
         
         return f"Erro ao acessar Gemini: {erro_str}"

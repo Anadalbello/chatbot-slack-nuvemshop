@@ -151,8 +151,12 @@ class Recepcionista:
             # Verificar se a resposta é uma mensagem de erro
             # Verificação mais específica para evitar falsos positivos
             if response.startswith("Erro ao acessar Gemini"):
+                # Detectar se é erro de quota para log mais conciso
                 erro_detalhado = response.replace("Erro ao acessar Gemini: ", "")
-                logger.warning(f"⚠️ Resposta da recepcionista contém erro do Gemini: {erro_detalhado[:100]}")
+                if "429" in erro_detalhado or "quota" in erro_detalhado.lower():
+                    logger.debug("🔄 Gemini quota excedida na recepcionista, usando fallback")
+                else:
+                    logger.warning(f"⚠️ Erro do Gemini na recepcionista: {erro_detalhado[:80]}...")
                 logger.info("🔄 Usando análise fallback")
                 return self._fallback_analysis(pergunta_limpa)
             

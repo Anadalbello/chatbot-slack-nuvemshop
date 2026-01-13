@@ -108,7 +108,8 @@ def event_ja_processado(event_id, user, text, channel=None):
             if chave in eventos_processados:
                 tempo_desde_ultimo = agora - eventos_processados[chave]['timestamp']
                 if tempo_desde_ultimo < 600:  # 10 minutos - detectar duplicatas por mais tempo
-                    logger.warning(f"⚠️ Evento duplicado detectado: {chave}")
+                    # Eventos duplicados são esperados do Slack, usar DEBUG ao invés de WARNING
+                    logger.debug(f"📋 Evento duplicado detectado (ignorado): {chave[:50]}...")
                     return True
         
         # Marcar todas as chaves como processadas
@@ -436,7 +437,7 @@ def slack_events():
             # 🛡️ VERIFICAR SE É EVENTO DUPLICADO
             # IMPORTANTE: Passar channel para permitir mesma mensagem em canais diferentes
             if event_ja_processado(event.get("event_ts", ""), user, text, channel=channel):
-                logger.info("⚠️ Evento duplicado ignorado")
+                logger.debug("📋 Evento duplicado ignorado (comportamento esperado do Slack)")
                 return jsonify({"ok": True})
             
             logger.info(f"Mensagem recebida de {user}: {text}")
