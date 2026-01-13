@@ -2023,5 +2023,40 @@
       "Email": "N/A",
       "Telefone": "N/A"
     }
+  },
+  {
+    "Categoria": "Hub",
+    "Nome": "Freterápido",
+    "Tipo_Integracao": "Tabela de Frete",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Tabela de frete) (✔️)",
+      "Seguro_Incluido_Calculo_Frete": "Sim (✔️)",
+      "Seguro_Configuravel_Calculo_Frete": "Não (fixo na tabela) (❌)",
+      "Nome_Transportador_Checkout_Personalizavel": "Sim (✔️)",
+      "Calcula_Peso_Cubado": "Sim (✔️)",
+      "Integracao_Pedidos": "Sim (Tabela) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (Tabela) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Valor_Minimo_Seguro_Configuravel": "Sim (✔️)",
+      "Multi_CD": "Sim (✔️)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Devolucao_Codigo_Rastreamento": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Mandaê/Parceiro",
+      "Responsavel_Testes": "Mandaê/Cliente",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "Atualmente, não há nenhum custo adicional para habilitar a integração entre a Frete Rápido e a Mandaê, desde que o usuário possua acesso a ambas as contas.",
+      "Critério_Valor_Declarado": "N/A",
+      "Limitacoes_Ausencia": "N/A",
+      "Site": "N/A",
+      "Manual": "N/A"
+    },
+    "Suporte_Contato": {
+      "Email": "integracao@nuvemshop.com.br",
+      "Telefone": "N/A"
+    }
   }
 ]
