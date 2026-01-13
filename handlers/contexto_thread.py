@@ -221,20 +221,36 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
                     
                     # Normalizar nome para busca (remover parênteses e caracteres especiais)
                     nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_integracao).strip()
+                    # Normalizar: remover acentos, espaços e caracteres especiais
                     nome_normalizado = re.sub(r'[^\w\s]', '', nome_limpo.lower())
+                    # Remover espaços para matching mais flexível (ex: "frete rápido" = "freterápido")
+                    nome_sem_espacos = re.sub(r'\s+', '', nome_normalizado)
                     
                     # Buscar por nome completo ou palavras-chave do nome
                     palavras_nome = nome_normalizado.split()
                     
-                    # Verificar se o nome completo está no contexto
-                    if nome_normalizado in texto_completo:
+                    # ESTRATÉGIA 1: Verificar se o nome completo (sem espaços) está no contexto
+                    # Isso captura "freterápido" mesmo quando mencionado como "frete rápido"
+                    texto_sem_espacos = re.sub(r'\s+', '', texto_completo)
+                    if nome_sem_espacos in texto_sem_espacos:
                         integracoes_encontradas.append({
                             'nome': nome_integracao,
                             'score': 100,  # Match completo = maior score
                             'match_type': 'completo'
                         })
-                    # Verificar se palavras-chave do nome estão no contexto
-                    elif len(palavras_nome) > 1:
+                        continue  # Match completo encontrado, não precisa verificar outras estratégias
+                    
+                    # ESTRATÉGIA 2: Verificar se o nome completo (com espaços) está no contexto
+                    if nome_normalizado in texto_completo:
+                        integracoes_encontradas.append({
+                            'nome': nome_integracao,
+                            'score': 95,  # Match completo com espaços
+                            'match_type': 'completo_espacos'
+                        })
+                        continue
+                    
+                    # ESTRATÉGIA 3: Verificar se palavras-chave do nome estão no contexto
+                    if len(palavras_nome) > 1:
                         palavras_encontradas = sum(1 for palavra in palavras_nome if len(palavra) > 2 and palavra in texto_completo)
                         if palavras_encontradas >= len(palavras_nome) * 0.6:  # Pelo menos 60% das palavras
                             integracoes_encontradas.append({
@@ -242,7 +258,7 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
                                 'score': palavras_encontradas * 10,
                                 'match_type': 'parcial'
                             })
-                    # Verificar match simples (uma palavra significativa)
+                    # ESTRATÉGIA 4: Verificar match simples (uma palavra significativa)
                     elif len(palavras_nome) == 1 and len(palavras_nome[0]) > 3:
                         if palavras_nome[0] in texto_completo:
                             integracoes_encontradas.append({
@@ -251,33 +267,33 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
                                 'match_type': 'simples'
                             })
                 
-                    # Ordenar por score e remover duplicatas
-                    if integracoes_encontradas:
-                        logger.debug(f"🔍 {len(integracoes_encontradas)} integrações encontradas no contexto")
-                        # Remover duplicatas mantendo o maior score
-                        integracoes_unicas = {}
-                        for item in integracoes_encontradas:
-                            nome = item['nome']
-                            if nome not in integracoes_unicas or item['score'] > integracoes_unicas[nome]['score']:
-                                integracoes_unicas[nome] = item
-                        
-                        # Ordenar por score (maior primeiro)
-                        integracoes_ordenadas = sorted(
-                            integracoes_unicas.values(),
-                            key=lambda x: x['score'],
-                            reverse=True
-                        )
-                        
-                        referencias['integracoes_mencionadas'] = [item['nome'] for item in integracoes_ordenadas]
-                        
-                        # Definir integração principal (a de maior score)
-                        if integracoes_ordenadas:
-                            referencias['integracao_principal'] = integracoes_ordenadas[0]['nome']
-                            logger.info(f"🎯 Integração principal identificada do contexto: {referencias['integracao_principal']} (score: {integracoes_ordenadas[0]['score']})")
-                        else:
-                            logger.debug("⚠️ Nenhuma integração ordenada encontrada")
+                # Ordenar por score e remover duplicatas (fora do loop)
+                if integracoes_encontradas:
+                    logger.debug(f"🔍 {len(integracoes_encontradas)} integrações encontradas no contexto")
+                    # Remover duplicatas mantendo o maior score
+                    integracoes_unicas = {}
+                    for item in integracoes_encontradas:
+                        nome = item['nome']
+                        if nome not in integracoes_unicas or item['score'] > integracoes_unicas[nome]['score']:
+                            integracoes_unicas[nome] = item
+                    
+                    # Ordenar por score (maior primeiro)
+                    integracoes_ordenadas = sorted(
+                        integracoes_unicas.values(),
+                        key=lambda x: x['score'],
+                        reverse=True
+                    )
+                    
+                    referencias['integracoes_mencionadas'] = [item['nome'] for item in integracoes_ordenadas]
+                    
+                    # Definir integração principal (a de maior score)
+                    if integracoes_ordenadas:
+                        referencias['integracao_principal'] = integracoes_ordenadas[0]['nome']
+                        logger.info(f"🎯 Integração principal identificada do contexto: {referencias['integracao_principal']} (score: {integracoes_ordenadas[0]['score']}, tipo: {integracoes_ordenadas[0]['match_type']})")
                     else:
-                        logger.debug(f"⚠️ Nenhuma integração encontrada no contexto. Texto completo: {texto_completo[:200]}...")
+                        logger.debug("⚠️ Nenhuma integração ordenada encontrada")
+                else:
+                    logger.debug(f"⚠️ Nenhuma integração encontrada no contexto. Texto completo: {texto_completo[:200]}...")
         
         except Exception as e:
             logger.debug(f"Erro ao carregar integrações para busca: {e}")
