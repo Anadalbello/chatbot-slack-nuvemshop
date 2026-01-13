@@ -4,6 +4,7 @@ Gerencia conversas que precisam de esclarecimento (ex: país não detectado)
 """
 
 import logging
+import threading
 from typing import Dict, Optional
 from datetime import datetime, timedelta
 
@@ -12,6 +13,8 @@ logger = logging.getLogger(__name__)
 # Armazenamento em memória de conversas pendentes
 # Formato: {thread_ts: {user_query, query_type, detected_language, channel, timestamp}}
 conversas_pendentes: Dict[str, Dict] = {}
+# Lock para operações thread-safe no dicionário de conversas pendentes
+_conversas_lock = threading.Lock()
 
 # Tempo de expiração de conversas pendentes (30 minutos)
 TEMPO_EXPIRACAO = timedelta(minutes=30)
@@ -36,14 +39,16 @@ def salvar_conversa_pendente(
         detected_country: País detectado (pode estar vazio)
         channel: ID do canal
     """
-    conversas_pendentes[thread_ts] = {
-        "user_query": user_query,
-        "query_type": query_type,
-        "detected_language": detected_language,
-        "detected_country": detected_country,
-        "channel": channel,
-        "timestamp": datetime.now()
-    }
+    # Thread-safe: usar lock para operações no dicionário compartilhado
+    with _conversas_lock:
+        conversas_pendentes[thread_ts] = {
+            "user_query": user_query,
+            "query_type": query_type,
+            "detected_language": detected_language,
+            "detected_country": detected_country,
+            "channel": channel,
+            "timestamp": datetime.now()
+        }
     logger.info(f"💾 Conversa pendente salva: {thread_ts} (query: {user_query[:50]}...)")
 
 
@@ -57,17 +62,19 @@ def obter_conversa_pendente(thread_ts: str) -> Optional[Dict]:
     Returns:
         Dict com dados da conversa ou None se não existir/expirada
     """
-    if thread_ts not in conversas_pendentes:
-        return None
-    
-    conversa = conversas_pendentes[thread_ts]
-    
-    # Verificar expiração
-    tempo_decorrido = datetime.now() - conversa["timestamp"]
-    if tempo_decorrido > TEMPO_EXPIRACAO:
-        logger.info(f"⏰ Conversa pendente expirada: {thread_ts}")
-        del conversas_pendentes[thread_ts]
-        return None
+    # Thread-safe: usar lock para operações no dicionário compartilhado
+    with _conversas_lock:
+        if thread_ts not in conversas_pendentes:
+            return None
+        
+        conversa = conversas_pendentes[thread_ts]
+        
+        # Verificar expiração
+        tempo_decorrido = datetime.now() - conversa["timestamp"]
+        if tempo_decorrido > TEMPO_EXPIRACAO:
+            logger.info(f"⏰ Conversa pendente expirada: {thread_ts}")
+            del conversas_pendentes[thread_ts]
+            return None
     
     logger.info(f"📖 Conversa pendente encontrada: {thread_ts}")
     return conversa
@@ -80,9 +87,11 @@ def remover_conversa_pendente(thread_ts: str) -> None:
     Args:
         thread_ts: Timestamp da thread
     """
-    if thread_ts in conversas_pendentes:
-        del conversas_pendentes[thread_ts]
-        logger.info(f"🗑️ Conversa pendente removida: {thread_ts}")
+    # Thread-safe: usar lock para operações no dicionário compartilhado
+    with _conversas_lock:
+        if thread_ts in conversas_pendentes:
+            del conversas_pendentes[thread_ts]
+            logger.info(f"🗑️ Conversa pendente removida: {thread_ts}")
 
 
 def processar_resposta_pais(user_text: str, conversa: Dict) -> Optional[str]:
@@ -146,13 +155,15 @@ def limpar_conversas_expiradas() -> int:
     agora = datetime.now()
     expiradas = []
     
-    for thread_ts, conversa in conversas_pendentes.items():
-        tempo_decorrido = agora - conversa["timestamp"]
-        if tempo_decorrido > TEMPO_EXPIRACAO:
-            expiradas.append(thread_ts)
-    
-    for thread_ts in expiradas:
-        del conversas_pendentes[thread_ts]
+    # Thread-safe: usar lock para operações no dicionário compartilhado
+    with _conversas_lock:
+        for thread_ts, conversa in conversas_pendentes.items():
+            tempo_decorrido = agora - conversa["timestamp"]
+            if tempo_decorrido > TEMPO_EXPIRACAO:
+                expiradas.append(thread_ts)
+        
+        for thread_ts in expiradas:
+            del conversas_pendentes[thread_ts]
     
     if expiradas:
         logger.info(f"🧹 {len(expiradas)} conversas pendentes expiradas removidas")
@@ -171,16 +182,21 @@ def obter_estatisticas() -> Dict:
     ativas = 0
     expiradas = 0
     
-    for conversa in conversas_pendentes.values():
-        tempo_decorrido = agora - conversa["timestamp"]
-        if tempo_decorrido > TEMPO_EXPIRACAO:
-            expiradas += 1
-        else:
-            ativas += 1
+    # Thread-safe: usar lock para operações no dicionário compartilhado
+    with _conversas_lock:
+        for conversa in conversas_pendentes.values():
+            tempo_decorrido = agora - conversa["timestamp"]
+            if tempo_decorrido > TEMPO_EXPIRACAO:
+                expiradas += 1
+            else:
+                ativas += 1
+        
+        total = len(conversas_pendentes)
     
     return {
-        "total": len(conversas_pendentes),
+        "total": total,
         "ativas": ativas,
         "expiradas": expiradas
     }
+
 
