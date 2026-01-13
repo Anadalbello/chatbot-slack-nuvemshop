@@ -205,6 +205,7 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
         
         # Combinar contexto e mensagem atual para busca mais completa
         texto_completo = f"{contexto}\n{mensagem_atual}".lower()
+        logger.debug(f"🔍 Texto completo para busca (primeiros 200 chars): {texto_completo[:200]}")
         
         # Carregar todas as integrações do JSON para busca mais precisa
         try:
@@ -212,11 +213,13 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
             integracoes = carregar_integracoes_json()
             
             if integracoes:
+                logger.debug(f"🔍 Carregadas {len(integracoes)} integrações para busca no contexto")
                 # Buscar integrações mencionadas no contexto
                 integracoes_encontradas = []
                 
                 # Normalizar texto completo removendo espaços para matching flexível
                 texto_sem_espacos = re.sub(r'\s+', '', texto_completo)
+                logger.debug(f"🔍 Texto sem espaços (primeiros 150 chars): {texto_sem_espacos[:150]}")
                 
                 for integracao in integracoes:
                     nome_integracao = integracao.get('Nome', '')
@@ -237,6 +240,7 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
                     # Isso captura "freterápido" mesmo quando mencionado como "frete rápido"
                     if nome_sem_espacos and len(nome_sem_espacos) > 3:
                         if nome_sem_espacos in texto_sem_espacos:
+                            logger.debug(f"✅ Match encontrado (sem espaços): '{nome_integracao}' -> '{nome_sem_espacos}'")
                             integracoes_encontradas.append({
                                 'nome': nome_integracao,
                                 'score': 100,  # Match completo = maior score
