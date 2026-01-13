@@ -251,28 +251,33 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
                                 'match_type': 'simples'
                             })
                 
-                # Ordenar por score e remover duplicatas
-                if integracoes_encontradas:
-                    # Remover duplicatas mantendo o maior score
-                    integracoes_unicas = {}
-                    for item in integracoes_encontradas:
-                        nome = item['nome']
-                        if nome not in integracoes_unicas or item['score'] > integracoes_unicas[nome]['score']:
-                            integracoes_unicas[nome] = item
-                    
-                    # Ordenar por score (maior primeiro)
-                    integracoes_ordenadas = sorted(
-                        integracoes_unicas.values(),
-                        key=lambda x: x['score'],
-                        reverse=True
-                    )
-                    
-                    referencias['integracoes_mencionadas'] = [item['nome'] for item in integracoes_ordenadas]
-                    
-                    # Definir integração principal (a de maior score)
-                    if integracoes_ordenadas:
-                        referencias['integracao_principal'] = integracoes_ordenadas[0]['nome']
-                        logger.info(f"🎯 Integração principal identificada do contexto: {referencias['integracao_principal']}")
+                    # Ordenar por score e remover duplicatas
+                    if integracoes_encontradas:
+                        logger.debug(f"🔍 {len(integracoes_encontradas)} integrações encontradas no contexto")
+                        # Remover duplicatas mantendo o maior score
+                        integracoes_unicas = {}
+                        for item in integracoes_encontradas:
+                            nome = item['nome']
+                            if nome not in integracoes_unicas or item['score'] > integracoes_unicas[nome]['score']:
+                                integracoes_unicas[nome] = item
+                        
+                        # Ordenar por score (maior primeiro)
+                        integracoes_ordenadas = sorted(
+                            integracoes_unicas.values(),
+                            key=lambda x: x['score'],
+                            reverse=True
+                        )
+                        
+                        referencias['integracoes_mencionadas'] = [item['nome'] for item in integracoes_ordenadas]
+                        
+                        # Definir integração principal (a de maior score)
+                        if integracoes_ordenadas:
+                            referencias['integracao_principal'] = integracoes_ordenadas[0]['nome']
+                            logger.info(f"🎯 Integração principal identificada do contexto: {referencias['integracao_principal']} (score: {integracoes_ordenadas[0]['score']})")
+                        else:
+                            logger.debug("⚠️ Nenhuma integração ordenada encontrada")
+                    else:
+                        logger.debug(f"⚠️ Nenhuma integração encontrada no contexto. Texto completo: {texto_completo[:200]}...")
         
         except Exception as e:
             logger.debug(f"Erro ao carregar integrações para busca: {e}")

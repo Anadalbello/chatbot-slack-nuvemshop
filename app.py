@@ -444,11 +444,14 @@ def slack_events():
             # Limpar termo de busca
             pergunta_limpa = limpar_termo_busca(text)
             
+            # Inicializar variáveis de contexto (fora do try para garantir escopo)
+            contexto_thread = None
+            referencias = {}
+            
             try:
                 # 🧠 ESTILO NINA: Usar Recepcionista para analisar a pergunta primeiro
                 # 📚 Buscar contexto da thread (histórico de mensagens anteriores)
                 # NOTA: Isso é opcional - se falhar por falta de permissão, continua sem contexto
-                contexto_thread = None
                 try:
                     contexto_thread = buscar_historico_thread(
                         slack_client=slack_client,
@@ -457,7 +460,6 @@ def slack_events():
                         limite=10  # Últimas 10 mensagens
                     )
                     
-                    referencias = {}
                     if contexto_thread:
                         logger.info(f"📚 Contexto da thread carregado ({len(contexto_thread)} caracteres)")
                         # Extrair referências úteis do contexto
@@ -466,6 +468,8 @@ def slack_events():
                             logger.info(f"🔍 Integrações mencionadas anteriormente: {referencias['integracoes_mencionadas']}")
                         if referencias.get('integracao_principal'):
                             logger.info(f"🎯 Integração principal identificada do contexto: {referencias['integracao_principal']}")
+                        else:
+                            logger.debug(f"⚠️ Nenhuma integração principal encontrada no contexto. Integrações mencionadas: {referencias.get('integracoes_mencionadas', [])}")
                     else:
                         logger.debug("📭 Sem contexto anterior na thread")
                 except Exception as e:
@@ -476,6 +480,7 @@ def slack_events():
                     else:
                         logger.debug(f"⚠️ Erro ao buscar contexto da thread: {e}")
                     contexto_thread = None
+                    referencias = {}
                 
                 # 🧠 VERIFICAR SE HÁ CONVERSA PENDENTE (resposta a follow-up question)
                 conversa_pendente = obter_conversa_pendente(thread_ts)
@@ -871,16 +876,16 @@ def slack_events():
                 logger.info("🔍 Intent: search_knowledge - buscando em múltiplas fontes")
                 
                 # 🧠 MELHORIA: Se a pergunta é genérica e há integração no contexto, usar essa integração
-                integracao_do_contexto = referencias.get('integracao_principal') if 'referencias' in locals() else None
+                integracao_do_contexto = referencias.get('integracao_principal') if referencias else None
                 pergunta_generica = False
                 
                 # Detectar perguntas genéricas sobre funcionalidades/limitações
                 perguntas_genericas_patterns = [
-                    'o que não suporta', 'o que ela não suporta', 'o que não suporta', 'não suporta',
+                    'o que não suporta', 'o que ela não suporta', 'não suporta',
                     'quais limitações', 'quais são as limitações', 'limitações', 'limitação',
                     'o que falta', 'o que ela não tem', 'não tem', 'não possui',
                     'o que não funciona', 'não funciona', 'funcionalidades que não tem',
-                    'o que ela não faz', 'não faz', 'não pode fazer'
+                    'o que ela não faz', 'não faz', 'não pode fazer', 'oque ela não tem'
                 ]
                 
                 user_query_lower = user_query.lower()
@@ -890,12 +895,18 @@ def slack_events():
                         logger.info(f"🔍 Pergunta genérica detectada: '{pattern}'")
                         break
                 
+                # Log para debug
+                logger.info(f"🔍 Debug contexto: pergunta_generica={pergunta_generica}, integracao_do_contexto={integracao_do_contexto}, referencias={bool(referencias)}")
+                
                 # Se é pergunta genérica e há integração no contexto, usar essa integração na busca
                 if pergunta_generica and integracao_do_contexto:
                     logger.info(f"🎯 Usando integração do contexto para pergunta genérica: {integracao_do_contexto}")
                     # Substituir query pela integração identificada
                     user_query = f"{integracao_do_contexto} {user_query}"
-                    logger.info(f"📝 Query atualizada: '{user_query}'")
+                    query_busca = integracao_do_contexto  # Usar apenas o nome da integração para busca mais precisa
+                    logger.info(f"📝 Query atualizada: '{user_query}' | Query busca: '{query_busca}'")
+                elif pergunta_generica and not integracao_do_contexto:
+                    logger.warning(f"⚠️ Pergunta genérica detectada mas nenhuma integração encontrada no contexto. Referencias: {referencias}")
                 
                 # 🎯 VERIFICAR SE É BUSCA POR TIPO DE INTEGRAÇÃO
                 query_lower = user_query.lower()
@@ -948,8 +959,15 @@ def slack_events():
                 logger.info("🧠 Interpretando intenção com Gemini...")
                 interpretacao = interpretar_intencao_e_extrair_erp(user_query)
                 
-                # Usar query otimizada se disponível
-                query_busca = interpretacao.get('query_busca') or interpretacao.get('nome_erp') or user_query
+                # Se já temos integração do contexto e pergunta genérica, usar diretamente
+                if pergunta_generica and integracao_do_contexto:
+                    # Usar diretamente o nome da integração para busca mais precisa
+                    query_busca = integracao_do_contexto
+                    logger.info(f"🎯 Usando integração do contexto diretamente na busca: '{query_busca}'")
+                else:
+                    # Usar query otimizada se disponível
+                    query_busca = interpretacao.get('query_busca') or interpretacao.get('nome_erp') or user_query
+                
                 intencao = interpretacao.get('intencao', 'outro')
                 resposta_esperada = interpretacao.get('resposta_esperada', 'detalhada')
                 
