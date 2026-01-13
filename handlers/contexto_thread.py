@@ -148,9 +148,10 @@ def buscar_historico_thread(
                     ts_float = float(timestamp)
                     dt = datetime.fromtimestamp(ts_float)
                     hora = dt.strftime('%H:%M')
-                    contexto.append(f"[{hora}] Usuário: {texto_limpo}")
+                    # Incluir apenas o texto da mensagem, sem prefixo de hora para melhor matching
+                    contexto.append(texto_limpo)
                 except:
-                    contexto.append(f"Usuário: {texto_limpo}")
+                    contexto.append(texto_limpo)
         
         if not contexto:
             logger.debug("📭 Nenhuma mensagem útil encontrada no histórico")
@@ -214,6 +215,9 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
                 # Buscar integrações mencionadas no contexto
                 integracoes_encontradas = []
                 
+                # Normalizar texto completo removendo espaços para matching flexível
+                texto_sem_espacos = re.sub(r'\s+', '', texto_completo)
+                
                 for integracao in integracoes:
                     nome_integracao = integracao.get('Nome', '')
                     if not nome_integracao:
@@ -231,33 +235,41 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
                     
                     # ESTRATÉGIA 1: Verificar se o nome completo (sem espaços) está no contexto
                     # Isso captura "freterápido" mesmo quando mencionado como "frete rápido"
-                    texto_sem_espacos = re.sub(r'\s+', '', texto_completo)
-                    if nome_sem_espacos in texto_sem_espacos:
-                        integracoes_encontradas.append({
-                            'nome': nome_integracao,
-                            'score': 100,  # Match completo = maior score
-                            'match_type': 'completo'
-                        })
-                        continue  # Match completo encontrado, não precisa verificar outras estratégias
-                    
-                    # ESTRATÉGIA 2: Verificar se o nome completo (com espaços) está no contexto
-                    if nome_normalizado in texto_completo:
-                        integracoes_encontradas.append({
-                            'nome': nome_integracao,
-                            'score': 95,  # Match completo com espaços
-                            'match_type': 'completo_espacos'
-                        })
-                        continue
-                    
-                    # ESTRATÉGIA 3: Verificar se palavras-chave do nome estão no contexto
-                    if len(palavras_nome) > 1:
-                        palavras_encontradas = sum(1 for palavra in palavras_nome if len(palavra) > 2 and palavra in texto_completo)
-                        if palavras_encontradas >= len(palavras_nome) * 0.6:  # Pelo menos 60% das palavras
+                    if nome_sem_espacos and len(nome_sem_espacos) > 3:
+                        if nome_sem_espacos in texto_sem_espacos:
                             integracoes_encontradas.append({
                                 'nome': nome_integracao,
-                                'score': palavras_encontradas * 10,
-                                'match_type': 'parcial'
+                                'score': 100,  # Match completo = maior score
+                                'match_type': 'completo_sem_espacos'
                             })
+                            continue  # Match completo encontrado, não precisa verificar outras estratégias
+                    
+                    # ESTRATÉGIA 2: Verificar se o nome completo (com espaços) está no contexto
+                    if nome_normalizado and len(nome_normalizado) > 3:
+                        if nome_normalizado in texto_completo:
+                            integracoes_encontradas.append({
+                                'nome': nome_integracao,
+                                'score': 95,  # Match completo com espaços
+                                'match_type': 'completo_espacos'
+                            })
+                            continue
+                    
+                    # ESTRATÉGIA 3: Verificar se palavras-chave do nome estão no contexto
+                    # Para nomes compostos como "Frete Rápido" / "Freterápido"
+                    if len(palavras_nome) >= 2:
+                        # Verificar se todas as palavras significativas estão presentes
+                        palavras_significativas = [p for p in palavras_nome if len(p) > 2]
+                        if len(palavras_significativas) >= 2:
+                            palavras_encontradas = sum(1 for palavra in palavras_significativas if palavra in texto_completo)
+                            # Se encontrou pelo menos 2 palavras ou 80% das palavras
+                            if palavras_encontradas >= min(2, len(palavras_significativas) * 0.8):
+                                integracoes_encontradas.append({
+                                    'nome': nome_integracao,
+                                    'score': palavras_encontradas * 15,  # Score maior para palavras-chave
+                                    'match_type': 'parcial_multiplas_palavras'
+                                })
+                                continue
+                    
                     # ESTRATÉGIA 4: Verificar match simples (uma palavra significativa)
                     elif len(palavras_nome) == 1 and len(palavras_nome[0]) > 3:
                         if palavras_nome[0] in texto_completo:
