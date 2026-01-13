@@ -2037,7 +2037,7 @@
       "Integracao_Pedidos": "Sim (Tabela) (✔️)",
       "Multiplos_Volumes_Pedidos": "Sim (Tabela) (✔️)",
       "Configuracao_Seguro_Pedidos": "Não (❌)",
-      "Valor_Minimo_Seguro_Configuravel": "Sim (✔️)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
       "Multi_CD": "Sim (✔️)",
       "Impressao_Etiqueta": "Não (❌)",
       "Devolucao_Codigo_Rastreamento": "Sim (✔️)",
