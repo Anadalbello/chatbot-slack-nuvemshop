@@ -760,7 +760,7 @@
     "Funcionalidades": {
       "Calculo_de_Frete": "Sim (Via API) (✔️)",
       "Seguro_Incluido_Calculo_Frete": "Sim (✔️)",
-      "Seguro_Configuravel_Calculo_Frete": "Não (❌)",
+      "Seguro_Configuravel_Calculo_Frete": "Não (padrão com seguro) (❌)",
       "Nome_Transportador_Checkout_Personalizavel": "Não (❌)",
       "Calcula_Peso_Cubado": "Sim (✔️)",
       "Integracao_Pedidos": "Sim (API) (✔️)",
@@ -774,9 +774,9 @@
     },
     "Outras_Informacoes": {
       "Complexidade": "Baixa",
-      "Responsavel_Configuracao": "Mandaê",
+      "Responsavel_Configuracao": "Mandaē",
       "Responsavel_Testes": "Mandaê",
-      "Desenvolvedor_Integracao": "Mandaê",
+      "Desenvolvedor_Integracao": "Mandaė",
       "Custos_Envolvidos": "Sem custos",
       "Critério_Valor_Declarado": "Valor dos produtos.",
       "Limitacoes_Ausencia": "Importação manual via API pelo WebApp. Impressão de etiquetas somente pelo WebApp. Múltiplos volumes manualmente pelo WebApp.",
