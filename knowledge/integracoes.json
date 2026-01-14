@@ -759,31 +759,33 @@
     "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Sim (Via API) (✔️)",
-      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
-      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
-      "Multi_CD": "Não (❌)",
-      "Impressao_Etiqueta": "Não (❌)",
-      "Atualiza_Status_Rastreio": "Sim (✔️)",
       "Seguro_Incluido_Calculo_Frete": "Sim (✔️)",
-      "Seguro_Configuravel_Calculo_Frete": "Não (padrão com seguro) (❌)",
+      "Seguro_Configuravel_Calculo_Frete": "Não (❌)",
       "Nome_Transportador_Checkout_Personalizavel": "Não (❌)",
       "Calcula_Peso_Cubado": "Sim (✔️)",
-      "Valor_Minimo_Seguro_Configuravel": "Sim (✔️)"
+      "Integracao_Pedidos": "Sim (API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Valor_Minimo_Seguro_Configuravel": "Sim (✔️)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Devolucao_Codigo_Rastreamento": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
     },
     "Outras_Informacoes": {
       "Complexidade": "Baixa",
       "Responsavel_Configuracao": "Mandaê",
       "Responsavel_Testes": "Mandaê",
       "Desenvolvedor_Integracao": "Mandaê",
+      "Custos_Envolvidos": "Sem custos",
+      "Critério_Valor_Declarado": "Valor dos produtos.",
       "Limitacoes_Ausencia": "Importação manual via API pelo WebApp. Impressão de etiquetas somente pelo WebApp. Múltiplos volumes manualmente pelo WebApp.",
       "Site": "https://www.tray.com.br/",
-      "Manual": "https://mandae.zendesk.com/hc/pt-br/articles/115001538454-Tray-Manual-de-Integra%C3%A7%C3%A30",
-      "Custos_Envolvidos": "Sem custos",
-      "Critério_Valor_Declarado": "Valor dos produtos."
+      "Manual": "https://mandaenuvemenvio.zendesk.com/hc/pt-br/articles/34308941006996-Tray-Manual-de-Integra%C3%A7%C3%A3o"
     },
     "Suporte_Contato": {
-      "Email": "E-mail de Suporte Tray",
-      "Telefone": "Telefone de Suporte Tray"
+      "Email": "N/A",
+      "Telefone": "N/A"
     }
   },
   {
