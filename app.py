@@ -879,6 +879,7 @@ def slack_events():
                 # 🧠 MELHORIA: Se a pergunta é genérica e há integração no contexto, usar essa integração
                 integracao_do_contexto = referencias.get('integracao_principal') if referencias else None
                 pergunta_generica = False
+                referencia_implicita = False
                 
                 # Detectar perguntas genéricas sobre funcionalidades/limitações
                 perguntas_genericas_patterns = [
@@ -889,25 +890,47 @@ def slack_events():
                     'o que ela não faz', 'não faz', 'não pode fazer', 'oque ela não tem'
                 ]
                 
+                # Detectar referências implícitas à integração do contexto
+                # Padrões que indicam que a pergunta se refere à integração mencionada anteriormente
+                referencias_implicitas_patterns = [
+                    'essa integração', 'essa integracao', 'essa integraçao',
+                    'a integração', 'a integracao', 'a integraçao',
+                    'a integração', 'a integracao', 'a integraçao',
+                    'ela aceita', 'ela suporta', 'ela tem', 'ela faz', 'ela permite',
+                    'aceita', 'suporta', 'tem', 'faz', 'permite', 'configurar', 'configura',
+                    'dessa integração', 'dessa integracao', 'dessa integraçao',
+                    'dela', 'nela', 'para ela'
+                ]
+                
                 user_query_lower = user_query.lower()
+                
+                # Verificar se é pergunta genérica
                 for pattern in perguntas_genericas_patterns:
                     if pattern in user_query_lower:
                         pergunta_generica = True
                         logger.info(f"🔍 Pergunta genérica detectada: '{pattern}'")
                         break
                 
-                # Log para debug
-                logger.info(f"🔍 Debug contexto: pergunta_generica={pergunta_generica}, integracao_do_contexto={integracao_do_contexto}, referencias={bool(referencias)}")
+                # Verificar se há referência implícita à integração do contexto
+                if integracao_do_contexto:
+                    for pattern in referencias_implicitas_patterns:
+                        if pattern in user_query_lower:
+                            referencia_implicita = True
+                            logger.info(f"🔍 Referência implícita detectada: '{pattern}' - usando integração do contexto: {integracao_do_contexto}")
+                            break
                 
-                # Se é pergunta genérica e há integração no contexto, usar essa integração na busca
-                if pergunta_generica and integracao_do_contexto:
-                    logger.info(f"🎯 Usando integração do contexto para pergunta genérica: {integracao_do_contexto}")
-                    # Substituir query pela integração identificada
+                # Log para debug
+                logger.info(f"🔍 Debug contexto: pergunta_generica={pergunta_generica}, referencia_implicita={referencia_implicita}, integracao_do_contexto={integracao_do_contexto}, referencias={bool(referencias)}")
+                
+                # Se é pergunta genérica OU há referência implícita, e há integração no contexto, usar essa integração na busca
+                if (pergunta_generica or referencia_implicita) and integracao_do_contexto:
+                    logger.info(f"🎯 Usando integração do contexto ({'genérica' if pergunta_generica else 'referência implícita'}): {integracao_do_contexto}")
+                    # Adicionar integração à query para melhorar a busca
                     user_query = f"{integracao_do_contexto} {user_query}"
                     query_busca = integracao_do_contexto  # Usar apenas o nome da integração para busca mais precisa
                     logger.info(f"📝 Query atualizada: '{user_query}' | Query busca: '{query_busca}'")
-                elif pergunta_generica and not integracao_do_contexto:
-                    logger.warning(f"⚠️ Pergunta genérica detectada mas nenhuma integração encontrada no contexto. Referencias: {referencias}")
+                elif (pergunta_generica or referencia_implicita) and not integracao_do_contexto:
+                    logger.warning(f"⚠️ {'Pergunta genérica' if pergunta_generica else 'Referência implícita'} detectada mas nenhuma integração encontrada no contexto. Referencias: {referencias}")
                 
                 # 🎯 VERIFICAR SE É BUSCA POR TIPO DE INTEGRAÇÃO
                 query_lower = user_query.lower()
@@ -960,8 +983,8 @@ def slack_events():
                 logger.info("🧠 Interpretando intenção com Gemini...")
                 interpretacao = interpretar_intencao_e_extrair_erp(user_query)
                 
-                # Se já temos integração do contexto e pergunta genérica, usar diretamente
-                if pergunta_generica and integracao_do_contexto:
+                # Se já temos integração do contexto e (pergunta genérica OU referência implícita), usar diretamente
+                if (pergunta_generica or referencia_implicita) and integracao_do_contexto:
                     # Usar diretamente o nome da integração para busca mais precisa
                     query_busca = integracao_do_contexto
                     logger.info(f"🎯 Usando integração do contexto diretamente na busca: '{query_busca}'")
