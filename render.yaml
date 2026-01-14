@@ -5,7 +5,9 @@ services:
     region: oregon
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 2 --preload
+    autoDeploy: true
+    healthCheckPath: /ping
     envVars:
       - key: PORT
         generateValue: true

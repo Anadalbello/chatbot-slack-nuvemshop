@@ -1506,6 +1506,15 @@ def health_check():
         "perguntas_sem_resposta": obter_stats_tracking()
     })
 
+@app.route("/ping", methods=["GET"])
+def ping():
+    """Endpoint leve para keep-alive - evita cold start"""
+    return jsonify({
+        "status": "ok",
+        "service": "chatbot-tina",
+        "timestamp": datetime.now().isoformat()
+    }), 200
+
 @app.route("/test-pinecone", methods=["GET"])
 def test_pinecone():
     """
