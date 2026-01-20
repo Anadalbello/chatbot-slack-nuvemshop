@@ -1854,7 +1854,7 @@
   {
     "Categoria": "Plataforma",
     "Nome": "CIASHOP by TOTVS",
-    "Tipo_Integracao": "Tabela de Frete",
+    "Tipo_Integracao": "Tabela de Frete via TOTVS",
     "Funcionalidades": {
       "Calculo_de_Frete": "Sim (Tabela de Frete) (✔️)",
       "Seguro_Incluido_Calculo_Frete": "Não (❌)",
