@@ -40,10 +40,10 @@ safety_settings = [
 model = genai.GenerativeModel(
     model_name="models/gemini-2.5-flash",  # Modelo estável (gemini-2.0-flash-exp foi descontinuado)
     generation_config={
-        "temperature": 1.0,  # Máxima criatividade
-        "top_p": 0.99,
-        "top_k": 100,
-        "max_output_tokens": 1024,  # Aumentado para evitar respostas cortadas (ex: "cálculo de fre")
+        "temperature": 0.5,  # Menor para respostas mais objetivas
+        "top_p": 0.95,
+        "top_k": 40,
+        "max_output_tokens": 2048,  # Maior para evitar cortes em listas longas
     },
     safety_settings=safety_settings
 )
@@ -203,28 +203,25 @@ INSTRUÇÕES CRÍTICAS E OBRIGATÓRIAS (LEIA COM ATENÇÃO):
 11. Use formatação markdown para destacar informações importantes (*negrito*)
 12. Se você não tiver certeza sobre uma informação, NÃO invente - diga que precisa verificar
 
-EXEMPLO DE RESPOSTA CORRETA:
-Se os dados mostram:
-- "Devolucao_Codigo_Rastreamento": "Sim (✔️)"
-- "Atualiza_Status_Rastreio": "Não (❌)"
+FORMATO OBRIGATÓRIO - RESPOSTA EM PARÁGRAFO FLUIDO:
+⚠️ NÃO explique o que é cada funcionalidade (ex: não explique "cálculo de frete é...", "peso cubado serve para...")
+⚠️ Use APENAS as informações do JSON - nada de explicações genéricas
+⚠️ Escreva em parágrafos fluidos, não em lista de bullets
 
-E perguntarem "como funciona a integração?", você DEVE dizer:
-"A integração funciona através de API, permitindo cálculo de frete e retorno do código de rastreamento. A integração NÃO atualiza automaticamente o status do rastreamento na plataforma."
+Se perguntarem "como funciona" ou visão geral:
+- 1º parágrafo: "A integração com [Nome] funciona [através da X / via API], permitindo [lista o que está Sim: cálculo de frete, configuração de seguro, atualização de status, etc.]. [O que está Não ou é manual: ex: A importação de pedidos e impressão de etiquetas são feitas manualmente via WebApp.]"
+- 2º parágrafo: Suporte e documentação - "Se precisar de ajuda, o responsável é [X] e você pode consultar o manual: [link]. Para suporte, entre em contato com [Y]."
+- Escreva de forma natural, agrupando funcionalidades disponíveis e indisponíveis em frases
+- Inclua link do manual e contato se estiver nos dados
 
-NÃO diga que atualiza status automaticamente se está marcado como "Não (❌)" nos dados!
+EXEMPLO DO FORMATO IDEAL (Tray):
+"A integração com a Tray funciona através da Mandaê, permitindo o cálculo de frete, configuração de seguro, atualização de status de rastreio, cálculo de peso cubado e múltiplos volumes. A importação de pedidos e impressão de etiquetas são feitas manualmente via WebApp da Mandaê.
 
-FORMATO DA RESPOSTA (IMPORTANTE - LEIA COM ATENÇÃO):
-- Se perguntarem "como funciona" ou "como é" ou querem visão geral: dê uma resposta COMPLETA e ÚTIL
-  * Comece com 1 frase introdutória (ex: "A integração [Nome] funciona da seguinte forma:")
-  * Liste TODAS as funcionalidades disponíveis (marcadas como Sim/✔️) em bullets, explicando cada uma de forma clara
-  * Mencione também o que NÃO está disponível se for relevante (ex: "Não atualiza status automaticamente")
-  * Inclua outras informações úteis: complexidade, contato, manual - se estiverem nos dados
-- Se perguntarem algo específico (ex: "tem cálculo de frete?"): responda direto com Sim/Não + breve explicação
-- Use formatação markdown (*negrito* para destacar)
-- NUNCA invente - use APENAS o que está nos dados
-- Resposta deve ser INFORMATIVA - o usuário precisa entender como a integração funciona de verdade
+Se precisar de ajuda com a configuração, o responsável é a Mandaê e você pode consultar o manual de integração: [link]. Para suporte, entre em contato diretamente com a Tray."
 
-Sua resposta (completa, informativa e PRECISA baseada APENAS nos dados fornecidos - SEM INVENTAR NADA):"""
+NÃO faça lista de bullets (• Sim • Não). Use parágrafos fluidos como no exemplo acima.
+
+Sua resposta (em parágrafos fluidos, objetiva, baseada APENAS nos dados - SEM EXPLICAÇÕES do que cada termo significa):"""
 
         # Gerar resposta com retry
         logger.info(f"📝 Tamanho do prompt: {len(prompt)} caracteres")
@@ -457,19 +454,14 @@ PERGUNTA: {pergunta}
 DADOS DA INTEGRAÇÃO:
 {conteudo_bruto}
 
-INSTRUÇÕES (seja preciso mas COMPLETO):
-1. Mencione APENAS funcionalidades que estão explicitamente marcadas como "Sim (✔️)" nos dados
-2. Se uma funcionalidade está como "Não (❌)", NÃO diga que está disponível
-3. Se perguntarem "como funciona": comece com uma frase introdutória, depois liste TODAS as funcionalidades disponíveis (Sim) em bullets, explicando cada uma
-4. DIFERENÇA CRÍTICA - verifique CADA UMA nos dados:
-   - "Multi_CD" ou "Multi CD" = múltiplos centros de distribuição (só mencione se for Sim)
-   - "Multiplos_Volumes_Pedidos" = múltiplos volumes em pedidos (só mencione se for Sim)
-   - "Devolucao_Codigo_Rastreamento" = retorna código de rastreamento
-   - "Atualiza_Status_Rastreio" = atualiza status automaticamente
-5. Inclua contato, manual, complexidade se estiverem nos dados
-6. Use *negrito* para destacar. Resposta deve ser INFORMATIVA e ÚTIL.
+INSTRUÇÕES - RESPOSTA EM PARÁGRAFO FLUIDO:
+1. NÃO explique o que é cada funcionalidade - apenas informe o que está disponível
+2. Escreva em parágrafos fluidos: "A integração funciona através de [X], permitindo [lista o que é Sim]. [O que é manual ou Não]."
+3. Segundo parágrafo: suporte e manual - "Se precisar de ajuda, o responsável é [X] e manual: [link]."
+4. Use APENAS os dados fornecidos - nada de explicações genéricas
+5. Formato como exemplo Tray: parágrafos naturais, não lista de bullets
 
-Responda de forma COMPLETA, listando todas as funcionalidades disponíveis:"""
+Responda em parágrafos fluidos como no exemplo da Tray:"""
         
         response = model.generate_content(prompt_conservador)
         
