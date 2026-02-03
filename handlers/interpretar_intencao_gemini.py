@@ -134,11 +134,16 @@ JSON:"""
         if not response:
             raise Exception("Falha ao gerar resposta do Gemini")
         
-        # Extrair JSON da resposta
+        # Extrair JSON da resposta (pode vir com ```json ... ``` ou texto extra)
         resposta_texto = response.text.strip()
         
-        # Tentar extrair JSON mesmo se tiver texto extra
-        json_match = re.search(r'\{[^}]+\}', resposta_texto, re.DOTALL)
+        # Remover wrapper ```json ... ``` ou ``` ... ```
+        code_block_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', resposta_texto)
+        if code_block_match:
+            resposta_texto = code_block_match.group(1).strip()
+        
+        # Tentar extrair JSON (suporta objetos aninhados com múltiplos })
+        json_match = re.search(r'\{[\s\S]*\}', resposta_texto)
         if json_match:
             resposta_texto = json_match.group(0)
         

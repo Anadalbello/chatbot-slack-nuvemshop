@@ -43,7 +43,7 @@ model = genai.GenerativeModel(
         "temperature": 1.0,  # Máxima criatividade
         "top_p": 0.99,
         "top_k": 100,
-        "max_output_tokens": 500,
+        "max_output_tokens": 1024,  # Aumentado para evitar respostas cortadas (ex: "cálculo de fre")
     },
     safety_settings=safety_settings
 )
@@ -336,8 +336,27 @@ Sua resposta (focada, direta e PRECISA baseada APENAS nos dados fornecidos - SEM
                     logger.error(f"❌ Erro ao acessar parts: {inner_e}", exc_info=True)
                     return None
             
-            # Validar que a resposta não é muito genérica
-            if resposta_gerada and len(resposta_gerada) > 30:
+            # Verificar se resposta parece truncada (cortada no meio)
+            # Ex: termina com palavra incompleta ("cálculo de fre") ou finish_reason=MAX_TOKENS
+            resposta_truncada = False
+            if response.candidates and len(response.candidates) > 0:
+                candidate = response.candidates[0]
+                if hasattr(candidate, 'finish_reason') and candidate.finish_reason == 4:  # MAX_TOKENS
+                    resposta_truncada = True
+                    logger.warning("⚠️ Resposta truncada (MAX_TOKENS) - usando fallback")
+            # Detectar se termina com palavra incompleta (ex: "fre" de "frete")
+            # Só aplicar quando resposta é curta (<150 chars) - resposta completa seria mais longa
+            PALAVRAS_CURTAS_VALIDAS = {'sim', 'não', 'nao', 'sim', 'etc', 'ok'}
+            if resposta_gerada and len(resposta_gerada) > 10 and len(resposta_gerada) < 150:
+                ultima_palavra = resposta_gerada.strip().split()[-1] if resposta_gerada.strip() else ""
+                ultima_limpa = re.sub(r'[^\w]', '', ultima_palavra).lower()
+                if (len(ultima_limpa) <= 4 and ultima_limpa not in PALAVRAS_CURTAS_VALIDAS and
+                        not ultima_palavra.rstrip().endswith(('.', '!', '?', ')')):
+                    resposta_truncada = True
+                    logger.warning(f"⚠️ Resposta parece cortada (termina com '{ultima_palavra}') - usando fallback")
+            
+            # Validar que a resposta não é muito genérica ou truncada
+            if resposta_gerada and len(resposta_gerada) > 30 and not resposta_truncada:
                 # 🛡️ VALIDAÇÃO: Verificar se a resposta não contradiz os dados
                 resposta_validada = _validar_resposta_contra_dados(resposta_gerada, conteudo_bruto, pergunta)
                 
@@ -349,8 +368,8 @@ Sua resposta (focada, direta e PRECISA baseada APENAS nos dados fornecidos - SEM
                     logger.info("🔄 Tentando gerar resposta mais conservadora...")
                     # Tentar uma vez mais com prompt mais restritivo
                     return _gerar_resposta_conservadora(pergunta, conteudo_bruto, contexto_thread)
-            else:
-                logger.warning(f"⚠️ Resposta inválida (len: {len(resposta_gerada) if resposta_gerada else 0}), usando fallback")
+            elif resposta_truncada or (resposta_gerada and len(resposta_gerada) <= 30):
+                logger.warning(f"⚠️ Resposta inválida ou truncada (len: {len(resposta_gerada) if resposta_gerada else 0}), usando fallback")
                 return None
         else:
             logger.warning("⚠️ Gemini não retornou resposta")

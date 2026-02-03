@@ -65,10 +65,11 @@ TEMPO_CACHE = 900  # 15 minutos - maior que o tempo de detecção de duplicatas
 # Lock para operações thread-safe no dicionário de eventos
 _eventos_lock = threading.Lock()
 
-def event_ja_processado(event_id, user, text, channel=None):
+def event_ja_processado(event_id, user, text, channel=None, thread_ts=None):
     """
     Verifica se o evento já foi processado recentemente - SISTEMA ANTI-DUPLICAÇÃO ROBUSTO
-    IMPORTANTE: Inclui canal nas chaves para permitir mesma mensagem em canais diferentes
+    IMPORTANTE: Inclui canal e thread_ts para permitir mesma pergunta em threads diferentes
+    (ex: usuário abre 2 novas threads com a mesma pergunta - cada uma deve ser respondida)
     """
     agora = time.time()
     
@@ -80,21 +81,22 @@ def event_ja_processado(event_id, user, text, channel=None):
             del eventos_processados[k]
         
         # Múltiplas chaves para detectar duplicatas de forma robusta
-        # IMPORTANTE: Incluir canal para permitir mesma mensagem em canais diferentes
+        # IMPORTANTE: Incluir thread_ts para permitir mesma pergunta em threads diferentes
         chaves = []
         
         # 1. Chave por event_ts (mais precisa) - já é único globalmente
         if event_id and event_id.strip():
             chaves.append(f"event_{event_id}")
         
-        # 2. Chave por canal + usuário + texto (permite mesma mensagem em canais diferentes)
+        # 2. Chave por canal + thread + usuário + texto (permite mesma pergunta em threads diferentes)
         if channel:
-            chaves.append(f"{channel}:{user}:{text.strip()[:50]}")
+            thread_part = thread_ts or "main"
+            chaves.append(f"{channel}:{thread_part}:{user}:{text.strip()[:50]}")
             
-            # 3. Chave por canal + usuário + hash do texto completo
+            # 3. Chave por canal + thread + usuário + hash do texto completo
             import hashlib
             text_hash = hashlib.md5(text.strip().encode()).hexdigest()[:8]
-            chaves.append(f"{channel}:{user}:hash_{text_hash}")
+            chaves.append(f"{channel}:{thread_part}:{user}:hash_{text_hash}")
         else:
             # Fallback se canal não disponível (não ideal, mas melhor que quebrar)
             logger.warning("⚠️ Canal não disponível no event_ja_processado - usando chave sem canal")
@@ -435,8 +437,8 @@ def slack_events():
             logger.info(f"🧵 Thread TS: {thread_ts} | Original TS: {event.get('ts')}")
             
             # 🛡️ VERIFICAR SE É EVENTO DUPLICADO
-            # IMPORTANTE: Passar channel para permitir mesma mensagem em canais diferentes
-            if event_ja_processado(event.get("event_ts", ""), user, text, channel=channel):
+            # IMPORTANTE: Passar thread_ts para permitir mesma pergunta em threads diferentes
+            if event_ja_processado(event.get("event_ts", ""), user, text, channel=channel, thread_ts=thread_ts):
                 logger.debug("📋 Evento duplicado ignorado (comportamento esperado do Slack)")
                 return jsonify({"ok": True})
             
