@@ -350,8 +350,8 @@ Sua resposta (focada, direta e PRECISA baseada APENAS nos dados fornecidos - SEM
             if resposta_gerada and len(resposta_gerada) > 10 and len(resposta_gerada) < 150:
                 ultima_palavra = resposta_gerada.strip().split()[-1] if resposta_gerada.strip() else ""
                 ultima_limpa = re.sub(r'[^\w]', '', ultima_palavra).lower()
-                if (len(ultima_limpa) <= 4 and ultima_limpa not in PALAVRAS_CURTAS_VALIDAS and
-                        not ultima_palavra.rstrip().endswith(('.', '!', '?', ')')):
+                termina_com_pontuacao = ultima_palavra.rstrip().endswith(('.', '!', '?', ')'))
+                if len(ultima_limpa) <= 4 and ultima_limpa not in PALAVRAS_CURTAS_VALIDAS and not termina_com_pontuacao:
                     resposta_truncada = True
                     logger.warning(f"⚠️ Resposta parece cortada (termina com '{ultima_palavra}') - usando fallback")
             
