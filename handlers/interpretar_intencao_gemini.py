@@ -38,7 +38,7 @@ safety_settings = [
 ]
 
 model = genai.GenerativeModel(
-    model_name="models/gemini-2.0-flash-exp",
+    model_name="models/gemini-2.5-flash",  # Modelo estável (gemini-2.0-flash-exp foi descontinuado)
     generation_config={
         "temperature": 0.3,  # Menor temperatura para respostas mais precisas
         "top_p": 0.95,

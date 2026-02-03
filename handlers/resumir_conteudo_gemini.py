@@ -38,7 +38,7 @@ safety_settings = [
 ]
 
 model = genai.GenerativeModel(
-    model_name="models/gemini-2.0-flash-exp",  # Modelo experimental (filtros menos rigorosos)
+    model_name="models/gemini-2.5-flash",  # Modelo estável (gemini-2.0-flash-exp foi descontinuado)
     generation_config={
         "temperature": 1.0,  # Máxima criatividade
         "top_p": 0.99,
