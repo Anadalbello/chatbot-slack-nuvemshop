@@ -213,14 +213,18 @@ E perguntarem "como funciona a integração?", você DEVE dizer:
 
 NÃO diga que atualiza status automaticamente se está marcado como "Não (❌)" nos dados!
 
-FORMATO DA RESPOSTA:
-- 1-2 frases respondendo diretamente a pergunta com PRECISÃO ABSOLUTA
-- Depois, se necessário, 1-2 frases com informações complementares relevantes
-- NÃO liste tudo - apenas o que é relevante para a pergunta
-- NÃO invente informações que não estão nos dados fornecidos
-- VERIFIQUE CADA FUNCIONALIDADE NOS DADOS ANTES DE MENCIONÁ-LA
+FORMATO DA RESPOSTA (IMPORTANTE - LEIA COM ATENÇÃO):
+- Se perguntarem "como funciona" ou "como é" ou querem visão geral: dê uma resposta COMPLETA e ÚTIL
+  * Comece com 1 frase introdutória (ex: "A integração [Nome] funciona da seguinte forma:")
+  * Liste TODAS as funcionalidades disponíveis (marcadas como Sim/✔️) em bullets, explicando cada uma de forma clara
+  * Mencione também o que NÃO está disponível se for relevante (ex: "Não atualiza status automaticamente")
+  * Inclua outras informações úteis: complexidade, contato, manual - se estiverem nos dados
+- Se perguntarem algo específico (ex: "tem cálculo de frete?"): responda direto com Sim/Não + breve explicação
+- Use formatação markdown (*negrito* para destacar)
+- NUNCA invente - use APENAS o que está nos dados
+- Resposta deve ser INFORMATIVA - o usuário precisa entender como a integração funciona de verdade
 
-Sua resposta (focada, direta e PRECISA baseada APENAS nos dados fornecidos - SEM INVENTAR NADA):"""
+Sua resposta (completa, informativa e PRECISA baseada APENAS nos dados fornecidos - SEM INVENTAR NADA):"""
 
         # Gerar resposta com retry
         logger.info(f"📝 Tamanho do prompt: {len(prompt)} caracteres")
@@ -399,11 +403,12 @@ def _validar_resposta_contra_dados(resposta, dados_originais, pergunta):
     
     # Verificar se menciona funcionalidades que estão como "Não" nos dados
     # Padrões para detectar menções de funcionalidades que podem estar incorretas
+    # NOTA: "multi.*cd" deve ser específico para Multi CD (centros distribuição), não "múltiplos volumes"
     funcionalidades_criticas = {
         'atualiza.*status.*rastreio': r'atualiza.*status.*rastreio.*não|atualiza.*status.*rastreio.*❌',
         'atualiza.*automaticamente': r'atualiza.*automaticamente.*não|atualiza.*automaticamente.*❌',
         'múltiplos volumes': r'múltiplos volumes.*não|múltiplos volumes.*❌',
-        'multi.*cd': r'multi.*cd.*não|multi.*cd.*❌',
+        r'multi[\s\-_]?cd\b': r'multi[\s\-_]?cd.*não|multi_cd.*❌',  # \b evita match em "múltiplos"
         'impressão.*etiqueta': r'impressão.*etiqueta.*não|impressão.*etiqueta.*❌'
     }
     
@@ -452,17 +457,19 @@ PERGUNTA: {pergunta}
 DADOS DA INTEGRAÇÃO:
 {conteudo_bruto}
 
-INSTRUÇÕES ULTRA-RESTRITIVAS:
+INSTRUÇÕES (seja preciso mas COMPLETO):
 1. Mencione APENAS funcionalidades que estão explicitamente marcadas como "Sim (✔️)" nos dados
-2. Se uma funcionalidade está como "Não (❌)", NÃO mencione ela ou mencione que NÃO está disponível
-3. Se perguntarem "como funciona", liste APENAS o que está como "Sim" nos dados
-4. Seja EXTREMAMENTE CONSERVADOR - se não tiver certeza, não mencione
-5. DIFERENÇA CRÍTICA:
-   - "Devolucao_Codigo_Rastreamento" = retorna código (verifique se é Sim ou Não)
-   - "Atualiza_Status_Rastreio" = atualiza status automaticamente (verifique se é Sim ou Não)
-   - NÃO confunda as duas - verifique CADA UMA nos dados
+2. Se uma funcionalidade está como "Não (❌)", NÃO diga que está disponível
+3. Se perguntarem "como funciona": comece com uma frase introdutória, depois liste TODAS as funcionalidades disponíveis (Sim) em bullets, explicando cada uma
+4. DIFERENÇA CRÍTICA - verifique CADA UMA nos dados:
+   - "Multi_CD" ou "Multi CD" = múltiplos centros de distribuição (só mencione se for Sim)
+   - "Multiplos_Volumes_Pedidos" = múltiplos volumes em pedidos (só mencione se for Sim)
+   - "Devolucao_Codigo_Rastreamento" = retorna código de rastreamento
+   - "Atualiza_Status_Rastreio" = atualiza status automaticamente
+5. Inclua contato, manual, complexidade se estiverem nos dados
+6. Use *negrito* para destacar. Resposta deve ser INFORMATIVA e ÚTIL.
 
-Responda de forma DIRETA e PRECISA, mencionando APENAS o que está confirmado como "Sim" nos dados:"""
+Responda de forma COMPLETA, listando todas as funcionalidades disponíveis:"""
         
         response = model.generate_content(prompt_conservador)
         

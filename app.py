@@ -351,13 +351,17 @@ def formatar_resultados_encontrados(resultados_json, pergunta_limpa, intencao="o
             )
             
             if resposta_gemini:
+                # Se resposta do Gemini for muito curta (< 150 chars), usar JSON completo como fallback
+                # Evita respostas ruins como apenas 2 bullets sem contexto
+                if len(resposta_gemini.strip()) < 150 and resposta_esperada == "detalhada":
+                    logger.info(f"⚠️ Resposta Gemini muito curta ({len(resposta_gemini)} chars), usando JSON completo")
+                    return resultados_json
+                
                 # Formatar resposta final - focada e direta
                 resposta_completa = resposta_gemini
                 
                 # Adicionar informações complementares apenas se necessário (resposta detalhada)
-                # Mas manter foco na resposta direta
                 if resposta_esperada == "detalhada" and intencao not in ["contato", "funcionalidades"]:
-                    # Adicionar divisor e link para mais detalhes apenas se realmente necessário
                     resposta_completa += "\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
                     resposta_completa += "_💡 Precisa de mais informações? Digite sua próxima pergunta diretamente!_"
                 
