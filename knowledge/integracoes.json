@@ -1368,7 +1368,7 @@
     },
     "Outras_Informacoes": {
       "Complexidade": "Média",
-      "Responsavel_Configuracao": "Financeiro, TI ou coordenador de projetos",
+      "Responsavel_Configuracao": "Parceiro (Mandaê envia credenciais: Token, customerID, Prefixo)",
       "Responsavel_Testes": "Equipe de testes",
       "Desenvolvedor_Integracao": "Mandaê (ou outro desenvolvedor)",
       "Custos_Envolvidos": "Sim (custo para o cliente ou equipe de vendas)",

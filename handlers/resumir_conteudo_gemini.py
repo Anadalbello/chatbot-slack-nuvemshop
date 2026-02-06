@@ -186,7 +186,8 @@ DADOS DA INTEGRAÇÃO ENCONTRADA:
 
 INSTRUÇÕES CRÍTICAS E OBRIGATÓRIAS (LEIA COM ATENÇÃO):
 1. ⚠️⚠️⚠️ USE APENAS AS INFORMAÇÕES FORNECIDAS NOS DADOS ACIMA - NÃO INVENTE NADA ⚠️⚠️⚠️
-2. ⚠️ Se uma funcionalidade está marcada como "Não (❌)" ou "Não", NUNCA diga que ela está disponível
+2. ⚠️ Para "Responsavel_Configuracao", "Responsavel_Testes" e similares: use o texto EXATO dos dados - não rephrase nem interprete
+3. ⚠️ Se uma funcionalidade está marcada como "Não (❌)" ou "Não", NUNCA diga que ela está disponível
 3. ⚠️ Se uma funcionalidade está marcada como "Sim (✔️)" ou "Sim", você pode dizer que está disponível
 4. ⚠️ DIFERENÇA CRÍTICA ENTRE FUNCIONALIDADES:
    - "Devolucao_Codigo_Rastreamento" = retorna o código de rastreamento (pode ser Sim ou Não)
