@@ -922,7 +922,7 @@
   },
   {
     "Categoria": "Plataforma",
-    "Nome": "Simplo7",
+    "Nome": "Hostgator",
     "Tipo_Integracao": "API",
     "Funcionalidades": {
       "Calculo_de_Frete": "Sim (Via API) (✔️)",
@@ -943,7 +943,7 @@
       "Responsavel_Testes": "Mandaê",
       "Desenvolvedor_Integracao": "Parceiro",
       "Limitacoes_Ausencia": "N/A",
-      "Site": "Simplo7",
+      "Site": "Hostgator",
       "Manual": "Como configurar a Mandaê na sua loja",
       "Custos_Envolvidos": "Sem custos",
       "Critério_Valor_Declarado": "N/A"
