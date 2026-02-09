@@ -139,3 +139,4 @@ print("   2. Testar busca: python testar_busca_local.py")
 print("   3. Iniciar servidor: python app.py")
 print("   4. Testar endpoints: http://localhost:3000/test-pinecone")
 
+

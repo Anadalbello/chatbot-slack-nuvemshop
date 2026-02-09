@@ -144,3 +144,4 @@ def pinecone_stats():
 
 Após completar os passos acima, o sistema de busca vetorial estará funcionando!
 
+

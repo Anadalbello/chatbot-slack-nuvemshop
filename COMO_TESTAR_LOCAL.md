@@ -247,3 +247,4 @@ logging.basicConfig(level=logging.DEBUG)
 
 Após completar todos os passos, o sistema de busca vetorial estará funcionando localmente e você poderá testar todas as funcionalidades antes de fazer deploy no Render!
 
+

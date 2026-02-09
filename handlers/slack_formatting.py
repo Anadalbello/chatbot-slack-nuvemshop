@@ -311,3 +311,4 @@ def formatar_e_enviar_slack(
         logger.error(f"Erro ao formatar e enviar resposta ao Slack: {str(e)}", exc_info=True)
         raise
 
+
