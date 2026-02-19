@@ -2060,5 +2060,39 @@
       "Email": "integracao@nuvemshop.com.br",
       "Telefone": "N/A"
     }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Vtrina",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Seguro_Incluido_Calculo_Frete": "Sim (✔️)",
+      "Seguro_Configuravel_Calculo_Frete": "Sim (✔️)",
+      "Nome_Transportador_Checkout_Personalizavel": "Não (❌)",
+      "Calcula_Peso_Cubado": "Sim (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (na plataforma) (✔️)",
+      "Devolucao_Codigo_Rastreamento": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Cliente/Parceiro",
+      "Responsavel_Testes": "Mandaê/Cliente",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "Atualmente, não há nenhum custo adicional para habilitar a integração entre a Vtrina e Mandaê, desde que o usuário possua acesso a ambas as contas.",
+      "Critério_Valor_Declarado": "N/A",
+      "Limitacoes_Ausencia": "A flag de seguro é única, ou seja, ativando ela irá refletir na cotação e na integração do pedido. Não é possível configurar o nome dos serviços de envio no checkout.",
+      "Site": "http://vtrina.com/",
+      "Manual": "https://help.vtrina.com/support/solutions/articles/43000742918-como-integrar-a-manda%C3%AA-ao-vtrina"
+    },
+    "Suporte_Contato": {
+      "Email": "suporte@vtrina.com",
+      "Telefone": "N/A"
+    }
   }
 ]

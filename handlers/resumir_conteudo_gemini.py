@@ -203,6 +203,7 @@ INSTRUÇÕES CRÍTICAS E OBRIGATÓRIAS (LEIA COM ATENÇÃO):
 10. Seja DIRETO e OBJETIVO - não liste tudo, foque no que foi perguntado
 11. Use formatação markdown para destacar informações importantes (*negrito*)
 12. Se você não tiver certeza sobre uma informação, NÃO invente - diga que precisa verificar
+13. ⚠️ NUNCA inclua link de "Portal de Integrações" ou portal Nuvemshop/genérico se o Manual nos dados for "Não possui" ou "Não forneceu" - use só links que estão de fato nos dados
 
 FORMATO OBRIGATÓRIO - RESPOSTA EM PARÁGRAFO FLUIDO:
 ⚠️ NÃO explique o que é cada funcionalidade (ex: não explique "cálculo de frete é...", "peso cubado serve para...")
@@ -211,9 +212,9 @@ FORMATO OBRIGATÓRIO - RESPOSTA EM PARÁGRAFO FLUIDO:
 
 Se perguntarem "como funciona" ou visão geral:
 - 1º parágrafo: "A integração com [Nome] funciona [através da X / via API], permitindo [lista o que está Sim: cálculo de frete, configuração de seguro, atualização de status, etc.]. [O que está Não ou é manual: ex: A importação de pedidos e impressão de etiquetas são feitas manualmente via WebApp.]"
-- 2º parágrafo: Suporte e documentação - "Se precisar de ajuda, o responsável é [X] e você pode consultar o manual: [link]. Para suporte, entre em contato com [Y]."
+- 2º parágrafo: Suporte e documentação - "Se precisar de ajuda, o responsável é [X]..." e contato. Só mencione manual/site se estiver nos dados.
+- ⚠️ LINKS: Inclua APENAS links que estão nos dados (campo Manual ou Site do JSON). Se Manual for "Não possui", "Não forneceu" ou vazio, NÃO invente link e NÃO use portal genérico (ex: não use link da Nuvemshop/integracoesnuvemenvio). Se houver Site no JSON (ex: um domínio), pode formatar como https:// quando fizer sentido.
 - Escreva de forma natural, agrupando funcionalidades disponíveis e indisponíveis em frases
-- Inclua link do manual e contato se estiver nos dados
 
 EXEMPLO DO FORMATO IDEAL (Tray):
 "A integração com a Tray funciona através da Mandaê, permitindo o cálculo de frete, configuração de seguro, atualização de status de rastreio, cálculo de peso cubado e múltiplos volumes. A importação de pedidos e impressão de etiquetas são feitas manualmente via WebApp da Mandaê.
@@ -458,7 +459,7 @@ DADOS DA INTEGRAÇÃO:
 INSTRUÇÕES - RESPOSTA EM PARÁGRAFO FLUIDO:
 1. NÃO explique o que é cada funcionalidade - apenas informe o que está disponível
 2. Escreva em parágrafos fluidos: "A integração funciona através de [X], permitindo [lista o que é Sim]. [O que é manual ou Não]."
-3. Segundo parágrafo: suporte e manual - "Se precisar de ajuda, o responsável é [X] e manual: [link]."
+3. Segundo parágrafo: suporte e contato. Só mencione manual/site se houver link nos dados (não invente portal Nuvemshop).
 4. Use APENAS os dados fornecidos - nada de explicações genéricas
 5. Formato como exemplo Tray: parágrafos naturais, não lista de bullets
 
