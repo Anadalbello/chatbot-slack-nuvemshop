@@ -502,13 +502,34 @@ def slack_events():
                         "A Tina não consegue ajudar com *questões técnicas*, *erros* ou *suporte a problemas* — "
                         "somente posso informar sobre *funcionalidades* das integrações. "
                         "Posso te ajudar com informações sobre o que cada integração oferece! "
-                        "Se precisar de suporte técnico ou resolver um problema, use o botão *Abrir chamado* ou entre em contato com a equipe."
+                        "Se precisar de suporte técnico ou resolver um problema, use o botão abaixo ou entre em contato com a equipe."
                     )
+                    _blocks_limite = [
+                        {"type": "section", "text": {"type": "mrkdwn", "text": _msg_limite}},
+                        {
+                            "type": "actions",
+                            "elements": [
+                                {
+                                    "type": "button",
+                                    "text": {"type": "plain_text", "text": "🎫 Abrir chamado"},
+                                    "value": json.dumps({"action": "chamado", "pergunta": pergunta_limpa}),
+                                    "action_id": "chamado"
+                                },
+                                {
+                                    "type": "button",
+                                    "text": {"type": "plain_text", "text": "📋 Ver portal completo"},
+                                    "value": json.dumps({"action": "portal", "pergunta": pergunta_limpa}),
+                                    "action_id": "portal"
+                                }
+                            ]
+                        }
+                    ]
                     logger.info("📌 Mensagem sobre ajuda/erro/problema — enviando resposta fixa sobre limite da Tina")
                     slack_client.chat_postMessage(
                         channel=channel,
                         thread_ts=thread_ts,
-                        text=_msg_limite
+                        text="A Tina não consegue ajudar com questões técnicas — use o botão Abrir chamado para suporte.",
+                        blocks=_blocks_limite
                     )
                     return jsonify({"ok": True})
                 
