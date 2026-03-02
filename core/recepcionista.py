@@ -366,15 +366,34 @@ class Recepcionista:
         if any(word in pergunta_lower for word in ['como', 'how to', 'configurar', 'tutorial', 'ajuda com']):
             query_type = 'help_center'
         
-        # Detecção simples de intent
+        # Palavras que indicam pergunta sobre integrações/ERPs (prioridade sobre greeting)
+        keywords_integracao = [
+            'integração', 'integrac', 'intelipost', 'erp', 'parceir', 'sistem', 'la pastina',
+            'com a ', 'com o ', 'sobre a ', 'sobre o ', 'funcionalidade', 'tabela de frete',
+            'cálculo de frete', 'rastreio', 'etiqueta', 'pedido', 'mandae', 'mandaê'
+        ]
+        menciona_integracao = any(kw in pergunta_lower for kw in keywords_integracao)
+        
+        # Detecção simples de intent (priorizar search_knowledge se falar de integração)
         intent = 'search_knowledge'  # default
-        if any(word in pergunta_lower for word in ['listar', 'quais', 'tem quais', 'quantas']):
+        if menciona_integracao:
+            # Mensagem fala de integração/ERP → buscar na base, não mostrar só menu
+            if any(word in pergunta_lower for word in ['listar', 'quais', 'tem quais', 'quantas']):
+                intent = 'list_integrations'
+            else:
+                intent = 'search_knowledge'
+        elif any(word in pergunta_lower for word in ['listar', 'quais', 'tem quais', 'quantas']):
             if any(word in pergunta_lower for word in ['integrac', 'parceir', 'sistem']):
                 intent = 'list_integrations'
         elif any(word in pergunta_lower for word in ['oi', 'olá', 'hello', 'bom dia']):
+            # Só greeting se NÃO tiver conteúdo sobre integração (evita "Bom dia... Sobre a integração X" → menu)
             intent = 'greeting'
-        elif any(word in pergunta_lower for word in ['menu', 'ajuda', 'help']):
-            intent = 'menu'
+        elif any(word in pergunta_lower for word in ['menu', 'help']) or pergunta_lower.strip() in ['ajuda']:
+            # "ajuda" sozinho ou com "menu"/"help" → menu; "a Tina não consegue ajudar..." não é pedido de menu
+            if not menciona_integracao and len(pergunta_lower.split()) <= 4:
+                intent = 'menu'
+            else:
+                intent = 'search_knowledge'
         
         # Detecção simples de idioma
         language = 'pt_BR'

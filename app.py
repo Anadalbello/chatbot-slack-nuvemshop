@@ -489,6 +489,29 @@ def slack_events():
                     contexto_thread = None
                     referencias = {}
                 
+                # 📌 RESPOSTA FIXA: quando citam ajuda, erro, problema ou correlatos
+                _palavras_limite_tina = [
+                    'ajuda', 'erro', 'problema', 'questão técnica', 'problema técnico', 'não funciona',
+                    'erro técnico', 'suporte técnico', 'resolver problema', 'corrigir', 'troubleshooting',
+                    'bug', 'falha', 'dúvida técnica', 'issue', 'help', 'error', 'ticket', 'chamado',
+                    'configuração', 'configurar', 'não consigo', 'não consegue'
+                ]
+                _texto_lower = pergunta_limpa.lower()
+                if any(p in _texto_lower for p in _palavras_limite_tina):
+                    _msg_limite = (
+                        "A Tina não consegue ajudar com *questões técnicas*, *erros* ou *suporte a problemas* — "
+                        "somente posso informar sobre *funcionalidades* das integrações. "
+                        "Posso te ajudar com informações sobre o que cada integração oferece! "
+                        "Se precisar de suporte técnico ou resolver um problema, use o botão *Abrir chamado* ou entre em contato com a equipe."
+                    )
+                    logger.info("📌 Mensagem sobre ajuda/erro/problema — enviando resposta fixa sobre limite da Tina")
+                    slack_client.chat_postMessage(
+                        channel=channel,
+                        thread_ts=thread_ts,
+                        text=_msg_limite
+                    )
+                    return jsonify({"ok": True})
+                
                 # 🧠 VERIFICAR SE HÁ CONVERSA PENDENTE (resposta a follow-up question)
                 conversa_pendente = obter_conversa_pendente(thread_ts)
                 if conversa_pendente:
