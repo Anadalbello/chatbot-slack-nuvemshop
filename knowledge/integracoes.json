@@ -880,7 +880,8 @@
       "Site": "https://woocommerce.com/pt-br/",
       "Manual": "WooCommerce - Manual de Integração",
       "Custos_Envolvidos": "Sem custos",
-      "Critério_Valor_Declarado": "Configurável no Webapp."
+      "Critério_Valor_Declarado": "Configurável no Webapp.",
+      "Outros_nomes_integracao": "WordPress"
     },
     "Suporte_Contato": {
       "Email": "N/A",
