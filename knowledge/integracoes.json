@@ -1,7 +1,7 @@
 [
   {
     "Categoria": "Ferramenta",
-    "Nome": "RastreioZAP",
+    "Nome": "RastreioZap",
     "Tipo_Integracao": "Apenas Rastreio",
     "Funcionalidades": {
       "Calculo_de_Frete": "Não (❌)",
@@ -14,21 +14,24 @@
       "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
       "Multi_CD": "Não (❌)",
       "Impressao_Etiqueta": "Não (❌)",
+      "Devolucao_Codigo_Rastreamento": "Não (❌)",
       "Atualiza_Status_Rastreio": "Sim (✔️)"
     },
     "Outras_Informacoes": {
-      "Complexidade": "Baixa",
-      "Responsavel_Configuracao": "Mandaê",
+      "Complexidade": "Complexa",
+      "Responsavel_Configuracao": "Parceiro",
       "Responsavel_Testes": "Mandaê",
       "Desenvolvedor_Integracao": "Parceiro",
       "Custos_Envolvidos": "Sem custo",
       "Critério_Valor_Declarado": "N/A",
-      "Limitacoes_Ausencia": "N/A (Apenas atualização de status de rastreio)",
-      "Site": "https://rastreiozap.com",
-      "Manual": "Não forneceu."
+      "Limitacoes_Ausencia": "Apenas atualização do status do rastreamento; demais funcionalidades (frete, pedidos, etiqueta, devolução de código) não suportadas.",
+      "Site": "https://rastreiozap.com/index.html",
+      "Manual": "https://rastreiozap.tawk.help/article/configurando-integracao-com-a-mandae",
+      "Outros_nomes_integracao": "RastreioZAP"
     },
     "Suporte_Contato": {
-      "Email": "N/A",
+      "Email": "suporte@rastreiozap.com",
+      "WhatsApp": "https://api.whatsapp.com/send/?phone=556293011019&text&type=phone_number&app_absent=0",
       "Telefone": "N/A"
     }
   },
@@ -59,6 +62,40 @@
       "Limitacoes_Ausencia": "N/A (Apenas atualização de status de rastreio)",
       "Site": "https://rastreioecia.net/",
       "Manual": "Não forneceu."
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A"
+    }
+  },
+  {
+    "Categoria": "Ferramenta",
+    "Nome": "Rastreio.net",
+    "Tipo_Integracao": "Apenas Rastreio",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Não (❌)",
+      "Seguro_Incluido_Calculo_Frete": "Não (❌)",
+      "Seguro_Configuravel_Calculo_Frete": "Não (❌)",
+      "Nome_Transportador_Checkout_Personalizavel": "Não (❌)",
+      "Calcula_Peso_Cubado": "Não (❌)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Devolucao_Codigo_Rastreamento": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Parceiro",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "Sem custo",
+      "Critério_Valor_Declarado": "N/A",
+      "Limitacoes_Ausencia": "Apenas atualização do status do rastreamento; demais funcionalidades (frete, pedidos, etiqueta, devolução de código) não suportadas.",
+      "Site": "https://rastreio.net/",
+      "Manual": "Não possui"
     },
     "Suporte_Contato": {
       "Email": "N/A",

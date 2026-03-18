@@ -518,7 +518,7 @@ class PineconeManager:
             tipo = integracao.get("tipo", integracao.get("Tipo de Integração", ""))
             funcionalidades = integracao.get("funcionalidades", integracao.get("Funcionalidades", ""))
             
-            # Combinar todos os campos relevantes
+            # Combinar todos os campos relevantes (inclui outros nomes para ex.: WordPress -> Woocommerce)
             combined_text = f"{nome}"
             if descricao:
                 combined_text += f"\n\n{descricao}"
@@ -526,6 +526,9 @@ class PineconeManager:
                 combined_text += f"\n\nTipo: {tipo}"
             if funcionalidades:
                 combined_text += f"\n\nFuncionalidades: {funcionalidades}"
+            outros_nomes = integracao.get("outros_nomes", "")
+            if outros_nomes:
+                combined_text += f"\n\nOutros nomes: {outros_nomes}"
             
             # Truncar se exceder comprimento máximo
             if len(combined_text) > EMBED_MAX_CHARS:

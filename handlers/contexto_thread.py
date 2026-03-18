@@ -225,6 +225,9 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
                     nome_integracao = integracao.get('Nome', '')
                     if not nome_integracao:
                         continue
+                    outras_info = integracao.get('Outras_Informacoes') or {}
+                    outros_nomes_raw = outras_info.get('Outros_nomes_integracao', '') or ''
+                    outros_nomes_list = [s.strip().lower() for s in re.split(r"[,;]|\s+e\s+", str(outros_nomes_raw)) if s.strip()]
                     
                     # Normalizar nome para busca (remover parênteses e caracteres especiais)
                     nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_integracao).strip()
@@ -236,6 +239,21 @@ def extrair_referencias_contexto(contexto: str, mensagem_atual: str) -> Dict[str
                     # Buscar por nome completo ou palavras-chave do nome
                     palavras_nome = nome_normalizado.split()
                     
+                    # ESTRATÉGIA 0.5: Verificar se "Outros nomes" está no contexto (ex: WordPress -> Woocommerce)
+                    match_outros_nomes = False
+                    for outro in outros_nomes_list:
+                        outro_norm = re.sub(r'\s+', '', re.sub(r'[^\w\s]', '', outro.lower()))
+                        if len(outro_norm) > 2 and outro_norm in texto_sem_espacos.lower():
+                            logger.debug(f"✅ Match por outros nomes: '{outro}' -> '{nome_integracao}'")
+                            integracoes_encontradas.append({
+                                'nome': nome_integracao,
+                                'score': 98,
+                                'match_type': 'outros_nomes'
+                            })
+                            match_outros_nomes = True
+                            break
+                    if match_outros_nomes:
+                        continue
                     # ESTRATÉGIA 1: Verificar se o nome completo (sem espaços) está no contexto
                     # Isso captura "freterápido" mesmo quando mencionado como "frete rápido"
                     if nome_sem_espacos and len(nome_sem_espacos) > 3:

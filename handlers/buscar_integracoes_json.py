@@ -145,6 +145,10 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
     matches_com_score = []
     for erp in erps:
         nome_erp_atual = erp.get("Nome", erp.get("ERP", "")).lower()
+        # Outros nomes (ex: WordPress para Woocommerce)
+        outras_info = erp.get("Outras_Informacoes") or {}
+        outros_nomes_raw = outras_info.get("Outros_nomes_integracao", "") or ""
+        outros_nomes_list = [s.strip().lower() for s in re.split(r"[,;]|\s+e\s+", str(outros_nomes_raw)) if s.strip()]
         # Busca parcial: remove parênteses E pontuação para busca mais flexível
         nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp_atual)
         nome_limpo = re.sub(r'[?.,!;:\s]+', ' ', nome_limpo)  # Remove pontuação e normaliza espaços
@@ -154,21 +158,28 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         
         score = 0
         
+        # ESTRATÉGIA 0.5: Verificar se a query bate com "Outros nomes" da integração (ex: WordPress -> Woocommerce)
+        for outro in outros_nomes_list:
+            outro_limpo = re.sub(r'[?.,!;:\s]+', ' ', outro).strip()
+            if outro_limpo and (outro_limpo in nome_limpo_query or nome_limpo_query in outro_limpo):
+                score = 98
+                logger.debug(f"✅ Match por outros nomes: '{outro_limpo}' (score: {score})")
+                break
         # ESTRATÉGIA 1: Verificar se o nome completo do ERP está contido na query (maior prioridade - score 100)
         # Ex: query="dados de contato da bling" -> nome="bling" deve ser encontrado
-        if nome_limpo in nome_limpo_query:
+        if score == 0 and nome_limpo in nome_limpo_query:
             score = 100
             logger.debug(f"✅ Match por nome completo: '{nome_limpo}' encontrado na query (score: {score})")
         # ESTRATÉGIA 1.5: Verificar se o nome sem pontuação está contido na query ou vice-versa (score 95)
-        elif nome_limpo.strip() and (nome_limpo.strip() in nome_limpo_query or nome_limpo_query in nome_limpo.strip()):
+        if score == 0 and nome_limpo.strip() and (nome_limpo.strip() in nome_limpo_query or nome_limpo_query in nome_limpo.strip()):
             score = 95
             logger.debug(f"✅ Match por nome sem pontuação: '{nome_limpo.strip()}' encontrado (score: {score})")
         # ESTRATÉGIA 1.6: Busca sem espaços (para casos como "IDWorks" vs "ID Works")
-        elif nome_limpo.replace(' ', '') in nome_limpo_query.replace(' ', '') or nome_limpo_query.replace(' ', '') in nome_limpo.replace(' ', ''):
+        if score == 0 and (nome_limpo.replace(' ', '') in nome_limpo_query.replace(' ', '') or nome_limpo_query.replace(' ', '') in nome_limpo.replace(' ', '')):
             score = 94
             logger.debug(f"✅ Match por nome sem espaços: '{nome_limpo}' (score: {score})")
         # ESTRATÉGIA 2: Verificar se a query começa com o nome do ERP (score 90)
-        elif nome_limpo_query.startswith(nome_limpo) or nome_limpo.startswith(nome_limpo_query):
+        if score == 0 and (nome_limpo_query.startswith(nome_limpo) or nome_limpo.startswith(nome_limpo_query)):
             score = 90
             logger.debug(f"✅ Match por início: '{nome_limpo}' (score: {score})")
         else:
@@ -407,16 +418,25 @@ def buscar_erp_generico(query: str) -> Optional[str]:
         nome_erp = erp.get("Nome", erp.get("ERP", "")).lower()
         nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp)
         palavras_nome = set(nome_limpo.split())
+        outras_info = erp.get("Outras_Informacoes") or {}
+        outros_nomes_raw = outras_info.get("Outros_nomes_integracao", "") or ""
+        outros_nomes_list = [s.strip().lower() for s in re.split(r"[,;]|\s+e\s+", str(outros_nomes_raw)) if s.strip()]
         
         score = 0
         
+        # ESTRATÉGIA 0.5: Query bate com "Outros nomes" (ex: WordPress -> Woocommerce)
+        for outro in outros_nomes_list:
+            outro_limpo = re.sub(r'[?.,!;:\s]+', ' ', outro).strip()
+            if outro_limpo and (outro_limpo in query_limpa or query_limpa in outro_limpo):
+                score = 98
+                break
         # ESTRATÉGIA 1: Verificar se o nome completo do ERP está contido na query (maior pontuação)
         # Ex: query="dados de contato da bling" -> nome="bling" deve ser encontrado
-        if nome_limpo in query_limpa:
+        if score == 0 and nome_limpo in query_limpa:
             score = 100
         # ESTRATÉGIA 2: Verificar se qualquer palavra significativa do nome está na query (busca invertida)
         # Ex: query="quais funcionalidades tem o eccosys" -> nome="eccosys" deve ser encontrado
-        elif palavras_nome:
+        elif score == 0 and palavras_nome:
             palavras_significativas_nome = [p for p in palavras_nome if len(p) > 2 and p not in palavras_ignorar]
             if palavras_significativas_nome:
                 for palavra_nome in palavras_significativas_nome:
@@ -431,7 +451,7 @@ def buscar_erp_generico(query: str) -> Optional[str]:
         funcionalidades = erp.get("Funcionalidades", {})
         for func_nome, func_valor in funcionalidades.items():
             func_texto = (func_nome + " " + str(func_valor)).lower()
-            if query_lower in func_texto:
+            if query_limpa in func_texto:
                 score = max(score, 60)
             elif any(palavra in func_texto for palavra in palavras_query):
                 score = max(score, 40)
@@ -440,7 +460,7 @@ def buscar_erp_generico(query: str) -> Optional[str]:
         outras_info = erp.get("Outras_Informacoes", {})
         for chave, valor in outras_info.items():
             info_texto = (chave + " " + str(valor)).lower()
-            if query_lower in info_texto:
+            if query_limpa in info_texto:
                 score = max(score, 50)
             elif any(palavra in info_texto for palavra in palavras_query):
                 score = max(score, 30)

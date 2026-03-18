@@ -111,6 +111,12 @@ def prepare_integracoes_for_pinecone(integracoes: List[Dict]) -> List[Dict]:
             if funcionalidades:
                 prepared_integracao["funcionalidades"] = str(funcionalidades)
         
+        # Outros nomes (ex: WordPress para Woocommerce) para busca vetorial
+        outras = integracao.get("Outras_Informacoes") or {}
+        outros_nomes = outras.get("Outros_nomes_integracao", "") or ""
+        if outros_nomes:
+            prepared_integracao["outros_nomes"] = str(outros_nomes).strip()
+        
         # Validar que tem pelo menos nome
         if prepared_integracao["nome"]:
             prepared.append(prepared_integracao)
