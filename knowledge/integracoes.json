@@ -1422,6 +1422,40 @@
   },
   {
     "Categoria": "ERP",
+    "Nome": "VanRooy",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Não (cálculo de frete via API) (❌)",
+      "Seguro_Incluido_Calculo_Frete": "Não (seguro no cálculo de frete) (❌)",
+      "Seguro_Configuravel_Calculo_Frete": "Não (configurável sim/não para seguro no frete, via API) (❌)",
+      "Nome_Transportador_Checkout_Personalizavel": "Não (nome transportador no checkout) (❌)",
+      "Calcula_Peso_Cubado": "Não (peso cubado no frete) (❌)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Sim (✔️)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Devolucao_Codigo_Rastreamento": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "Consultar o Parceiro",
+      "Critério_Valor_Declarado": "N/A",
+      "Limitacoes_Ausencia": "Frete: sem cálculo de frete por API, sem seguro no frete, sem seguro configurável no frete (API), sem nome de transportador personalizável no checkout e sem peso cubado no frete. O parceiro informa que demais funcionalidades podem ser desenvolvidas conforme necessidade do cliente mediante consulta.",
+      "Site": "https://www.vanrooy.com.br/",
+      "Manual": "Solicitar ao suporte VanRooy"
+    },
+    "Suporte_Contato": {
+      "Email": "adm@vanrooy.com.br",
+      "Telefone": "(11) 2134-0550 / (11) 99960-7415"
+    }
+  },
+  {
+    "Categoria": "ERP",
     "Nome": "Tiny (Nova)",
     "Tipo_Integracao": "API",
     "Funcionalidades": {

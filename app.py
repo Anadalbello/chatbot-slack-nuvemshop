@@ -1584,13 +1584,16 @@ def sync_pinecone():
     try:
         from scripts.sync_to_pinecone import sync_to_pinecone
         json_path = os.path.join(os.path.dirname(__file__), "knowledge", "integracoes.json")
-        ok = sync_to_pinecone(json_path=json_path, namespace="br", force=True)
+        ok, err_msg = sync_to_pinecone(json_path=json_path, namespace="br", force=True)
         if ok:
             return jsonify({
                 "status": "ok",
                 "message": "Pinecone reindexado com sucesso (namespace br). Busca por 'WordPress' e outros nomes deve funcionar."
             })
-        return jsonify({"status": "error", "message": "Sync retornou falha"}), 500
+        return jsonify({
+            "status": "error",
+            "message": err_msg or "Sync retornou falha"
+        }), 500
     except Exception as e:
         logger.exception("Erro ao sincronizar Pinecone")
         return jsonify({"status": "error", "message": str(e)}), 500

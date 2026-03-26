@@ -13,9 +13,8 @@ Uso:
     python scripts/sync_to_pinecone.py --force
 
 Variáveis de Ambiente Necessárias:
-    PINECONE_API_KEY: Chave API do Pinecone
-    PINECONE_INDEX_NAME: Nome do índice Pinecone
-    OPENAI_API_KEY: Chave API do OpenAI para embeddings
+    PINECONE_API_KEY, PINECONE_INDEX_NAME e:
+    GEMINI_API_KEY (se EMBEDDING_PROVIDER=gemini, padrão) ou OPENAI_API_KEY (se openai)
 """
 
 import os
@@ -27,7 +26,16 @@ from pathlib import Path
 from typing import List, Dict
 
 # Adicionar diretório raiz ao path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+_root = Path(__file__).parent.parent
+sys.path.insert(0, str(_root))
+# Carregar .env do projeto se existir (para rodar localmente)
+_env = _root / ".env"
+if _env.exists():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(_env)
+    except ImportError:
+        pass
 
 from core.pinecone_manager import create_manager_from_env, namespace_for_locale
 
@@ -141,7 +149,7 @@ def sync_to_pinecone(
         force: Se True, deleta namespace antes de reindexar
         
     Returns:
-        True se sincronização bem-sucedida
+        (True, None) se sucesso; (False, mensagem_erro) se falha
     """
     try:
         # Carregar integrações
@@ -150,14 +158,14 @@ def sync_to_pinecone(
         
         if not integracoes:
             logger.warning("⚠️ Nenhuma integração encontrada no JSON")
-            return False
+            return False, "Nenhuma integração encontrada no JSON"
         
         # Preparar integrações
         prepared = prepare_integracoes_for_pinecone(integracoes)
         
         if not prepared:
             logger.warning("⚠️ Nenhuma integração válida após preparação")
-            return False
+            return False, "Nenhuma integração válida após preparação"
         
         # Inicializar Pinecone manager
         logger.info("🔌 Conectando ao Pinecone...")
@@ -166,7 +174,7 @@ def sync_to_pinecone(
         # Testar conexão
         if not manager.test_connection():
             logger.error("❌ Falha no teste de conexão com Pinecone")
-            return False
+            return False, "Falha no teste de conexão com Pinecone (verifique PINECONE_API_KEY, PINECONE_INDEX_NAME e GEMINI_API_KEY no Render)"
         
         # Se force, deletar namespace existente
         if force:
@@ -188,11 +196,11 @@ def sync_to_pinecone(
         namespace_stats = stats.get("namespaces", {}).get(namespace, {})
         logger.info(f"📊 Estatísticas do namespace '{namespace}': {namespace_stats.get('vector_count', 0)} vetores")
         
-        return True
+        return True, None
         
     except Exception as e:
         logger.error(f"❌ Erro na sincronização: {e}", exc_info=True)
-        return False
+        return False, str(e)
 
 
 def main():
@@ -243,27 +251,31 @@ def main():
         logger.error(f"❌ Arquivo não encontrado: {json_path}")
         sys.exit(1)
     
-    # Verificar variáveis de ambiente
-    required_vars = ["PINECONE_API_KEY", "PINECONE_INDEX_NAME", "OPENAI_API_KEY"]
+    # Verificar variáveis de ambiente (embedding: Gemini ou OpenAI)
+    required_vars = ["PINECONE_API_KEY", "PINECONE_INDEX_NAME"]
+    provider = os.getenv("EMBEDDING_PROVIDER", "gemini").lower()
+    if provider == "gemini":
+        required_vars.append("GEMINI_API_KEY")
+    else:
+        required_vars.append("OPENAI_API_KEY")
     missing_vars = [var for var in required_vars if not os.getenv(var)]
-    
     if missing_vars:
         logger.error(f"❌ Variáveis de ambiente faltando: {', '.join(missing_vars)}")
         sys.exit(1)
     
     # Executar sincronização
     logger.info("🚀 Iniciando sincronização para Pinecone...")
-    success = sync_to_pinecone(
+    ok, err_msg = sync_to_pinecone(
         json_path=str(json_path),
         namespace=namespace,
         force=args.force
     )
     
-    if success:
+    if ok:
         logger.info("✅ Sincronização concluída com sucesso!")
         sys.exit(0)
     else:
-        logger.error("❌ Sincronização falhou")
+        logger.error(f"❌ Sincronização falhou: {err_msg or 'erro desconhecido'}")
         sys.exit(1)
 
 
