@@ -203,6 +203,41 @@
   },
   {
     "Categoria": "Plataforma",
+    "Nome": "Yever",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Seguro_Incluido_Calculo_Frete": "Sim (✔️)",
+      "Seguro_Configuravel_Calculo_Frete": "Sim (✔️)",
+      "Nome_Transportador_Checkout_Personalizavel": "Não (❌)",
+      "Calcula_Peso_Cubado": "Sim (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Devolucao_Codigo_Rastreamento": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Cliente / Mandaê",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceira",
+      "Custos_Envolvidos": "Sem custos",
+      "Critério_Valor_Declarado": "N/A",
+      "Limitacoes_Ausencia": "Qualidade percebida no portal: Regular. Integração focada em cálculo de frete via API; não há integração de pedidos, etiquetas nem rastreio (devolução de código ou atualização de status).",
+      "Site": "https://client.yever.com.br/criar-conta",
+      "Manual": "https://mandaenuvemenvio.zendesk.com/hc/pt-br/search?query=Yever"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A",
+      "Atendimento": "https://www.yever.com.br/atendimento"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
     "Nome": "E-com.club",
     "Tipo_Integracao": "API",
     "Funcionalidades": {
