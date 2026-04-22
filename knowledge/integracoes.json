@@ -363,6 +363,41 @@
   },
   {
     "Categoria": "Plataforma",
+    "Nome": "Datafrete",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Via API) (✔️)",
+      "Seguro_Incluido_Calculo_Frete": "Sim (✔️)",
+      "Seguro_Configuravel_Calculo_Frete": "Não (API) (❌)",
+      "Nome_Transportador_Checkout_Personalizavel": "Sim (✔️)",
+      "Calcula_Peso_Cubado": "Sim (✔️)",
+      "Multiplos_Volumes_Pedidos": "Não (❌)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Devolucao_Codigo_Rastreamento": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Manuais",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "Sem custos",
+      "Critério_Valor_Declarado": "Configuração na integração",
+      "Limitacoes_Ausencia": "Qualidade percebida no portal: Boa. Não há integração de pedidos (em backlog). Não existe ambiente de teste; a ativação é feita exclusivamente pelo suporte Datafrete.",
+      "Site": "https://www.datafrete.com/",
+      "Manual": "https://documentacaostreams.notion.site/Loja-do-Gateway-2b678229b3b04043bd7ef6ff36f7556e"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A",
+      "Atendimento": "https://www.datafrete.com/"
+    }
+  },
+  {
+    "Categoria": "Plataforma",
     "Nome": "Bis2Bis",
     "Tipo_Integracao": "API",
     "Funcionalidades": {
