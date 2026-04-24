@@ -89,6 +89,7 @@ Your task is to analyze the user message and return **only** a JSON object with 
   - Questions about "how to", "configure", "tutorial", "help with" → `"help_center"`
   - When in doubt, use `"apps"`
 - **CRITICAL:** If the user's message is a confirmation/answer to a previous question (detected by context), reconstruct the full question from context instead of using the short confirmation.
+- **CRITICAL — brand names:** The e-commerce platform is written **jet.** (with a period), not "JetCommerce". Never rewrite "Jet." or "jet" as "JetCommerce" in `user_detailed_query`; keep the user's wording or use **jet.**
 
 """
 
@@ -179,10 +180,13 @@ class Recepcionista:
                 return self._fallback_analysis(pergunta_limpa)
             
             # Garantir que user_detailed_query não seja uma mensagem de erro
-            user_query = analysis.get('user_detailed_query', '')
+            from handlers.buscar_integracoes_json import normalizar_typos_nome_integracao_na_query
+            udq = analysis.get('user_detailed_query', '') or ''
+            analysis['user_detailed_query'] = normalizar_typos_nome_integracao_na_query(udq)
+            user_query = analysis['user_detailed_query']
             if user_query.startswith("Erro ao acessar Gemini"):
                 logger.warning("⚠️ user_detailed_query contém erro, usando pergunta original")
-                analysis['user_detailed_query'] = pergunta_limpa
+                analysis['user_detailed_query'] = normalizar_typos_nome_integracao_na_query(pergunta_limpa)
             
             # Inferir país baseado em idioma se não detectado
             analysis = self._infer_country_from_language(analysis)

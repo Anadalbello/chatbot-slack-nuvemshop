@@ -8,7 +8,10 @@ import logging
 import json
 import re
 import time
+from typing import Optional, Dict, Any
 from dotenv import load_dotenv
+
+from handlers.buscar_integracoes_json import normalizar_typos_nome_integracao_na_query
 import google.generativeai as genai
 
 load_dotenv()
@@ -43,10 +46,32 @@ model = genai.GenerativeModel(
         "temperature": 0.3,  # Menor temperatura para respostas mais precisas
         "top_p": 0.95,
         "top_k": 40,
-        "max_output_tokens": 200,
+        # Resposta JSON era truncada (~200 tok) e quebrava json.loads; precisa caber o objeto inteiro
+        "max_output_tokens": 512,
     },
     safety_settings=safety_settings
 )
+
+
+def _extrair_intencao_json_parcial(texto: str) -> Optional[Dict[str, Any]]:
+    """Se o Gemini truncar o JSON no meio, tenta extrair campos com regex."""
+    if not texto or not texto.strip().startswith("{"):
+        return None
+    int_m = re.search(r'"intencao"\s*:\s*"([^"]*)"', texto)
+    nome_m = re.search(r'"nome_erp"\s*:\s*"([^"]*)"', texto)
+    nome_null = re.search(r'"nome_erp"\s*:\s*null', texto, re.I)
+    qb_m = re.search(r'"query_busca"\s*:\s*"([^"]*)"', texto)
+    resp_m = re.search(r'"resposta_esperada"\s*:\s*"([^"]*)"', texto)
+    if not int_m and not nome_m and not nome_null and not qb_m:
+        return None
+    nome_val = None if nome_null else (nome_m.group(1) if nome_m else None)
+    qb_val = qb_m.group(1) if qb_m else nome_val
+    return {
+        "intencao": int_m.group(1) if int_m else "funcionalidades",
+        "nome_erp": nome_val,
+        "query_busca": qb_val,
+        "resposta_esperada": resp_m.group(1) if resp_m else "sim_nao",
+    }
 
 
 def interpretar_intencao_e_extrair_erp(pergunta: str) -> dict:
@@ -65,6 +90,7 @@ def interpretar_intencao_e_extrair_erp(pergunta: str) -> dict:
     """
     
     try:
+        pergunta = normalizar_typos_nome_integracao_na_query(pergunta)
         logger.info(f"🧠 Interpretando intenção da pergunta: '{pergunta[:50]}...'")
         
         prompt = f"""Você é um assistente que analisa perguntas sobre integrações de ERP/sistemas.
@@ -111,6 +137,11 @@ IMPORTANTE:
 - O nome_erp deve ser o mais exato possível (exatamente como aparece em documentos)
 - A query_busca deve ser limpa, apenas palavras significativas
 - Se não mencionar nenhum ERP específico, use null para nome_erp e query_busca
+- NÃO confunda integrações: "Jet", "jet." ou "Jet e-commerce" referem-se à integração oficial **jet.** (com ponto), NÃO a "Wake Commerce" nem outras plataformas.
+
+EXEMPLO Jet:
+Pergunta: "a jet. calcula frete com peso cubado?" ou "@Tina o Jet tem peso cubado?"
+JSON: {{"intencao": "funcionalidades", "nome_erp": "jet.", "query_busca": "jet.", "resposta_esperada": "sim_nao"}}
 
 JSON:"""
 
@@ -156,11 +187,23 @@ JSON:"""
     except json.JSONDecodeError as e:
         logger.error(f"❌ Erro ao decodificar JSON do Gemini: {e}")
         logger.error(f"   Resposta recebida: {resposta_texto[:200] if 'resposta_texto' in locals() else 'N/A'}")
-        # Fallback: tentar extrair manualmente
+        parcial = _extrair_intencao_json_parcial(resposta_texto) if "resposta_texto" in locals() else None
+        if parcial:
+            logger.info(f"✅ Intenção recuperada por regex (JSON truncado): {parcial}")
+            return parcial
+        # Fallback: heurística jet. se a pergunta citar jet
+        pq = pergunta.lower()
+        if re.search(r"\bjet\b|jet\.|jetcommerce", pq):
+            return {
+                "intencao": "funcionalidades",
+                "nome_erp": "jet.",
+                "query_busca": "jet.",
+                "resposta_esperada": "sim_nao",
+            }
         return {
             "intencao": "outro",
             "nome_erp": None,
-            "query_busca": pergunta.lower().strip(),
+            "query_busca": normalizar_typos_nome_integracao_na_query(pergunta.lower().strip()),
             "resposta_esperada": "detalhada"
         }
     except Exception as e:
@@ -169,7 +212,7 @@ JSON:"""
         return {
             "intencao": "outro",
             "nome_erp": None,
-            "query_busca": pergunta.lower().strip(),
+            "query_busca": normalizar_typos_nome_integracao_na_query(pergunta.lower().strip()),
             "resposta_esperada": "detalhada"
         }
 

@@ -13,6 +13,16 @@ logger = logging.getLogger(__name__)
 
 JSON_FILE = Path("knowledge/integracoes.json")
 
+
+def normalizar_typos_nome_integracao_na_query(texto: str) -> str:
+    """
+    Corrige typos que confundem a busca.
+    Ex.: recepcionista/modelo gera 'JetCommerce' (Jet. + alcula); só 'commerce' batia em Wake Commerce.
+    """
+    if not texto:
+        return texto
+    return re.sub(r"\bjetcommerce\b", "jet.", texto, flags=re.IGNORECASE)
+
 def carregar_integracoes_json() -> List[dict]:
     """Carrega ERPs do arquivo JSON (novo formato)"""
     if not JSON_FILE.exists():
@@ -112,6 +122,7 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         return None
     
     # Limpar query: remover pontuação, espaços extras e normalizar
+    nome_erp = normalizar_typos_nome_integracao_na_query(nome_erp.strip())
     nome_limpo_query = re.sub(r'[?.,!;:\s]+', ' ', nome_erp.lower().strip())
     nome_limpo_query = re.sub(r'\s+', ' ', nome_limpo_query).strip()  # Normalizar espaços múltiplos
     logger.info(f"🔍 Buscando ERP: '{nome_erp}' (query limpa: '{nome_limpo_query}')")
@@ -182,7 +193,8 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         if score == 0 and (nome_limpo_query.startswith(nome_limpo) or nome_limpo.startswith(nome_limpo_query)):
             score = 90
             logger.debug(f"✅ Match por início: '{nome_limpo}' (score: {score})")
-        else:
+        # ESTRATÉGIAS 3–5 só se ainda não houve match forte (evita sobrescrever score 100 com score menor — ex.: jet. vs Wake Commerce)
+        if score == 0:
             # ESTRATÉGIA 3: Verificar se palavras significativas do nome estão na query (score baseado em similaridade)
             palavras_significativas_nome = [p.strip('?.,!;:') for p in palavras_nome_raw 
                                            if len(p.strip('?.,!;:')) > 1 and p.strip('?.,!;:') not in palavras_remover]
@@ -197,6 +209,10 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
                 if palavras_match:
                     # Score baseado em quantas palavras e tamanho das palavras (priorizar palavras maiores)
                     score = min(85, 50 + (len(palavras_match) * 10) + (sum(len(p) for p in palavras_match) // 2))
+                    # Nome composto: exigir todas as palavras significativas (evita só "commerce" em "JetCommerce" -> Wake Commerce)
+                    nsig = len(palavras_significativas_nome)
+                    if nsig >= 2 and len(palavras_match) < nsig:
+                        score = min(score, 44)
                     logger.debug(f"✅ Match por palavras do nome: {palavras_match} (score: {score})")
             
             # ESTRATÉGIA 4: Verificar se palavras-chave extraídas da query estão no nome do ERP (score menor)
@@ -237,8 +253,10 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         
         return None
     
-    # Ordenar por score (maior primeiro) e pegar o melhor match
-    matches_com_score.sort(key=lambda x: x[0], reverse=True)
+    # Ordenar por score (maior primeiro); em empate, preferir nome mais curto (evita confundir "jet." com integrações de nome longo)
+    matches_com_score.sort(
+        key=lambda x: (-x[0], len((x[1].get("Nome") or x[1].get("ERP") or "")))
+    )
     melhor_score, erp = matches_com_score[0]
     logger.info(f"✅ Melhor match encontrado com score {melhor_score}: {erp.get('Nome', erp.get('ERP', ''))}")
     nome_erp_encontrado = erp.get("Nome", erp.get("ERP", "Nome não informado"))
@@ -386,6 +404,7 @@ def buscar_erp_generico(query: str) -> Optional[str]:
         return None
     
     # Limpar query: remover pontuação e normalizar
+    query = normalizar_typos_nome_integracao_na_query(query.strip())
     query_limpa = re.sub(r'[?.,!;:]+', '', query.lower().strip())
     logger.info(f"🔍 Busca genérica: '{query}'")
     
