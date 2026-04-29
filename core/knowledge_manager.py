@@ -6,6 +6,7 @@ Estilo Nina - Adaptado para múltiplas fontes
 import json
 import logging
 import os
+import re
 from pathlib import Path
 from typing import List, Dict, Optional, Any
 from datetime import datetime
@@ -336,6 +337,20 @@ class KnowledgeManager:
         
         return resultado
     
+    def _normalize_text_for_word_matching(self, text: str) -> str:
+        if not text:
+            return ""
+        return re.sub(r'[^\w]+', ' ', text.lower()).strip()
+
+    def _contains_whole_word(self, word: str, text: str) -> bool:
+        if not word or not text:
+            return False
+        word_norm = self._normalize_text_for_word_matching(word)
+        text_norm = self._normalize_text_for_word_matching(text)
+        if not word_norm:
+            return False
+        return bool(re.search(rf'\b{re.escape(word_norm)}\b', text_norm, flags=re.IGNORECASE))
+
     def _is_valid_result(self, result: Any) -> bool:
         """
         Valida se o resultado é útil (estilo Nina - não aceita resultados vazios/erros)
@@ -454,14 +469,14 @@ class KnowledgeManager:
             # Verificar se algum resultado tem nome similar (busca mais flexível)
             for resultado in generic_results:
                 content = resultado.get('content', '')
-                # Verificar se o nome da integração aparece no conteúdo
-                if integration_name.lower() in content.lower():
+                # Verificar se o nome da integração aparece no conteúdo como whole word
+                if self._contains_whole_word(integration_name, content):
                     logger.info(f"✅ Integração encontrada via busca genérica (match por conteúdo)")
                     return resultado
             
-            # Se não encontrou match exato, retornar o primeiro resultado mesmo assim
-            logger.info(f"✅ Integração encontrada via busca genérica (primeiro resultado)")
-            return generic_results[0]
+            # Não retornar um resultado sem correspondência exata
+            logger.info(f"⚠️ Nenhuma correspondência exata via busca genérica; não retornando resultado genérico")
+            return None
         
         logger.info(f"❌ Integração '{integration_name}' não encontrada em nenhuma fonte")
         

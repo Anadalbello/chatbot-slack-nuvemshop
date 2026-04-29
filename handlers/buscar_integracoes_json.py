@@ -14,6 +14,54 @@ logger = logging.getLogger(__name__)
 JSON_FILE = Path("knowledge/integracoes.json")
 
 
+def _normalize_text_for_word_matching(text: str) -> str:
+    if not text:
+        return ""
+    return re.sub(r'[^\w]+', ' ', text.lower()).strip()
+
+
+def _has_whole_word(word: str, text: str) -> bool:
+    if not word or not text:
+        return False
+    word_norm = _normalize_text_for_word_matching(word)
+    text_norm = _normalize_text_for_word_matching(text)
+    if not word_norm:
+        return False
+    return bool(re.search(rf'\b{re.escape(word_norm)}\b', text_norm, flags=re.IGNORECASE))
+
+
+def _has_prefix_with_boundary(shorter: str, longer: str) -> bool:
+    if not shorter or not longer:
+        return False
+    shorter_norm = _normalize_text_for_word_matching(shorter)
+    longer_norm = _normalize_text_for_word_matching(longer)
+    if not shorter_norm or not longer_norm or shorter_norm == longer_norm:
+        return False
+    if not longer_norm.startswith(shorter_norm):
+        return False
+    next_char_index = len(shorter_norm)
+    if next_char_index >= len(longer_norm):
+        return True
+    return not longer_norm[next_char_index].isalnum()
+
+
+def _has_conflicting_prefix(candidate_name: str, query: str) -> bool:
+    """
+    Detecta conflitos onde um nome curto aparece na query,
+    mas a query também contém uma palavra mais longa com o mesmo prefixo.
+    Ex: "jet." deve ser rejeitado se a query mencionar "jetro".
+    """
+    if not candidate_name or not query:
+        return False
+    candidate_norm = _normalize_text_for_word_matching(candidate_name)
+    query_norm = _normalize_text_for_word_matching(query)
+
+    if candidate_norm == "jet":
+        return bool(re.search(r'\bjetro\b', query_norm))
+
+    return False
+
+
 def normalizar_typos_nome_integracao_na_query(texto: str) -> str:
     """
     Corrige typos que confundem a busca.
@@ -166,33 +214,48 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
         nome_limpo = re.sub(r'\s+', ' ', nome_limpo).strip()  # Normalizar espaços múltiplos
         palavras_nome_raw = nome_limpo.split()
         palavras_nome = set([p.strip('?.,!;:') for p in palavras_nome_raw])
-        
+
+        if _has_conflicting_prefix(nome_limpo, nome_limpo_query):
+            logger.debug(f"⚠️ Ignorando '{nome_limpo}' por conflito de prefixo na query")
+            continue
+
         score = 0
-        
+
         # ESTRATÉGIA 0.5: Verificar se a query bate com "Outros nomes" da integração (ex: WordPress -> Woocommerce)
         for outro in outros_nomes_list:
             outro_limpo = re.sub(r'[?.,!;:\s]+', ' ', outro).strip()
-            if outro_limpo and (outro_limpo in nome_limpo_query or nome_limpo_query in outro_limpo):
+            if outro_limpo and (_has_whole_word(outro_limpo, nome_limpo_query) or _has_whole_word(nome_limpo_query, outro_limpo)):
                 score = 98
                 logger.debug(f"✅ Match por outros nomes: '{outro_limpo}' (score: {score})")
                 break
+
         # ESTRATÉGIA 1: Verificar se o nome completo do ERP está contido na query (maior prioridade - score 100)
         # Ex: query="dados de contato da bling" -> nome="bling" deve ser encontrado
-        if score == 0 and nome_limpo in nome_limpo_query:
+        if score == 0 and _has_whole_word(nome_limpo, nome_limpo_query):
             score = 100
             logger.debug(f"✅ Match por nome completo: '{nome_limpo}' encontrado na query (score: {score})")
+
         # ESTRATÉGIA 1.5: Verificar se o nome sem pontuação está contido na query ou vice-versa (score 95)
-        if score == 0 and nome_limpo.strip() and (nome_limpo.strip() in nome_limpo_query or nome_limpo_query in nome_limpo.strip()):
-            score = 95
-            logger.debug(f"✅ Match por nome sem pontuação: '{nome_limpo.strip()}' encontrado (score: {score})")
+        if score == 0 and nome_limpo.strip():
+            if len(nome_limpo.strip()) <= 3:
+                if _has_whole_word(nome_limpo.strip(), nome_limpo_query):
+                    score = 95
+                    logger.debug(f"✅ Match por nome curto com whole-word: '{nome_limpo.strip()}' encontrado (score: {score})")
+            elif nome_limpo.strip() in nome_limpo_query or nome_limpo_query in nome_limpo.strip():
+                score = 95
+                logger.debug(f"✅ Match por nome sem pontuação: '{nome_limpo.strip()}' encontrado (score: {score})")
         # ESTRATÉGIA 1.6: Busca sem espaços (para casos como "IDWorks" vs "ID Works")
-        if score == 0 and (nome_limpo.replace(' ', '') in nome_limpo_query.replace(' ', '') or nome_limpo_query.replace(' ', '') in nome_limpo.replace(' ', '')):
+        if score == 0 and len(nome_limpo.replace(' ', '').strip()) >= 4 and (
+            nome_limpo.replace(' ', '') in nome_limpo_query.replace(' ', '') or nome_limpo_query.replace(' ', '') in nome_limpo.replace(' ', '')
+        ):
             score = 94
             logger.debug(f"✅ Match por nome sem espaços: '{nome_limpo}' (score: {score})")
-        # ESTRATÉGIA 2: Verificar se a query começa com o nome do ERP (score 90)
-        if score == 0 and (nome_limpo_query.startswith(nome_limpo) or nome_limpo.startswith(nome_limpo_query)):
+        # ESTRATÉGIA 2: Verificar se a query começa com o nome do ERP ou vice-versa,
+        # mas apenas quando o limite de palavras ou separadores indica uma fronteira de palavra.
+        # Evita falsos matches como 'Jetro' acertando 'jet.' por prefixo comum.
+        if score == 0 and (_has_prefix_with_boundary(nome_limpo, nome_limpo_query) or _has_prefix_with_boundary(nome_limpo_query, nome_limpo)):
             score = 90
-            logger.debug(f"✅ Match por início: '{nome_limpo}' (score: {score})")
+            logger.debug(f"✅ Match por início com boundary: '{nome_limpo}' (score: {score})")
         # ESTRATÉGIAS 3–5 só se ainda não houve match forte (evita sobrescrever score 100 com score menor — ex.: jet. vs Wake Commerce)
         if score == 0:
             # ESTRATÉGIA 3: Verificar se palavras significativas do nome estão na query (score baseado em similaridade)
@@ -201,10 +264,10 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
             if palavras_significativas_nome:
                 palavras_match = []
                 for palavra_nome in palavras_significativas_nome:
-                    palavra_nome_limpa = palavra_nome.strip('?.,!;:').lower()
-                    # Verificar se palavra do nome está na query
-                    if palavra_nome_limpa in nome_limpo_query:
-                        palavras_match.append(palavra_nome_limpa)
+                    palavra_nome_limpa = palavra_nome.strip('?.,!;:')
+                    # Verificar se palavra do nome aparece como whole word na query
+                    if _has_whole_word(palavra_nome_limpa, nome_limpo_query):
+                        palavras_match.append(palavra_nome_limpa.lower())
                 
                 if palavras_match:
                     # Score baseado em quantas palavras e tamanho das palavras (priorizar palavras maiores)
@@ -231,8 +294,8 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
                 nome_sem_espacos = nome_limpo.replace(' ', '').lower()
                 query_sem_espacos = nome_limpo_query.replace(' ', '').lower()
                 
-                # Verificar se há substring comum significativa (mínimo 3 caracteres)
-                if len(nome_sem_espacos) >= 3 and len(query_sem_espacos) >= 3:
+                # Verificar se há substring comum significativa (mínimo 4 caracteres)
+                if len(nome_sem_espacos) >= 4 and len(query_sem_espacos) >= 4:
                     # Verificar se uma está contida na outra
                     if nome_sem_espacos in query_sem_espacos or query_sem_espacos in nome_sem_espacos:
                         # Calcular score baseado no tamanho da substring comum
@@ -440,18 +503,24 @@ def buscar_erp_generico(query: str) -> Optional[str]:
         outras_info = erp.get("Outras_Informacoes") or {}
         outros_nomes_raw = outras_info.get("Outros_nomes_integracao", "") or ""
         outros_nomes_list = [s.strip().lower() for s in re.split(r"[,;]|\s+e\s+", str(outros_nomes_raw)) if s.strip()]
-        
+
+        if _has_conflicting_prefix(nome_limpo, query_limpa):
+            logger.debug(f"⚠️ Ignorando '{nome_limpo}' por conflito de prefixo na query genérica")
+            continue
+
         score = 0
-        
-        # ESTRATÉGIA 0.5: Query bate com "Outros nomes" (ex: WordPress -> Woocommerce)
+
+        # ESTRATÉGIA 0.5: Verificar se a query bate com "Outros nomes" da integração
         for outro in outros_nomes_list:
             outro_limpo = re.sub(r'[?.,!;:\s]+', ' ', outro).strip()
-            if outro_limpo and (outro_limpo in query_limpa or query_limpa in outro_limpo):
+            if outro_limpo and (_has_whole_word(outro_limpo, query_limpa) or _has_whole_word(query_limpa, outro_limpo)):
                 score = 98
+                logger.debug(f"✅ Match genérico por outros nomes: '{outro_limpo}' (score: {score})")
                 break
+
         # ESTRATÉGIA 1: Verificar se o nome completo do ERP está contido na query (maior pontuação)
         # Ex: query="dados de contato da bling" -> nome="bling" deve ser encontrado
-        if score == 0 and nome_limpo in query_limpa:
+        if score == 0 and _has_whole_word(nome_limpo, query_limpa):
             score = 100
         # ESTRATÉGIA 2: Verificar se qualquer palavra significativa do nome está na query (busca invertida)
         # Ex: query="quais funcionalidades tem o eccosys" -> nome="eccosys" deve ser encontrado
@@ -459,7 +528,7 @@ def buscar_erp_generico(query: str) -> Optional[str]:
             palavras_significativas_nome = [p for p in palavras_nome if len(p) > 2 and p not in palavras_ignorar]
             if palavras_significativas_nome:
                 for palavra_nome in palavras_significativas_nome:
-                    if palavra_nome in query_limpa:
+                    if _has_whole_word(palavra_nome, query_limpa):
                         score = 95  # Pouco menos que match completo, mas ainda muito alto
                         break
         # ESTRATÉGIA 3: Busca por palavras-chave: verificar se palavras da query estão no nome do ERP
