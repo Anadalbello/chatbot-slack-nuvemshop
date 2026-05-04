@@ -40,10 +40,7 @@ safety_settings = [
 model = genai.GenerativeModel(
     model_name="models/gemini-2.5-flash",  # Modelo estável (gemini-2.0-flash-exp foi descontinuado)
     generation_config={
-        "temperature": 0.5,  # Menor para respostas mais objetivas
-        "top_p": 0.95,
-        "top_k": 40,
-        "max_output_tokens": 2048,  # Maior para evitar cortes em listas longas
+        "temperature": 0.3,  # Mais conservador para reduzir invenções
     },
     safety_settings=safety_settings
 )
@@ -202,8 +199,9 @@ INSTRUÇÕES CRÍTICAS E OBRIGATÓRIAS (LEIA COM ATENÇÃO):
 9. Se perguntarem "temos integração?" ou "existe integração?", responda: "Sim, temos integração com [nome]." ou "Não, não temos integração com [nome]."
 10. Seja DIRETO e OBJETIVO - não liste tudo, foque no que foi perguntado
 11. Use formatação markdown para destacar informações importantes (*negrito*)
-12. Se você não tiver certeza sobre uma informação, NÃO invente - diga que precisa verificar
-13. ⚠️ NUNCA inclua link de "Portal de Integrações" ou portal Nuvemshop/genérico se o Manual nos dados for "Não possui" ou "Não forneceu" - use só links que estão de fato nos dados
+12. Se você não tiver certeza sobre uma informação, NÃO invente - diga que precisa verificar ou que não há dados suficientes nos dados fornecidos.
+13. Se uma informação não estiver claramente presente nos dados, NÃO faça inferência nem adicione explicações extras.
+14. ⚠️ NUNCA inclua link de "Portal de Integrações" ou portal Nuvemshop/genérico se o Manual nos dados for "Não possui" ou "Não forneceu" - use só links que estão de fato nos dados
 
 FORMATO OBRIGATÓRIO - RESPOSTA EM PARÁGRAFO FLUIDO:
 ⚠️ NÃO explique o que é cada funcionalidade (ex: não explique "cálculo de frete é...", "peso cubado serve para...")
@@ -400,9 +398,12 @@ def _validar_resposta_contra_dados(resposta, dados_originais, pergunta):
     
     problemas = []
     
-    # Verificar se menciona funcionalidades que estão como "Não" nos dados
-    # Padrões para detectar menções de funcionalidades que podem estar incorretas
-    # NOTA: "multi.*cd" deve ser específico para Multi CD (centros distribuição), não "múltiplos volumes"
+    disponiveis, indisponiveis = _extrair_funcionalidades_disponiveis_e_indisponiveis(dados_originais)
+    for termo in indisponiveis:
+        if termo and _esta_alegacao_positiva(resposta_lower, termo):
+            problemas.append(f"Resposta afirma '{termo}' como disponível, mas os dados indicam que não está disponível")
+
+    # Verificar menções de funcionalidades críticas que podem ser redigidas de formas variadas
     funcionalidades_criticas = {
         'atualiza.*status.*rastreio': r'atualiza.*status.*rastreio.*não|atualiza.*status.*rastreio.*❌',
         'atualiza.*automaticamente': r'atualiza.*automaticamente.*não|atualiza.*automaticamente.*❌',
@@ -412,19 +413,14 @@ def _validar_resposta_contra_dados(resposta, dados_originais, pergunta):
     }
     
     for func_nome, padrao_negativo in funcionalidades_criticas.items():
-        # Se a resposta menciona a funcionalidade positivamente
         if re.search(func_nome, resposta_lower, re.IGNORECASE):
-            # Verificar se nos dados está como "Não"
             if re.search(padrao_negativo, dados_lower, re.IGNORECASE):
                 problemas.append(f"Resposta menciona '{func_nome}' como disponível, mas dados indicam 'Não'")
     
     # Verificar se menciona "atualiza status" quando deveria ser apenas "devolve código"
-    # Se a resposta menciona "atualiza status" ou "atualiza automaticamente" de forma positiva
     if re.search(r'atualiza.*status.*rastreio|atualiza.*automaticamente', resposta_lower, re.IGNORECASE):
-        # Verificar se nos dados está marcado como "Não"
         if re.search(r'atualiza.*status.*rastreio.*não|atualiza.*status.*rastreio.*❌', dados_lower, re.IGNORECASE):
-            # Se menciona de forma positiva (sem negativa), é um problema
-            if not re.search(r'não.*atualiza|não.*atualiza.*status', resposta_lower, re.IGNORECASE):
+            if not re.search(r'não.*atualiza|não.*atualiza.*status|não.*atualiza.*automaticamente', resposta_lower, re.IGNORECASE):
                 problemas.append("Resposta menciona atualização de status automaticamente, mas dados indicam 'Não (❌)'")
     
     if problemas:
@@ -434,6 +430,50 @@ def _validar_resposta_contra_dados(resposta, dados_originais, pergunta):
         }
     
     return {'valida': True, 'problema': None}
+
+
+def _normalizar_termo(termo):
+    termo = termo.lower().strip()
+    termo = re.sub(r'[^a-z0-9çáéíóúãõâêôàèìòùäëïöü\s]', ' ', termo)
+    termo = re.sub(r'\s+', ' ', termo)
+    return termo
+
+
+def _esta_alegacao_positiva(resposta, termo):
+    resposta_lower = resposta.lower()
+    termo_lower = termo.lower()
+    if termo_lower not in resposta_lower:
+        return False
+
+    # Se mencionou termo e veio acompanhado de negação explícita, não é uma afirmação positiva
+    if re.search(r'\b(não|nao|sem|não está|nao está|não há|nao há|não possui|nao possui)\b.*' + re.escape(termo_lower), resposta_lower):
+        return False
+    if re.search(re.escape(termo_lower) + r'.*\b(não|nao|sem|não está|nao está|não há|nao há|não possui|nao possui)\b', resposta_lower):
+        return False
+
+    return True
+
+
+def _extrair_funcionalidades_disponiveis_e_indisponiveis(dados):
+    disponiveis = []
+    indisponiveis = []
+
+    disponiveis_match = re.search(r'Funcionalidades disponíveis:\n(.*?)(?=\n❌|\n━|\n📋|$)', dados, re.DOTALL | re.IGNORECASE)
+    indisponiveis_match = re.search(r'Funcionalidades indisponíveis.*:\n(.*?)(?=\n✅|\n━|\n📋|$)', dados, re.DOTALL | re.IGNORECASE)
+
+    if disponiveis_match:
+        for linha in disponiveis_match.group(1).splitlines():
+            texto = linha.strip(' *-–•\t')
+            if texto:
+                disponiveis.append(_normalizar_termo(texto))
+
+    if indisponiveis_match:
+        for linha in indisponiveis_match.group(1).splitlines():
+            texto = linha.strip(' *-–•\t')
+            if texto:
+                indisponiveis.append(_normalizar_termo(texto))
+
+    return disponiveis, indisponiveis
 
 
 def _gerar_resposta_conservadora(pergunta, conteudo_bruto, contexto_thread=None):
@@ -470,11 +510,11 @@ Responda em parágrafos fluidos como no exemplo da Tray:"""
         if response and response.text:
             resposta = response.text.strip()
             if len(resposta) > 30:
-                logger.info("✅ Resposta conservadora gerada com sucesso")
-                return resposta
-        
-        return None
-        
+                valida = _validar_resposta_contra_dados(resposta, conteudo_bruto, pergunta)
+                if valida['valida']:
+                    logger.info("✅ Resposta conservadora gerada com sucesso")
+                    return resposta
+                logger.warning(f"⚠️ Resposta conservadora ainda contém contradições: {valida['problema']}")
     except Exception as e:
         logger.error(f"❌ Erro ao gerar resposta conservadora: {e}")
         return None
