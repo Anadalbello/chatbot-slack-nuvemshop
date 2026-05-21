@@ -2237,5 +2237,42 @@
       "Email": "suporte@vtrina.com",
       "Telefone": "N/A"
     }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "Boxlink",
+    "Tipo_Integracao": "Tabela de Frete",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (Tabela) (✔️)",
+      "Seguro_Incluido_Calculo_Frete": "Sim (✔️)",
+      "Seguro_Configuravel_Calculo_Frete": "Não (Tabela) (❌)",
+      "Nome_Transportador_Checkout_Personalizavel": "Sim (✔️)",
+      "Calcula_Peso_Cubado": "Sim (✔️)",
+      "Integracao_Pedidos": "Sim (API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (individual e em lote) (✔️)",
+      "Devolucao_Codigo_Rastreamento": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Média",
+      "Responsavel_Configuracao": "Cliente/Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "N/A",
+      "Critério_Valor_Declarado": "Valor total da NF",
+      "Qualidade_Percebida": "Boa",
+      "Limitacoes_Ausencia": "Possui somente integração de cálculo de frete por Tabela.",
+      "Site": "https://boxlink.com.br/",
+      "Manual": "N/A"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A",
+      "Suporte": "N/A"
+    }
   }
 ]
