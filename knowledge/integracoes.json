@@ -2274,5 +2274,42 @@
       "Telefone": "N/A",
       "Suporte": "N/A"
     }
+  },
+  {
+    "Categoria": "ERP",
+    "Nome": "Sisplan",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Não (❌)",
+      "Seguro_Incluido_Calculo_Frete": "Não (❌)",
+      "Seguro_Configuravel_Calculo_Frete": "Não (❌)",
+      "Nome_Transportador_Checkout_Personalizavel": "Não (❌)",
+      "Calcula_Peso_Cubado": "Não (❌)",
+      "Integracao_Pedidos": "Sim (API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (na plataforma, individual e em lote) (✔️)",
+      "Devolucao_Codigo_Rastreamento": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "O cliente precisa consultar o comercial do ERP",
+      "Limitacoes_Ausencia": "A integração não possui cálculo de frete",
+      "Site": "https://sisplansistemas.com.br/",
+      "Manual": "Solicitar ao suporte da Sisplan",
+      "Critério_Valor_Declarado": "Total Faturado",
+      "Qualidade_Percebida": "Boa"
+    },
+    "Suporte_Contato": {
+      "Email": "integracoes@sisplansistemas.com.br",
+      "Telefone": "(47) 3380-6100 (solicitar para conversar com o setor de integrações)",
+      "WhatsApp": "(47) 3380-6100"
+    }
   }
 ]
