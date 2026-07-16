@@ -2312,5 +2312,44 @@
       "Telefone": "(47) 3380-6100 (solicitar para conversar com o setor de integrações)",
       "WhatsApp": "(47) 3380-6100"
     }
+  },
+  {
+    "Categoria": "Plataforma",
+    "Nome": "GoDeep",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (API) (✔️)",
+      "Seguro_Incluido_Calculo_Frete": "Sim (Fixo) (✔️)",
+      "Seguro_Configuravel_Calculo_Frete": "Não (API) (❌)",
+      "Nome_Transportador_Checkout_Personalizavel": "Não (❌)",
+      "Calcula_Peso_Cubado": "Sim (✔️)",
+      "Integracao_Pedidos": "Sim (API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Não (❌)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Devolucao_Codigo_Rastreamento": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Fase": "Integração em fase de piloto",
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "O cliente precisa consultar o comercial do ERP",
+      "Limitacoes_Ausencia": "A integração sempre será com seguro, o mesmo não permite configuração",
+      "Site": "https://godeep.global/",
+      "Manual": "Solicitar ao suporte da GoDeep",
+      "Critério_Valor_Declarado": "Total Faturado",
+      "Qualidade_Percebida": "Boa"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "N/A",
+      "Suporte": "https://suporte.godeep.global/login/normal",
+      "WhatsApp": "https://wa.me/5551993922045"
+    }
   }
 ]
