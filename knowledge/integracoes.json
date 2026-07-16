@@ -2351,5 +2351,43 @@
       "Suporte": "https://suporte.godeep.global/login/normal",
       "WhatsApp": "https://wa.me/5551993922045"
     }
+  },
+  {
+    "Categoria": "ERP",
+    "Nome": "Vesto",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Não (❌)",
+      "Seguro_Incluido_Calculo_Frete": "Não (❌)",
+      "Seguro_Configuravel_Calculo_Frete": "Não (❌)",
+      "Nome_Transportador_Checkout_Personalizavel": "Não (❌)",
+      "Calcula_Peso_Cubado": "Não (❌)",
+      "Integracao_Pedidos": "Sim (API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Devolucao_Codigo_Rastreamento": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Fase": "Integração em fase de piloto",
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "O cliente precisa consultar o comercial do ERP",
+      "Limitacoes_Ausencia": "A integração possui somente importação de pedidos",
+      "Site": "https://tatilinovacao.com.br/",
+      "Manual": "Solicitar ao suporte da Vesto",
+      "Critério_Valor_Declarado": "Total Faturado",
+      "Qualidade_Percebida": "Boa"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "(11) 2225-3638",
+      "WhatsApp": "(11) 2225-3638"
+    }
   }
 ]
