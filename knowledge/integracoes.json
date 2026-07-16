@@ -2389,5 +2389,43 @@
       "Telefone": "(11) 2225-3638",
       "WhatsApp": "(11) 2225-3638"
     }
+  },
+  {
+    "Categoria": "ERP",
+    "Nome": "Phibo",
+    "Tipo_Integracao": "API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Não (❌)",
+      "Seguro_Incluido_Calculo_Frete": "Não (❌)",
+      "Seguro_Configuravel_Calculo_Frete": "Não (❌)",
+      "Nome_Transportador_Checkout_Personalizavel": "Não (❌)",
+      "Calcula_Peso_Cubado": "Não (❌)",
+      "Integracao_Pedidos": "Sim (API) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Não (❌)",
+      "Devolucao_Codigo_Rastreamento": "Não (❌)",
+      "Atualiza_Status_Rastreio": "Não (❌)"
+    },
+    "Outras_Informacoes": {
+      "Fase": "Integração em fase de piloto",
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "Não tem custo, integração disponível a partir do plano prata",
+      "Limitacoes_Ausencia": "Não é possível imprimir etiquetas dentro do Phibo — a impressão é feita no painel da Mandaê; Não há tela de de-para para nomes de frete customizados no checkout — seleção manual necessária; Não há devolução de código de rastreio para o e-commerce; Não há suporte a Multi CD; Não é possível fazer cotação de frete dentro do ERP — o frete é cotado no e-commerce e importado no pedido; Não é possível criar pedidos manuais diretamente no Phibo — para vendas fora do e-commerce (ex: WhatsApp), o pedido deve ser criado manualmente no e-commerce e então importado pelo ERP",
+      "Site": "https://phibo.com.br/",
+      "Manual": "Em desenvolvimento pela Phibo",
+      "Critério_Valor_Declarado": "Total Faturado",
+      "Qualidade_Percebida": "Boa"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "+55 31 7159-1121 (WhatsApp)",
+      "WhatsApp": "+55 31 7159-1121"
+    }
   }
 ]
