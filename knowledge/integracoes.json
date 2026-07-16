@@ -2295,6 +2295,7 @@
       "Atualiza_Status_Rastreio": "Sim (✔️)"
     },
     "Outras_Informacoes": {
+      "Fase": "Integração em fase de piloto",
       "Complexidade": "Baixa",
       "Responsavel_Configuracao": "Parceiro",
       "Responsavel_Testes": "Mandaê",
