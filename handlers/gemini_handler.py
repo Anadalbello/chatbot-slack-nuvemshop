@@ -11,7 +11,7 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel(model_name="models/gemini-2.0-flash")
+model = genai.GenerativeModel(model_name="models/gemini-3-flash")
 
 # Retry em caso de quota: esperar e tentar de novo 1x (evita fallback desnecessário)
 QUOTA_RETRY_DELAY = int(os.getenv("GEMINI_QUOTA_RETRY_DELAY", "32"))  # segundos (API costuma pedir ~30s)

@@ -38,7 +38,7 @@ safety_settings = [
 ]
 
 model = genai.GenerativeModel(
-    model_name="models/gemini-2.5-flash",  # Modelo estável (gemini-2.0-flash-exp foi descontinuado)
+    model_name="models/gemini-3-flash",  # Gemini 3 Flash: melhor raciocínio que 2.5 Flash a custo similar
     generation_config={
         "temperature": 0.3,  # Mais conservador para reduzir invenções
     },
