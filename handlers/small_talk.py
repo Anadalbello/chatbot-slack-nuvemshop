@@ -9,6 +9,7 @@ chamador usa o prefixo de saudação e segue com a resposta normal.
 """
 
 import re
+import random
 
 # Frases de "como você está?" (o alvo principal do recurso)
 FRASES_SMALL_TALK = [
@@ -29,14 +30,22 @@ FILLERS = [
     "ta", "tá", "esta", "está", "com", "a", "o", "ola", "entao", "então",
 ]
 
-RESPOSTA_PURA = (
+# Variações de resposta para saudação pura (sorteadas a cada mensagem).
+RESPOSTAS_PURAS = [
     "Olá! Estou funcionando perfeitamente por aqui 🤖 E você, tudo bem? 😊\n\n"
-    "Se precisar de algo sobre as integrações da Nuvem Envio, é só me chamar!"
-)
+    "Se precisar de algo sobre as integrações da Nuvem Envio, é só me chamar!",
+    "Oi! Tudo ótimo por aqui, obrigada por perguntar 😊 E com você?\n\n"
+    "Qualquer dúvida sobre integrações, é só mandar!",
+    "Olá! Tô 100% e prontinha para ajudar 🚀 E você, como vai?\n\n"
+    "Pode me perguntar sobre qualquer integração da Nuvem Envio!",
+]
 
-PREFIXO_COM_PERGUNTA = (
-    "Olá! Estou funcionando por aqui, obrigada por perguntar 😊 Já te ajudo com isso:"
-)
+# Variações de prefixo quando há uma pergunta junto da saudação.
+PREFIXOS_COM_PERGUNTA = [
+    "Olá! Estou funcionando por aqui, obrigada por perguntar 😊 Já te ajudo com isso:",
+    "Oi! Tudo ótimo por aqui 🤖 Deixa eu te ajudar com a sua pergunta:",
+    "Olá! Tô bem, obrigada 😊 Vamos ao que você precisa:",
+]
 
 
 def _normalizar(texto: str) -> str:
@@ -81,8 +90,8 @@ def detectar_small_talk(texto: str) -> dict:
     # Se sobrou pouco ou nada, é saudação pura.
     if len(palavras_restantes) == 0:
         resultado["is_pure"] = True
-        resultado["resposta"] = RESPOSTA_PURA
+        resultado["resposta"] = random.choice(RESPOSTAS_PURAS)
     else:
-        resultado["prefixo"] = PREFIXO_COM_PERGUNTA
+        resultado["prefixo"] = random.choice(PREFIXOS_COM_PERGUNTA)
 
     return resultado
