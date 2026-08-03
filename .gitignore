@@ -215,3 +215,6 @@ __marimo__/
 
 # Backup
 backup_arquivos_20250730_144434/
+
+# Claude Code (configs locais do agente)
+.claude/
