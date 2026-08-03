@@ -13,6 +13,23 @@ logger = logging.getLogger(__name__)
 
 JSON_FILE = Path("knowledge/integracoes.json")
 
+# Funcionalidades filtráveis: chave no JSON -> (rótulo amigável, descrição p/ o Gemini)
+FUNCIONALIDADES_ROTULOS = {
+    "Calculo_de_Frete": ("calculam o frete", "calcular/cotar o valor do frete"),
+    "Seguro_Incluido_Calculo_Frete": ("incluem seguro no cálculo do frete", "incluir seguro no cálculo do frete"),
+    "Seguro_Configuravel_Calculo_Frete": ("permitem configurar o seguro no frete", "configurar (sim/não) o seguro no cálculo do frete"),
+    "Nome_Transportador_Checkout_Personalizavel": ("personalizam o nome da transportadora no checkout", "personalizar o nome da transportadora no checkout"),
+    "Calcula_Peso_Cubado": ("calculam peso cubado", "calcular o peso cubado no frete"),
+    "Integracao_Pedidos": ("integram pedidos", "integrar/importar pedidos"),
+    "Multiplos_Volumes_Pedidos": ("suportam múltiplos volumes", "integrar pedidos com múltiplos volumes"),
+    "Configuracao_Seguro_Pedidos": ("permitem configurar o seguro na integração de pedidos", "configurar (sim/não) o seguro na integração de pedidos"),
+    "Valor_Minimo_Seguro_Configuravel": ("permitem configurar valor mínimo de seguro", "configurar um valor mínimo de seguro"),
+    "Multi_CD": ("suportam operação de Multi-CD", "operar com múltiplos centros de distribuição (Multi-CD)"),
+    "Impressao_Etiqueta": ("imprimem etiqueta na plataforma", "imprimir etiqueta na plataforma"),
+    "Devolucao_Codigo_Rastreamento": ("devolvem o código de rastreamento", "devolver o código de rastreamento"),
+    "Atualiza_Status_Rastreio": ("atualizam o status de rastreamento", "atualizar o status de rastreamento"),
+}
+
 
 def _normalize_text_for_word_matching(text: str) -> str:
     if not text:
@@ -747,6 +764,55 @@ def buscar_por_funcionalidade(campo: str, rotulo: str) -> Optional[str]:
 
     resposta += f"\n📊 *Total: {len(encontradas)} integrações*"
     return resposta
+
+
+def detectar_funcionalidade_com_gemini(pergunta: str) -> Optional[tuple]:
+    """
+    Usa o Gemini para descobrir a qual funcionalidade uma pergunta se refere,
+    quando os padrões de texto fixos não casam (fraseados variados).
+
+    Args:
+        pergunta: pergunta do usuário
+
+    Returns:
+        (campo, rotulo) se identificar uma funcionalidade conhecida, ou None.
+    """
+    try:
+        # Import tardio para evitar dependência circular e custo na importação.
+        from handlers.gemini_handler import get_gemini_response
+
+        linhas = "\n".join(
+            f"- {campo}: {descricao}"
+            for campo, (_rotulo, descricao) in FUNCIONALIDADES_ROTULOS.items()
+        )
+        prompt = (
+            "Você classifica perguntas sobre funcionalidades de integrações de "
+            "e-commerce/ERP. Dada a pergunta, responda APENAS com a CHAVE exata da "
+            "funcionalidade que ela procura, ou a palavra 'nenhuma' se não for uma "
+            "pergunta pedindo a lista de integrações que têm uma funcionalidade.\n\n"
+            f"Chaves possíveis:\n{linhas}\n\n"
+            f'PERGUNTA: "{pergunta}"\n\n'
+            "Responda somente com a chave (ex: Calculo_de_Frete) ou 'nenhuma'."
+        )
+
+        resposta = get_gemini_response(prompt)
+        if not resposta or str(resposta).startswith("Erro ao acessar"):
+            return None
+
+        chave = str(resposta).strip().strip('"').strip("'").split()[0] if resposta.strip() else ""
+        # Normalizar removendo pontuação final e mantendo o formato da chave
+        chave = re.sub(r"[^A-Za-z_]", "", chave)
+
+        if chave in FUNCIONALIDADES_ROTULOS:
+            rotulo = FUNCIONALIDADES_ROTULOS[chave][0]
+            logger.info(f"🧠 Gemini identificou funcionalidade: '{chave}'")
+            return (chave, rotulo)
+
+        logger.info(f"🧠 Gemini não identificou funcionalidade filtrável (retorno: '{resposta[:40]}')")
+        return None
+    except Exception as e:
+        logger.warning(f"⚠️ Falha ao detectar funcionalidade com Gemini: {e}")
+        return None
 
 def sugerir_integracoes_similares(query: str, limite: int = 3) -> List[str]:
     """

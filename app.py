@@ -692,6 +692,17 @@ def slack_events():
                             logger.info(f"🔍 Funcionalidade detectada em list_integrations: '{campo}'")
                             break
 
+                    # Fallback: se os padrões fixos não casaram, perguntar ao Gemini
+                    # (entende fraseados variados, ex.: "quais fazem cotação de frete via API")
+                    if not campo_detectado:
+                        try:
+                            from handlers.buscar_integracoes_json import detectar_funcionalidade_com_gemini
+                            deteccao = detectar_funcionalidade_com_gemini(user_query)
+                            if deteccao:
+                                campo_detectado, rotulo_detectado = deteccao
+                        except Exception as e:
+                            logger.error(f"❌ Erro no fallback Gemini de funcionalidade: {e}", exc_info=True)
+
                     if campo_detectado:
                         try:
                             from handlers.buscar_integracoes_json import buscar_por_funcionalidade
