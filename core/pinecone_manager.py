@@ -68,7 +68,10 @@ except ImportError:
 
 # Constantes do módulo
 # Gemini embeddings
-GEMINI_EMBEDDING_MODEL = "models/text-embedding-004"
+# text-embedding-004 foi removido da API (retornava 404). Migrado para
+# gemini-embedding-001, pedindo saída em 768 dims (output_dimensionality)
+# para manter compatibilidade com o índice Pinecone existente (768).
+GEMINI_EMBEDDING_MODEL = "models/gemini-embedding-001"
 GEMINI_EMBEDDING_DIMENSION = 768
 
 # OpenAI embeddings
@@ -408,7 +411,10 @@ class PineconeManager:
                             result = self.gemini_client.embed_content(
                                 model=self.embedding_model,
                                 content=text,
-                                task_type=task_type
+                                task_type=task_type,
+                                # gemini-embedding-001 gera 3072 dims por padrão;
+                                # truncar para 768 mantém o índice Pinecone atual.
+                                output_dimensionality=self.embedding_dimension
                             )
                             
                             # Extrair embedding do resultado
