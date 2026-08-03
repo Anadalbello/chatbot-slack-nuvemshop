@@ -413,14 +413,26 @@ def _validar_resposta_contra_dados(resposta, dados_originais, pergunta):
     }
     
     for func_nome, padrao_negativo in funcionalidades_criticas.items():
-        if re.search(func_nome, resposta_lower, re.IGNORECASE):
-            if re.search(padrao_negativo, dados_lower, re.IGNORECASE):
+        m = re.search(func_nome, resposta_lower, re.IGNORECASE)
+        if m and re.search(padrao_negativo, dados_lower, re.IGNORECASE):
+            # Só é contradição se a resposta AFIRMA a funcionalidade. Se há uma
+            # negação ("não", "sem", "nunca"...) perto da menção, a resposta está
+            # dizendo corretamente que a funcionalidade NÃO existe — não flagrar.
+            ini = max(0, m.start() - 45)
+            fim = min(len(resposta_lower), m.end() + 45)
+            trecho = resposta_lower[ini:fim]
+            tem_negacao = re.search(
+                r'\b(não|nao|sem|nunca|indisponível|indisponivel|não há|nao ha|não possui|nao possui)\b',
+                trecho,
+            )
+            if not tem_negacao:
                 problemas.append(f"Resposta menciona '{func_nome}' como disponível, mas dados indicam 'Não'")
     
     # Verificar se menciona "atualiza status" quando deveria ser apenas "devolve código"
     if re.search(r'atualiza.*status.*rastreio|atualiza.*automaticamente', resposta_lower, re.IGNORECASE):
         if re.search(r'atualiza.*status.*rastreio.*não|atualiza.*status.*rastreio.*❌', dados_lower, re.IGNORECASE):
-            if not re.search(r'não.*atualiza|não.*atualiza.*status|não.*atualiza.*automaticamente', resposta_lower, re.IGNORECASE):
+            # Guard tolerante a acento: "não"/"nao"/"sem" perto de "atualiz".
+            if not re.search(r'\b(n[ãa]o|sem)\b.*atualiz', resposta_lower, re.IGNORECASE):
                 problemas.append("Resposta menciona atualização de status automaticamente, mas dados indicam 'Não (❌)'")
     
     if problemas:
