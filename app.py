@@ -576,6 +576,30 @@ def slack_events():
                 
                 # Se não havia conversa pendente, processar normalmente com recepcionista
                 if 'analise_recepcionista' not in locals():
+                    # 💬 Small talk / personalidade: "Tina, tudo bem?", "como vai?"
+                    saudacao_prefixo = ""
+                    try:
+                        from handlers.small_talk import detectar_small_talk
+                        st = detectar_small_talk(pergunta_limpa)
+                        if st["is_pure"]:
+                            logger.info("💬 Small talk puro - respondendo com personalidade")
+                            slack_client.chat_postMessage(
+                                channel=channel,
+                                thread_ts=thread_ts,
+                                text=st["resposta"]
+                            )
+                            return jsonify({"ok": True})
+                        if st["is_small_talk"]:
+                            logger.info("💬 Small talk + pergunta - saudando e seguindo com a resposta")
+                            saudacao_prefixo = st["prefixo"]
+                            slack_client.chat_postMessage(
+                                channel=channel,
+                                thread_ts=thread_ts,
+                                text=saudacao_prefixo
+                            )
+                    except Exception as e:
+                        logger.error(f"❌ Erro no detector de small talk: {e}", exc_info=True)
+
                     logger.info("🧠 Recepcionista: Analisando pergunta...")
                     analise_recepcionista = recepcionista.analisar_pergunta(pergunta_limpa, contexto_thread)
                     
