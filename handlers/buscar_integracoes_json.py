@@ -694,7 +694,58 @@ def buscar_por_tipo_integracao(tipo: str) -> Optional[str]:
         resposta += "\n"
     
     resposta += f"\n📊 *Total: {len(integracoes_filtradas)} integrações*"
-    
+
+    return resposta
+
+
+def _funcionalidade_e_positiva(valor: str) -> bool:
+    """Retorna True se o valor de uma funcionalidade indica 'Sim' (disponível)."""
+    v = str(valor).strip().lower()
+    if not v:
+        return False
+    if v.startswith("não") or v.startswith("nao") or "❌" in v:
+        return False
+    return v.startswith("sim") or "✔" in v
+
+
+def buscar_por_funcionalidade(campo: str, rotulo: str) -> Optional[str]:
+    """
+    Lista as integrações que possuem uma determinada funcionalidade = "Sim".
+
+    Args:
+        campo: chave dentro de "Funcionalidades" (ex: "Calculo_de_Frete")
+        rotulo: descrição amigável para o título (ex: "calculam o frete")
+
+    Returns:
+        String formatada com a lista, ou None se nenhuma integração tiver a funcionalidade.
+    """
+    erps = carregar_integracoes_json()
+    if not erps:
+        return None
+
+    encontradas = [
+        erp for erp in erps
+        if _funcionalidade_e_positiva(erp.get("Funcionalidades", {}).get(campo, ""))
+    ]
+
+    if not encontradas:
+        logger.info(f"❌ Nenhuma integração com funcionalidade '{campo}' = Sim")
+        return None
+
+    logger.info(f"✅ {len(encontradas)} integrações com funcionalidade '{campo}' = Sim")
+
+    encontradas.sort(key=lambda e: e.get("Nome", "").lower())
+
+    resposta = f"📋 *Integrações que {rotulo}* ({len(encontradas)}):\n\n"
+    for i, erp in enumerate(encontradas, 1):
+        nome = erp.get("Nome", "Nome não informado")
+        categoria = erp.get("Categoria", "")
+        resposta += f"*{i}. {nome}*"
+        if categoria:
+            resposta += f" | 📂 {categoria}"
+        resposta += "\n"
+
+    resposta += f"\n📊 *Total: {len(encontradas)} integrações*"
     return resposta
 
 def sugerir_integracoes_similares(query: str, limite: int = 3) -> List[str]:

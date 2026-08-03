@@ -646,9 +646,79 @@ def slack_events():
                 # 3. LIST_INTEGRATIONS - Listar integrações
                 if user_intent == 'list_integrations':
                     logger.info("📋 Intent: list_integrations")
-                    
-                    # 🎯 VERIFICAR SE É BUSCA POR TIPO DE INTEGRAÇÃO ANTES DE LISTAR TODAS
+
                     query_lower = user_query.lower()
+
+                    # 🎯 VERIFICAR SE É BUSCA POR FUNCIONALIDADE (ex: "quais calculam frete?")
+                    # Mapa: chave em Funcionalidades -> (padrões na pergunta, rótulo amigável)
+                    funcionalidades_patterns = {
+                        "Calculo_de_Frete": (
+                            ["calcula frete", "calculam frete", "calcula o frete", "calculam o frete",
+                             "cálculo de frete", "calculo de frete", "calcular frete", "fazem frete"],
+                            "calculam o frete",
+                        ),
+                        "Impressao_Etiqueta": (
+                            ["imprime etiqueta", "imprimem etiqueta", "impressão de etiqueta",
+                             "impressao de etiqueta", "imprimir etiqueta", "gera etiqueta", "geram etiqueta"],
+                            "imprimem etiqueta na plataforma",
+                        ),
+                        "Multi_CD": (
+                            ["multi cd", "multi-cd", "multicd", "multi_cd", "múltiplos cd", "multiplos cd"],
+                            "suportam operação de Multi-CD",
+                        ),
+                        "Multiplos_Volumes_Pedidos": (
+                            ["múltiplos volumes", "multiplos volumes", "vários volumes", "varios volumes",
+                             "mais de um volume"],
+                            "suportam múltiplos volumes",
+                        ),
+                        "Atualiza_Status_Rastreio": (
+                            ["atualiza rastreio", "atualizam rastreio", "atualiza status", "atualizam status",
+                             "atualização de status", "atualizacao de status", "atualiza o status"],
+                            "atualizam o status de rastreamento",
+                        ),
+                        "Devolucao_Codigo_Rastreamento": (
+                            ["devolve rastreio", "devolvem rastreio", "código de rastreio", "codigo de rastreio",
+                             "devolução do código", "devolve o código", "retornam rastreio"],
+                            "devolvem o código de rastreamento",
+                        ),
+                    }
+
+                    campo_detectado = None
+                    rotulo_detectado = None
+                    for campo, (patterns, rotulo) in funcionalidades_patterns.items():
+                        if any(p in query_lower for p in patterns):
+                            campo_detectado = campo
+                            rotulo_detectado = rotulo
+                            logger.info(f"🔍 Funcionalidade detectada em list_integrations: '{campo}'")
+                            break
+
+                    if campo_detectado:
+                        try:
+                            from handlers.buscar_integracoes_json import buscar_por_funcionalidade
+                            resultado_func = buscar_por_funcionalidade(campo_detectado, rotulo_detectado)
+                            if resultado_func:
+                                resultado_mrkdwn = resultado_func.replace("**", "*")
+                                slack_client.chat_postMessage(
+                                    channel=channel,
+                                    thread_ts=thread_ts,
+                                    text=f"Integrações que {rotulo_detectado}",
+                                    blocks=[{
+                                        "type": "section",
+                                        "text": {"type": "mrkdwn", "text": resultado_mrkdwn}
+                                    }]
+                                )
+                            else:
+                                slack_client.chat_postMessage(
+                                    channel=channel,
+                                    thread_ts=thread_ts,
+                                    text=f"❌ Nenhuma integração encontrada que {rotulo_detectado}."
+                                )
+                            return jsonify({"ok": True})
+                        except Exception as e:
+                            logger.error(f"❌ Erro ao buscar por funcionalidade '{campo_detectado}': {e}", exc_info=True)
+                            # Em caso de erro, segue para o fluxo normal de listagem
+
+                    # 🎯 VERIFICAR SE É BUSCA POR TIPO DE INTEGRAÇÃO ANTES DE LISTAR TODAS
                     tipos_integracao_patterns = {
                         "tabela de frete": ["tabela de frete", "via tabela de frete", "tabela frete", "por tabela", "tipo tabela", "via tabela"],
                         "api": ["tipo api", "integração api", "via api", "por api"],
