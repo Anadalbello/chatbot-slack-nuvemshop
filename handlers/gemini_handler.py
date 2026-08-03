@@ -11,7 +11,7 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-model = genai.GenerativeModel(model_name="models/gemini-3-flash")
+model = genai.GenerativeModel(model_name="models/gemini-2.5-flash")
 
 # Retry em caso de quota: esperar e tentar de novo 1x (evita fallback desnecessário)
 QUOTA_RETRY_DELAY = int(os.getenv("GEMINI_QUOTA_RETRY_DELAY", "32"))  # segundos (API costuma pedir ~30s)
@@ -58,7 +58,7 @@ def get_gemini_response(prompt):
             if attempt == 0 and QUOTA_RETRY_ENABLED and _is_quota_error(erro_str):
                 wait = _extract_retry_seconds(erro_str) or QUOTA_RETRY_DELAY
                 logger.warning(f"⚠️ Gemini: Quota excedida. Aguardando {wait:.0f}s e tentando novamente...")
-                time.sleep(w)
+                time.sleep(wait)
                 continue
             break
 
