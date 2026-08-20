@@ -5,6 +5,8 @@ NOVO FORMATO: Lista direta de ERPs com Funcionalidades e Outras_Informacoes
 
 import json
 import logging
+import unicodedata
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Optional, List
 import re
@@ -77,6 +79,85 @@ def _has_conflicting_prefix(candidate_name: str, query: str) -> bool:
         return bool(re.search(r'\bjetro\b', query_norm))
 
     return False
+
+
+# Busca tolerante a typos (ex.: "woocommercie" -> "Woocommerce", "bilng" -> "Bling").
+# Só entra em ação quando nenhuma estratégia exata casou, para não afrouxar os matches bons.
+FUZZY_MIN_LEN = 5          # nomes curtos ("jet.", "Tray", "Omie", "VTEX") ficam fora de propósito:
+                           # é onde um typo tem mais chance de virar outra integração da base
+FUZZY_THRESHOLD = 0.85     # pega 1 letra trocada em nome de 7 ("eccosis"/"Eccosys"); o par de nomes
+                           # reais mais próximo da base ("Vesti"/"Vesto") fica em 0.80, fora do corte
+FUZZY_MAX_JANELA = 3       # nomes compostos ("loja integrada") viram até 3 palavras da query
+
+# Plataformas reais que NÃO temos, mas cujo nome é quase igual a uma que temos.
+# Sem isso o fuzzy responde "sim, temos" para a plataforma errada — pior que não responder.
+# Só bloqueia o caminho aproximado: se alguma delas entrar na base, o match exato acha normalmente.
+TERMOS_NAO_FUZZY = {
+    "bigcommerce",   # ≠ Bizcommerce
+    "oscommerce",    # ≠ Woocommerce
+}
+
+
+def _strip_accents(text: str) -> str:
+    if not text:
+        return ""
+    return "".join(c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c))
+
+
+def _fuzzy_key(text: str) -> str:
+    """Reduz um termo à sua forma comparável: sem acento, sem pontuação, sem espaços."""
+    if not text:
+        return ""
+    return re.sub(r'[^a-z0-9]+', '', _strip_accents(text).lower())
+
+
+def _e_transposicao_adjacente(a: str, b: str) -> bool:
+    """
+    True se 'a' e 'b' diferem apenas por duas letras vizinhas trocadas ("bilng" / "bling").
+
+    Typo comum que o SequenceMatcher pune demais (0.80 em 5 letras). Não dá para baixar o
+    threshold para pegá-lo: a base tem "Vesti" e "Vesto", que também ficam em 0.80 entre si.
+    Uma troca de vizinhas é específica o bastante para ser segura — substituição não passa.
+    """
+    if len(a) != len(b) or len(a) < 4 or a == b:
+        return False
+    difs = [i for i, (ca, cb) in enumerate(zip(a, b)) if ca != cb]
+    if len(difs) != 2:
+        return False
+    i, j = difs
+    return j == i + 1 and a[i] == b[j] and a[j] == b[i]
+
+
+def _melhor_similaridade_fuzzy(nome: str, tokens_query: List[str]) -> float:
+    """
+    Maior similaridade entre o nome da integração e as janelas de palavras da query.
+
+    Usa janelas para casar nomes compostos: a query "loja integrda" tem 2 tokens que,
+    juntos, viram "lojaintegrda" e casam com "lojaintegrada".
+    """
+    nome_key = _fuzzy_key(nome)
+    if len(nome_key) < FUZZY_MIN_LEN or not tokens_query:
+        return 0.0
+
+    palavras_nome = max(1, len(_normalize_text_for_word_matching(nome).split()))
+    max_janela = min(FUZZY_MAX_JANELA, palavras_nome, len(tokens_query))
+
+    melhor = 0.0
+    for tamanho in range(1, max_janela + 1):
+        for inicio in range(len(tokens_query) - tamanho + 1):
+            janela_key = _fuzzy_key("".join(tokens_query[inicio:inicio + tamanho]))
+            if len(janela_key) < FUZZY_MIN_LEN or janela_key in TERMOS_NAO_FUZZY:
+                continue
+            # Comprimentos muito diferentes nunca são typo do mesmo termo — e o ratio
+            # já penalizaria isso; o corte evita comparações inúteis.
+            if abs(len(janela_key) - len(nome_key)) > max(2, len(nome_key) // 3):
+                continue
+            if _e_transposicao_adjacente(janela_key, nome_key):
+                melhor = max(melhor, FUZZY_THRESHOLD)
+                continue
+            melhor = max(melhor, SequenceMatcher(None, janela_key, nome_key).ratio())
+
+    return melhor
 
 
 def normalizar_typos_nome_integracao_na_query(texto: str) -> str:
@@ -211,9 +292,13 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
     }
     
     # Extrair palavras-chave da query (remover palavras comuns e pontuação)
-    palavras_query = set([p.strip('?.,!;:') for p in nome_limpo_query.split() 
+    palavras_query = set([p.strip('?.,!;:') for p in nome_limpo_query.split()
                           if p.strip('?.,!;:') not in palavras_remover and len(p.strip('?.,!;:')) > 1])
-    
+
+    # Versão ordenada (a busca fuzzy precisa da ordem para montar janelas de palavras)
+    tokens_query = [p.strip('?.,!;:') for p in nome_limpo_query.split()
+                    if p.strip('?.,!;:') not in palavras_remover and len(p.strip('?.,!;:')) > 1]
+
     logger.debug(f"📝 Palavras extraídas da query: {palavras_query}")
     logger.debug(f"📝 Query limpa: '{nome_limpo_query}'")
     
@@ -319,7 +404,30 @@ def buscar_integracao_especifica_json(nome_erp: str) -> Optional[str]:
                         substring_comum = min(len(nome_sem_espacos), len(query_sem_espacos))
                         score = min(75, 40 + (substring_comum * 2))
                         logger.debug(f"✅ Match por substring: '{nome_limpo}' contém ou está contido em '{nome_limpo_query}' (score: {score})")
-        
+
+        # ESTRATÉGIA 6: Match tolerante a typos (ex: "woocommercie" -> "Woocommerce").
+        # Roda quando não houve match exato OU quando só houve match parcial fraco:
+        # "loja integrda" casa fraco (44) com "Loja Integrada" por causa de "loja", e sem
+        # isso o typo em "integrada" deixaria outra integração ("integral") ganhar.
+        if score < 60:
+            candidatos_fuzzy = [nome_limpo] + outros_nomes_list
+            melhor_ratio = 0.0
+            melhor_termo = ""
+            for candidato in candidatos_fuzzy:
+                ratio = _melhor_similaridade_fuzzy(candidato, tokens_query)
+                if ratio > melhor_ratio:
+                    melhor_ratio, melhor_termo = ratio, candidato
+
+            if melhor_ratio >= FUZZY_THRESHOLD:
+                # Score menor que os matches exatos: um nome escrito certo sempre ganha do typo
+                score_fuzzy = int(60 + (melhor_ratio - FUZZY_THRESHOLD) * 100)
+                if score_fuzzy > score:
+                    score = score_fuzzy
+                    logger.info(
+                        f"🔤 Match aproximado (typo): '{melhor_termo}' ~ query "
+                        f"(similaridade: {melhor_ratio:.2f}, score: {score})"
+                    )
+
         if score > 0:
             matches_com_score.append((score, erp))
     
@@ -850,23 +958,33 @@ def sugerir_integracoes_similares(query: str, limite: int = 3) -> List[str]:
         "preciso", "precisamos", "gostaria", "gostaríamos", "quero", "queremos"
     }
     palavras_query = set([p for p in query_lower.split() if p not in palavras_remover and len(p) > 2])
-    
+    tokens_query = [p for p in query_lower.split() if p not in palavras_remover and len(p) > 2]
+
     if not palavras_query:
         return []
-    
+
+    # Threshold mais frouxo que o da busca: aqui é só sugestão, errar custa pouco
+    sugestao_threshold = 0.7
     sugestoes_com_score = []
-    
+
     for erp in erps:
         nome_erp = erp.get("Nome", erp.get("ERP", "")).lower()
         nome_limpo = re.sub(r'\s*\(.*?\)', '', nome_erp)
         palavras_nome = set(nome_limpo.split())
-        
+
         # Calcular similaridade: contar palavras em comum
         palavras_comuns = palavras_query.intersection(palavras_nome)
-        
+
         if palavras_comuns:
             # Score baseado em número de palavras comuns e tamanho do nome
             score = len(palavras_comuns) / max(len(palavras_query), 1)
+        else:
+            # Sem palavra em comum: tentar por escrita parecida (typo)
+            score = _melhor_similaridade_fuzzy(nome_limpo, tokens_query)
+            if score < sugestao_threshold:
+                score = 0.0
+
+        if score > 0:
             sugestoes_com_score.append({
                 'nome': erp.get("Nome", erp.get("ERP", "")),
                 'score': score
