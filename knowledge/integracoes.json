@@ -1326,6 +1326,43 @@
     }
   },
   {
+    "Categoria": "TMS",
+    "Nome": "FreteBarato",
+    "Tipo_Integracao": "Tabela de Frete + API",
+    "Funcionalidades": {
+      "Calculo_de_Frete": "Sim (API e tabela) (✔️)",
+      "Seguro_Incluido_Calculo_Frete": "Sim (✔️)",
+      "Seguro_Configuravel_Calculo_Frete": "Sim (API e tabela) (✔️)",
+      "Nome_Transportador_Checkout_Personalizavel": "Não (❌)",
+      "Calcula_Peso_Cubado": "Sim (✔️)",
+      "Integracao_Pedidos": "Sim (API e tabela) (✔️)",
+      "Multiplos_Volumes_Pedidos": "Sim (API e tabela) (✔️)",
+      "Configuracao_Seguro_Pedidos": "Sim (✔️)",
+      "Valor_Minimo_Seguro_Configuravel": "Não (❌)",
+      "Multi_CD": "Não (❌)",
+      "Impressao_Etiqueta": "Sim (individual e em lote) (✔️)",
+      "Devolucao_Codigo_Rastreamento": "Sim (✔️)",
+      "Atualiza_Status_Rastreio": "Sim (✔️)"
+    },
+    "Outras_Informacoes": {
+      "Complexidade": "Baixa",
+      "Responsavel_Configuracao": "Cliente/Parceiro",
+      "Responsavel_Testes": "Mandaê",
+      "Desenvolvedor_Integracao": "Parceiro",
+      "Custos_Envolvidos": "N/A",
+      "Critério_Valor_Declarado": "Valor total da NF",
+      "Limitacoes_Ausencia": "Não possui integração com múltiplos centros de distribuição e não é possível escolher o nome que aparecerá no checkout.",
+      "Site": "https://fretebarato.com/#inicio",
+      "Manual": "Necessário solicitar ao parceiro",
+      "Qualidade_Percebida": "Boa",
+      "Outros_nomes_integracao": "Frete Barato"
+    },
+    "Suporte_Contato": {
+      "Email": "N/A",
+      "Telefone": "+55 47 3521-7779 (WhatsApp)"
+    }
+  },
+  {
     "Categoria": "Hub",
     "Nome": "ANYMARKET",
     "Tipo_Integracao": "API",
