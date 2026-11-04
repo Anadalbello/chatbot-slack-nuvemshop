@@ -489,6 +489,21 @@ def slack_events():
                     contexto_thread = None
                     referencias = {}
                 
+                # 😅 Brincadeira tipo "bugou? rs" — responder com bom humor (antes da resposta fixa de suporte)
+                try:
+                    from handlers.small_talk import detectar_brincadeira_bug
+                    _brinc = detectar_brincadeira_bug(pergunta_limpa)
+                    if _brinc["is_brincadeira"]:
+                        logger.info("😅 Brincadeira sobre bug detectada - respondendo com bom humor")
+                        slack_client.chat_postMessage(
+                            channel=channel,
+                            thread_ts=thread_ts,
+                            text=_brinc["resposta"]
+                        )
+                        return jsonify({"ok": True})
+                except Exception as e:
+                    logger.error(f"❌ Erro no detector de brincadeira: {e}", exc_info=True)
+
                 # 📌 RESPOSTA FIXA: quando citam ajuda, erro, problema ou correlatos
                 # Frases claras de problema (podem aparecer em qualquer parte do texto)
                 _frases_limite_tina = [

@@ -95,3 +95,62 @@ def detectar_small_talk(texto: str) -> dict:
         resultado["prefixo"] = random.choice(PREFIXOS_COM_PERGUNTA)
 
     return resultado
+
+
+# ---------------------------------------------------------------------------
+# Brincadeiras do tipo "bugou? rs", "travou, Tina?", "tá bugada kkk"
+# ---------------------------------------------------------------------------
+
+# Pelo menos uma destas precisa aparecer para contar como brincadeira
+GATILHOS_BRINCADEIRA_BUG = {
+    "bugou", "bugada", "bugado", "bugando", "travou", "travada", "travado", "pifou",
+    "surtou", "surtando", "xilique", "estressada", "doida", "quebrou", "quebrada",
+}
+
+# Palavras que podem acompanhar sem virar pergunta de verdade
+FILLERS_BRINCADEIRA = {
+    "tina", "tininha", "ta", "tá", "esta", "está", "voce", "você", "vc", "ai", "aí",
+    "de", "novo", "dando", "deu", "um", "uma", "e", "eh", "é", "foi", "ela", "a", "o",
+    "hein", "ein", "ne", "né", "mesmo", "hoje", "aqui", "amiga", "filha", "coitada",
+}
+
+_RISADA = re.compile(r"^(k{2,}|(rs)+|(ha)+h?|(he)+h?|(hu)+e*|kk+|lol|aff|uai)$")
+
+RESPOSTAS_BRINCADEIRA_BUG = [
+    "Eu? Bugar? Jamais! 😅 Só dei uma travadinha pra pensar...\n\n"
+    "Se eu não achei o que você procurava, pode ser que a integração ainda não esteja na minha base. "
+    "Tenta me perguntar de outro jeito ou usa o *Ver portal completo* 😉",
+    "Bugada não, só concentrada! 🤖💅\n\n"
+    "Se minha resposta não ajudou, me pergunta de novo com o nome da integração "
+    "que eu dou meu melhor!",
+    "Tô firme e forte por aqui! 💪 Às vezes eu só não encontro a integração na base mesmo.\n\n"
+    "Me manda o nome de novo ou dá uma olhada no portal completo, combinado? 😊",
+]
+
+
+def detectar_brincadeira_bug(texto: str) -> dict:
+    """
+    Detecta mensagens que são só uma brincadeira sobre a Tina ter bugado
+    ("bugou? rs", "travou tina?", "tá bugada kkk").
+
+    Returns:
+        dict com is_brincadeira (bool) e resposta (str).
+    """
+    resultado = {"is_brincadeira": False, "resposta": ""}
+    norm = _normalizar(texto or "")
+    palavras = norm.split()
+    if not palavras or len(palavras) > 8:
+        return resultado
+
+    if not any(p in GATILHOS_BRINCADEIRA_BUG for p in palavras):
+        return resultado
+
+    # Tudo o que sobrar precisa ser enfeite ou risada — senão é pergunta real
+    for p in palavras:
+        if p in GATILHOS_BRINCADEIRA_BUG or p in FILLERS_BRINCADEIRA or _RISADA.match(p):
+            continue
+        return resultado
+
+    resultado["is_brincadeira"] = True
+    resultado["resposta"] = random.choice(RESPOSTAS_BRINCADEIRA_BUG)
+    return resultado
