@@ -490,14 +490,21 @@ def slack_events():
                     referencias = {}
                 
                 # 📌 RESPOSTA FIXA: quando citam ajuda, erro, problema ou correlatos
-                _palavras_limite_tina = [
-                    'ajuda', 'erro', 'problema', 'questão técnica', 'problema técnico', 'não funciona',
-                    'erro técnico', 'suporte técnico', 'resolver problema', 'corrigir', 'troubleshooting',
-                    'bug', 'falha', 'dúvida técnica', 'issue', 'help', 'error', 'ticket', 'chamado',
-                    'configuração', 'configurar', 'não consigo', 'não consegue'
+                # Frases claras de problema (podem aparecer em qualquer parte do texto)
+                _frases_limite_tina = [
+                    'não funciona', 'nao funciona', 'não está funcionando', 'nao esta funcionando',
+                    'parou de funcionar', 'deu erro', 'dando erro', 'erro técnico', 'problema técnico',
+                    'questão técnica', 'dúvida técnica', 'suporte técnico', 'resolver problema',
+                    'não consigo', 'nao consigo', 'não consegue', 'nao consegue', 'troubleshooting',
                 ]
+                # Palavras soltas — só contam como palavra INTEIRA ("bugou", "ajuda a configurar" não disparam)
+                _palavras_limite_tina = {
+                    'erro', 'erros', 'error', 'bug', 'bugs', 'falha', 'falhas', 'falhando',
+                    'problema', 'problemas', 'corrigir', 'ticket', 'chamado',
+                }
                 _texto_lower = pergunta_limpa.lower()
-                if any(p in _texto_lower for p in _palavras_limite_tina):
+                _palavras_texto = set(re.findall(r"[\wáéíóúàèìòùâêîôûãõç]+", _texto_lower))
+                if any(f in _texto_lower for f in _frases_limite_tina) or (_palavras_texto & _palavras_limite_tina):
                     _msg_limite = (
                         "A Tina não consegue ajudar com *questões técnicas*, *erros* ou *suporte a problemas* — "
                         "somente posso informar sobre *funcionalidades* das integrações. "

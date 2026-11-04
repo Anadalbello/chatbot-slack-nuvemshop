@@ -11,6 +11,41 @@ import re
 
 logger = logging.getLogger(__name__)
 
+# Palavras de saudação / "enfeite" — a mensagem só é greeting se for composta APENAS delas.
+# (Evita "oi Tininha, temos integração com X?" → menu, e "foi", "noite", "depois" → greeting.)
+_PALAVRAS_SAUDACAO = {
+    'oi', 'oie', 'oii', 'olá', 'ola', 'hello', 'hi', 'hey', 'opa', 'ei', 'eai', 'eaí',
+    'e', 'aí', 'ai', 'bom', 'boa', 'dia', 'tarde', 'noite', 'tina', 'tininha', 'tinoca',
+    'pessoal', 'gente', 'tudo', 'bem', 'buenas', 'hola', 'buenos', 'días', 'dias', 'buen',
+}
+_PALAVRAS_MENU = {'menu', 'ajuda', 'help', 'opções', 'opcoes'}
+
+
+def _palavras(texto: str) -> list:
+    """Tokeniza em palavras inteiras (minúsculas, sem pontuação)."""
+    return re.findall(r"[\wáéíóúàèìòùâêîôûãõç]+", (texto or '').lower())
+
+
+def eh_saudacao_pura(texto: str) -> bool:
+    """True se a mensagem contém só saudação (ex.: 'oi tina!', 'bom dia'), sem pergunta real."""
+    palavras = _palavras(texto)
+    if not palavras:
+        return False
+    tem_saudacao = any(p in {'oi', 'oie', 'oii', 'olá', 'ola', 'hello', 'hi', 'hey', 'opa',
+                             'eai', 'eaí', 'bom', 'boa', 'buenas', 'hola', 'buenos', 'buen'}
+                       for p in palavras)
+    return tem_saudacao and all(p in _PALAVRAS_SAUDACAO for p in palavras)
+
+
+def eh_pedido_menu(texto: str) -> bool:
+    """True se é um pedido curto de menu/ajuda (ex.: 'menu', 'ajuda', 'tina help')."""
+    palavras = _palavras(texto)
+    if not palavras or len(palavras) > 4:
+        return False
+    return any(p in _PALAVRAS_MENU for p in palavras) and all(
+        p in _PALAVRAS_MENU or p in _PALAVRAS_SAUDACAO for p in palavras
+    )
+
 # Configuração de classificação de query (estilo Nina)
 CLASSIFICATION_CONFIG = {
     "help_center_keywords": [
@@ -255,11 +290,13 @@ class Recepcionista:
             else:
                 # Detectar intent baseado em keywords
                 query_lower = analysis['user_detailed_query'].lower()
+                # Greeting/menu olham a mensagem ORIGINAL (a reescrita do Gemini pode perder o contexto)
+                texto_original = pergunta_limpa or analysis['user_detailed_query']
                 if any(word in query_lower for word in ['listar', 'quais', 'tem quais', 'quantas']):
                     analysis['user_intent'] = 'list_integrations'
-                elif any(word in query_lower for word in ['oi', 'olá', 'hello', 'bom dia']):
+                elif eh_saudacao_pura(texto_original):
                     analysis['user_intent'] = 'greeting'
-                elif any(word in query_lower for word in ['menu', 'ajuda', 'help']):
+                elif eh_pedido_menu(texto_original):
                     analysis['user_intent'] = 'menu'
                 else:
                     analysis['user_intent'] = 'search_knowledge'
@@ -389,15 +426,12 @@ class Recepcionista:
         elif any(word in pergunta_lower for word in ['listar', 'quais', 'tem quais', 'quantas']):
             if any(word in pergunta_lower for word in ['integrac', 'parceir', 'sistem']):
                 intent = 'list_integrations'
-        elif any(word in pergunta_lower for word in ['oi', 'olá', 'hello', 'bom dia']):
-            # Só greeting se NÃO tiver conteúdo sobre integração (evita "Bom dia... Sobre a integração X" → menu)
+        elif eh_saudacao_pura(pergunta):
+            # Só greeting se a mensagem for apenas saudação (evita "Bom dia... Sobre a integração X" → menu)
             intent = 'greeting'
-        elif any(word in pergunta_lower for word in ['menu', 'help']) or pergunta_lower.strip() in ['ajuda']:
+        elif eh_pedido_menu(pergunta):
             # "ajuda" sozinho ou com "menu"/"help" → menu; "a Tina não consegue ajudar..." não é pedido de menu
-            if not menciona_integracao and len(pergunta_lower.split()) <= 4:
-                intent = 'menu'
-            else:
-                intent = 'search_knowledge'
+            intent = 'menu'
         
         # Detecção simples de idioma
         language = 'pt_BR'
