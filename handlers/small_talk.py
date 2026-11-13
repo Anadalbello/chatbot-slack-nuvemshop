@@ -154,3 +154,65 @@ def detectar_brincadeira_bug(texto: str) -> dict:
     resultado["is_brincadeira"] = True
     resultado["resposta"] = random.choice(RESPOSTAS_BRINCADEIRA_BUG)
     return resultado
+
+
+# ---------------------------------------------------------------------------
+# Integração não encontrada — resposta direta e bem-humorada
+# ---------------------------------------------------------------------------
+
+# Vocativos carinhosos/engraçadinhos (sorteados a cada resposta)
+VOCATIVOS = [
+    "consagrado(a)", "companheiro(a)", "chefia", "criatura de luz", "meu bem",
+    "nobre colega", "parceiro(a)", "pessoa iluminada", "meu anjo", "campeão(ã)",
+]
+
+# Abertura quando sabemos o nome da integração ({voc} e {nome})
+ABERTURAS_NAO_TEMOS = [
+    "Ih, {voc}... não temos integração com *{nome}* 😬",
+    "Vou te dar a real, {voc}: não temos integração com *{nome}* 😅",
+    "Procurei até debaixo do tapete, {voc}, e nada: não temos integração com *{nome}* 🕵️‍♀️",
+    "Dói em mim dizer isso, {voc}, mas não temos integração com *{nome}* 💔",
+    "Notícia triste, {voc}: *{nome}* não está na nossa lista de integrações 🥲",
+]
+
+# Abertura quando não sabemos qual integração foi perguntada
+ABERTURAS_SEM_NOME = [
+    "Ih, {voc}... procurei aqui e não achei nada sobre isso na minha base 😬",
+    "Vou te dar a real, {voc}: não encontrei nada sobre isso por aqui 😅",
+    "Revirei minha base todinha, {voc}, e não achei nada sobre isso 🕵️‍♀️",
+]
+
+FECHAMENTOS_NAO_TEMOS = [
+    "Mas se quiser confirmar com mais certeza, dá uma olhadinha no nosso *portal* "
+    "ou chama o *time de especialistas* — eles sabem até o que eu não sei 🤓",
+    "Pra tirar a prova, dá uma espiadinha no *portal completo* ou confirma com o "
+    "*time de especialistas* (eles são mais sabidos que eu, mas não conta pra ninguém 🤫)",
+    "Se quiser ter certeza absoluta, confere no *portal* ou bate um papo com o nosso "
+    "*time de especialistas* 😉",
+]
+
+
+def mensagem_integracao_nao_encontrada(nome: str = "", sugestoes: list = None) -> str:
+    """
+    Monta a resposta (mrkdwn do Slack) quando a integração não está na base:
+    direta ("não temos"), bem-humorada e apontando para portal/especialistas.
+
+    Args:
+        nome: nome da integração perguntada (vazio se não souber)
+        sugestoes: nomes de integrações parecidas que existem na base (possível typo)
+    """
+    voc = random.choice(VOCATIVOS)
+    nome = (nome or "").strip()
+    if nome.islower():
+        nome = nome[:1].upper() + nome[1:]  # "hostgator" → "Hostgator"
+    if nome:
+        abertura = random.choice(ABERTURAS_NAO_TEMOS).format(voc=voc, nome=nome)
+    else:
+        abertura = random.choice(ABERTURAS_SEM_NOME).format(voc=voc)
+
+    partes = [abertura]
+    if sugestoes:
+        lista = ", ".join(f"*{s}*" for s in sugestoes)
+        partes.append(f"🤔 Será que você quis dizer {lista}? Se for, é só me perguntar de novo!")
+    partes.append(random.choice(FECHAMENTOS_NAO_TEMOS))
+    return "\n\n".join(partes)

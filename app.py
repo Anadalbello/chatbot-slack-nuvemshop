@@ -1203,7 +1203,13 @@ def slack_events():
                     )
                     
                     # Gerar mensagem melhorada com sugestões baseada na query
-                    mensagem_sem_fonte = fonte_validator._gerar_mensagem_sem_resultado(user_query)
+                    # Nome da integração perguntada (Gemini → contexto → query curta)
+                    nome_integracao = (interpretacao.get('nome_erp') or '').strip()
+                    if nome_integracao.lower() in ('null', 'none', 'n/a'):
+                        nome_integracao = ''
+                    if not nome_integracao and len(str(query_busca).split()) <= 3 and query_busca != user_query:
+                        nome_integracao = str(query_busca).strip()
+                    mensagem_sem_fonte = fonte_validator._gerar_mensagem_sem_resultado(user_query, nome_integracao)
                     
                     slack_client.chat_postMessage(
                         channel=channel,

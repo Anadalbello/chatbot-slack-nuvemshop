@@ -78,37 +78,29 @@ class FonteValidator:
         # Usar validação do KnowledgeManager
         return self.kb._is_valid_result(content)
     
-    def _gerar_mensagem_sem_resultado(self, query: str = "") -> str:
+    def _gerar_mensagem_sem_resultado(self, query: str = "", nome_integracao: str = "") -> str:
         """
-        Gera mensagem quando não há fonte (estilo Nina)
-        Mais útil e acolhedora, com sugestões de integrações similares
+        Gera mensagem quando não há fonte: direta ("não temos integração com X"),
+        com a personalidade bem-humorada da Tina e sugestões caso seja typo.
         """
-        mensagem = "😔 *Não encontrei informações específicas sobre sua busca*\n\n"
-        mensagem += "Mas não se preocupe! Aqui estão algumas opções:\n\n"
-        
-        # Tentar sugerir integrações similares se temos query
+        sugestoes = []
         if query:
             try:
                 from handlers.buscar_integracoes_json import sugerir_integracoes_similares
                 sugestoes = sugerir_integracoes_similares(query, limite=3)
-                
-                if sugestoes:
-                    mensagem += "🔍 *Sugestões de integrações similares:*\n"
-                    for sug in sugestoes:
-                        mensagem += f"• {sug}\n"
-                    mensagem += "\n"
             except Exception as e:
                 logger.debug(f"Erro ao buscar sugestões: {e}")
-        
-        mensagem += (
-            "💡 *Você também pode:*\n"
-            "• Ver todas as integrações disponíveis (use: 'listar integrações')\n"
-            "• Reformular sua pergunta com o nome exato da integração\n"
-            "• Abrir um chamado para suporte especializado\n\n"
-            "_Estou aqui para ajudar! 🚀_"
-        )
-        
-        return mensagem
+
+        # Se a integração perguntada EXISTE na base (a busca falhou por outro motivo),
+        # nunca dizer "não temos" — usar a mensagem genérica, sem sugerir o próprio nome.
+        nome_norm = (nome_integracao or "").strip().lower()
+        if nome_norm and any(s.lower() == nome_norm for s in sugestoes):
+            logger.info(f"ℹ️ '{nome_integracao}' existe na base — evitando dizer 'não temos'")
+            nome_integracao = ""
+            sugestoes = [s for s in sugestoes if s.lower() != nome_norm]
+
+        from handlers.small_talk import mensagem_integracao_nao_encontrada
+        return mensagem_integracao_nao_encontrada(nome_integracao, sugestoes)
     
     def pode_responder(self, resultados: List[Dict]) -> bool:
         """
