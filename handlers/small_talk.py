@@ -216,3 +216,75 @@ def mensagem_integracao_nao_encontrada(nome: str = "", sugestoes: list = None) -
         partes.append(f"🤔 Será que você quis dizer {lista}? Se for, é só me perguntar de novo!")
     partes.append(random.choice(FECHAMENTOS_NAO_TEMOS))
     return "\n\n".join(partes)
+
+
+# ---------------------------------------------------------------------------
+# Casos de sucesso — abertura e feedback com personalidade
+# (o conteúdo técnico continua vindo do Gemini, só "embrulhamos" com humor)
+# ---------------------------------------------------------------------------
+
+# "Temos integração com X?" → quando TEMOS ({voc} e {nome})
+ABERTURAS_TEMOS = [
+    "Temos sim, {voc}! 🎉 *{nome}* tá na nossa lista.",
+    "Opa, temos sim! *{nome}* é de casa, {voc} 😎",
+    "Boa notícia, {voc}: temos integração com *{nome}*! 🥳",
+    "Temos sim, e é das boas, {voc}! *{nome}* tá com a gente ✨",
+]
+ABERTURAS_TEMOS_SEM_NOME = [
+    "Temos sim, {voc}! 🎉",
+    "Boa notícia, {voc}: temos sim! 🥳",
+]
+
+# Demais perguntas com resposta encontrada (funcionalidades, contato, detalhes...)
+ABERTURAS_SUCESSO = [
+    "Bora lá, {voc}! 🚀",
+    "Achei aqui, {voc}! 🕵️‍♀️",
+    "Separei isso pra você, {voc} 😉",
+    "Olha só o que eu encontrei, {voc} ✨",
+]
+
+FEEDBACKS_SUCESSO = [
+    "💬 *Mandei bem?*\nSe quiser saber mais alguma coisa, é só chamar, {voc}! 😊",
+    "💬 *Te ajudei, {voc}?*\nSe ficou alguma dúvida, manda que eu respondo! 🤓",
+    "💬 *Fechou, {voc}?*\nQualquer outra dúvida sobre integrações, tô por aqui! 😉",
+]
+
+# "Sim, temos integração com o Bling." / "*Sim*, temos integração com a *Tray*."
+_RE_SIM_TEMOS = re.compile(
+    r"^\s*\**\s*sim\s*\**\s*[,!.]?\s*(?:nós\s+)?temos\s+(?:a\s+)?integra[çc][ãa]o\s+com\s+"
+    r"(?:o|a|os|as)?\s*\**(?P<nome>[^.*\n!]+?)\**\s*[.!]\s*",
+    re.IGNORECASE,
+)
+
+
+def personalizar_resposta_sucesso(resposta: str, intencao: str = "") -> str:
+    """
+    Coloca uma abertura bem-humorada na resposta do Gemini.
+    Em "temos integração?", troca o "Sim, temos integração com X." robótico
+    pela abertura (o resto do texto, com os dados técnicos, fica intacto).
+    """
+    if not resposta:
+        return resposta
+    voc = random.choice(VOCATIVOS)
+
+    m = _RE_SIM_TEMOS.match(resposta)
+    if m:
+        nome = m.group("nome").strip()
+        abertura = random.choice(ABERTURAS_TEMOS).format(voc=voc, nome=nome)
+        resto = resposta[m.end():].lstrip()
+        return f"{abertura}\n\n{resto}" if resto else abertura
+
+    if intencao == "verificar_existencia":
+        # Só comemora se a resposta for de fato positiva
+        if re.match(r"^\s*\**\s*sim\b", resposta, re.IGNORECASE):
+            resto = re.sub(r"^\s*\**\s*sim\s*\**\s*[,!.]?\s*", "", resposta, flags=re.IGNORECASE)
+            resto = resto[:1].upper() + resto[1:]
+            return f"{random.choice(ABERTURAS_TEMOS_SEM_NOME).format(voc=voc)}\n\n{resto}"
+        return resposta
+
+    return f"{random.choice(ABERTURAS_SUCESSO).format(voc=voc)}\n\n{resposta}"
+
+
+def mensagem_feedback_sucesso() -> str:
+    """Texto do bloco de feedback que vai junto dos botões após uma resposta."""
+    return random.choice(FEEDBACKS_SUCESSO).format(voc=random.choice(VOCATIVOS))

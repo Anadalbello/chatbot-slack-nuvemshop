@@ -36,6 +36,7 @@ from handlers.slack_formatting import (
 from core import KnowledgeManager, Recepcionista, FonteValidator
 # from handlers.filtrar_links_relevantes import filtrar_links_relevantes, gerar_resposta_sem_resultados
 import re
+from handlers.small_talk import personalizar_resposta_sucesso, mensagem_feedback_sucesso
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -357,8 +358,12 @@ def formatar_resultados_encontrados(resultados_json, pergunta_limpa, intencao="o
                     logger.info(f"⚠️ Resposta Gemini muito curta ({len(resposta_gemini)} chars), usando JSON completo")
                     return resultados_json
                 
-                # Formatar resposta final - focada e direta
-                resposta_completa = resposta_gemini
+                # Formatar resposta final - focada e direta, com a personalidade da Tina
+                try:
+                    resposta_completa = personalizar_resposta_sucesso(resposta_gemini, intencao)
+                except Exception as e:
+                    logger.error(f"❌ Erro ao personalizar resposta: {e}")
+                    resposta_completa = resposta_gemini
                 
                 # Adicionar informações complementares apenas se necessário (resposta detalhada)
                 if resposta_esperada == "detalhada" and intencao not in ["contato", "funcionalidades"]:
@@ -1016,8 +1021,7 @@ def slack_events():
                             idioma_resposta = analise_recepcionista.get('user_detected_language', 'pt')
                             mensagem_feedback = obter_mensagem_feedback(idioma_resposta, mostrar_feedback=True)
                             
-                            texto_feedback = "💬 *Essas informações foram úteis?*\n" + \
-                                           "Se precisar de mais detalhes ou tiver outras dúvidas, estou aqui! 😊" + \
+                            texto_feedback = mensagem_feedback_sucesso() + \
                                            mensagem_feedback
                             
                             slack_client.chat_postMessage(
@@ -1333,8 +1337,7 @@ def slack_events():
                     idioma_resposta = analise_recepcionista.get('user_detected_language', 'pt')
                     mensagem_feedback = obter_mensagem_feedback(idioma_resposta, mostrar_feedback=True)
                     
-                    texto_feedback = "💬 *Essas informações foram úteis?*\n" + \
-                                   "Se precisar de mais detalhes ou tiver outras dúvidas, estou aqui! 😊" + \
+                    texto_feedback = mensagem_feedback_sucesso() + \
                                    mensagem_feedback
                     
                     slack_client.chat_postMessage(
